@@ -29,7 +29,7 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
           <ol style={{ listStyle: "none", margin: 0, padding: 0 }}>
             {atual.modulos.map((m, i) => (
               <li key={m} style={{ display: "flex", gap: 14, padding: "12px 18px", borderTop: "1px solid var(--linha-suave)" }}>
-                <span className="mono" style={{ color: "var(--verde)", fontWeight: 600, minWidth: 28 }}>{String(i + 1).padStart(2, "0")}</span>
+                <span className="mono" style={{ color: "var(--destaque)", fontWeight: 600, minWidth: 28 }}>{String(i + 1).padStart(2, "0")}</span>
                 <span>{m}</span>
               </li>
             ))}
@@ -62,7 +62,7 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
         {lista.map((d) => (
           <article key={d.id} className="cartao">
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span className="mono" style={{ fontSize: 22, fontWeight: 600, color: "var(--verde)" }}>{d.sigla}</span>
+              <span className="mono" style={{ fontSize: 22, fontWeight: 600, color: "var(--destaque)" }}>{d.sigla}</span>
               <span className="mono pequeno suave">ETAPA {d.etapa}</span>
             </div>
             <h2>{d.nome}</h2>

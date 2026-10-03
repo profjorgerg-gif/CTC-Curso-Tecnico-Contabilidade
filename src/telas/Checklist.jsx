@@ -57,7 +57,7 @@ export default function Checklist() {
           <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
             {g.itens.map((i) => (
               <li key={i.id} style={{ display: "flex", gap: 12, alignItems: "center", padding: "12px 18px", borderTop: "1px solid var(--linha-suave)", flexWrap: "wrap" }}>
-                <span aria-hidden="true" style={{ width: 16, height: 16, border: "1.5px solid #b9c0b8", borderRadius: 4, flex: "none" }} />
+                <span aria-hidden="true" style={{ width: 16, height: 16, border: "1.5px solid var(--borda-campo)", borderRadius: 4, flex: "none" }} />
                 <span style={{ flex: "1 1 260px" }}>{i.item}</span>
                 <span className={`selo ${i.quem === "Professor" ? "ocre" : i.quem === "Claude" ? "verde" : "cinza"}`}>{i.quem === "Professor" ? "Com você" : i.quem === "Claude" ? "Com o Claude" : i.quem}</span>
               </li>
