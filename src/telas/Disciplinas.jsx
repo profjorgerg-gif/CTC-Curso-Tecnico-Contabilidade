@@ -1,5 +1,38 @@
 import { DISCIPLINAS, disciplinaPorId } from "../dados/disciplinas";
 import { useTurmas } from "../lib/useTurmas";
+import { EMENTAS, FONTE_EMENTAS } from "../dados/ementas";
+
+// Ementa oficial do componente curricular (texto literal do documento da SED/SC)
+function Ementa({ e }) {
+  const titulo = { fontSize: 13, fontWeight: 600, color: "var(--destaque)", textTransform: "uppercase", letterSpacing: 0.4, margin: "0 0 6px" };
+  const lista = { margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4 };
+  return (
+    <section className="cartao" aria-labelledby="titulo-ementa">
+      <h2 id="titulo-ementa">Ementa oficial</h2>
+      <div>
+        <h3 style={titulo}>Objeto do Conhecimento</h3>
+        <p>{e.objeto}</p>
+      </div>
+      <div>
+        <h3 style={titulo}>Habilidade</h3>
+        <ul style={lista}>{e.habilidade.map((h) => <li key={h}>{h}</li>)}</ul>
+      </div>
+      <div>
+        <h3 style={titulo}>Referência Bibliográfica Básica</h3>
+        <ul style={lista}>{e.basica.map((r) => <li key={r}>{r}</li>)}</ul>
+      </div>
+      <div>
+        <h3 style={titulo}>Referência Bibliográfica Complementar</h3>
+        {e.complementar.length
+          ? <ul style={lista}>{e.complementar.map((r) => <li key={r}>{r}</li>)}</ul>
+          : <p className="suave">Não consta no documento para este componente.</p>}
+      </div>
+      <p className="pequeno suave" style={{ borderTop: "1px solid var(--linha-suave)", paddingTop: 10 }}>
+        Fonte: {FONTE_EMENTAS.autor} <strong>{FONTE_EMENTAS.titulo}</strong>{FONTE_EMENTAS.resto} {e.paginas}.
+      </p>
+    </section>
+  );
+}
 
 export default function Disciplinas({ sessao, papel, ir, rota }) {
   const { turmas, carregando } = useTurmas(sessao);
@@ -23,6 +56,7 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
             {atual.usa.map((u) => <span key={u} className="selo verde">{u}</span>)}
           </div>
         )}
+        {EMENTAS[atual.id] && <Ementa e={EMENTAS[atual.id]} />}
         <section className="cartao sem-padding">
           <div className="cartao-topo"><h2>Módulos</h2><span className="pequeno suave">O conteúdo entra nas próximas fases</span></div>
           {atual.modulos.length === 0 && <p className="suave" style={{ padding: 18 }}>Módulos ainda não definidos — aguardando a ementa.</p>}
