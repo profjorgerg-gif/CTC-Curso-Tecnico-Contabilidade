@@ -1,0 +1,47 @@
+{
+  "atualizadoEm": "2026-10-03",
+  "itens": [
+    { "id": "f2-empresa", "fase": "Fase 2 — Contabilidade Básica", "item": "Empresa individual do aluno criada por turma", "quem": "Claude", "feito": false },
+    { "id": "f2-ciclo", "fase": "Fase 2 — Contabilidade Básica", "item": "Saldos iniciais, 10 lançamentos orientados, razão, balancete", "quem": "Claude", "feito": false },
+    { "id": "f2-estoque", "fase": "Fase 2 — Contabilidade Básica", "item": "Controle de estoque (PEPS, UEPS, média ponderada)", "quem": "Claude", "feito": false },
+    { "id": "f2-demonstracoes", "fase": "Fase 2 — Contabilidade Básica", "item": "DRE, encerramento (ARE) e balanço patrimonial", "quem": "Claude", "feito": false },
+    { "id": "f2-avaliacao", "fase": "Fase 2 — Contabilidade Básica", "item": "Motor de avaliação: exercícios, recuperação paralela, prazos e notas", "quem": "Claude", "feito": false },
+    { "id": "f2-teste", "fase": "Fase 2 — Contabilidade Básica", "item": "Teste com o aluno de teste e aprovação do professor", "quem": "Professor", "feito": false },
+
+    { "id": "f3-modulos", "fase": "Fase 3 — Contabilidade Intermediária", "item": "11 módulos com teoria, questões e recuperação", "quem": "Claude", "feito": false },
+    { "id": "f3-ferramentas", "fase": "Fase 3 — Contabilidade Intermediária", "item": "Simulador de lançamentos, depreciação, PECLD e DLPA", "quem": "Claude", "feito": false },
+    { "id": "f3-relatorios", "fase": "Fase 3 — Contabilidade Intermediária", "item": "7 relatórios finais calculados dos lançamentos do aluno", "quem": "Claude", "feito": false },
+    { "id": "f3-teste", "fase": "Fase 3 — Contabilidade Intermediária", "item": "Teste e aprovação do professor", "quem": "Professor", "feito": false },
+
+    { "id": "f4-simulador", "fase": "Fase 4 — Unidade II + Simulador de NF-e", "item": "Simulador de NF-e na área do professor, lendo IBS/CBS do Banco de Dados", "quem": "Claude", "feito": false },
+    { "id": "f4-fluxo", "fase": "Fase 4 — Unidade II + Simulador de NF-e", "item": "Nota emitida vira gabarito; aluno digita, analisa, classifica e escritura", "quem": "Claude", "feito": false },
+    { "id": "f4-correcao", "fase": "Fase 4 — Unidade II + Simulador de NF-e", "item": "Fila de correção e rubrica de avaliação", "quem": "Claude", "feito": false },
+    { "id": "f4-teste", "fase": "Fase 4 — Unidade II + Simulador de NF-e", "item": "Teste e aprovação do professor", "quem": "Professor", "feito": false },
+
+    { "id": "f5-modulos", "fase": "Fase 5 — Contabilidade Avançada", "item": "Provisão da folha, LALUR e destinação do resultado", "quem": "Claude", "feito": false },
+    { "id": "f5-teste", "fase": "Fase 5 — Contabilidade Avançada", "item": "Teste e aprovação do professor", "quem": "Professor", "feito": false },
+
+    { "id": "f6-ementa", "fase": "Fase 6 — Contabilidade Tributária", "item": "Enviar ementa e temas da CT", "quem": "Professor", "feito": false },
+    { "id": "f6-modulos", "fase": "Fase 6 — Contabilidade Tributária", "item": "Módulos de CT (documentos fiscais, tributos, Reforma, IRPF, ganho de capital)", "quem": "Claude", "feito": false },
+    { "id": "f6-teste", "fase": "Fase 6 — Contabilidade Tributária", "item": "Teste e aprovação do professor", "quem": "Professor", "feito": false },
+
+    { "id": "f7-ementa", "fase": "Fase 7 — Recursos Humanos", "item": "Enviar ementa e temas de RH", "quem": "Professor", "feito": false },
+    { "id": "f7-modulos", "fase": "Fase 7 — Recursos Humanos", "item": "Módulos de RH (folha, férias, 13º, rescisão)", "quem": "Claude", "feito": false },
+    { "id": "f7-teste", "fase": "Fase 7 — Recursos Humanos", "item": "Teste e aprovação do professor", "quem": "Professor", "feito": false },
+
+    { "id": "f8-ementa-agb", "fase": "Fase 8 — AGB e ADMF", "item": "Enviar ementa e temas da AGB", "quem": "Professor", "feito": false },
+    { "id": "f8-arquivos-admf", "fase": "Fase 8 — AGB e ADMF", "item": "Enviar os arquivos da plataforma de Administração Financeira", "quem": "Professor", "feito": false },
+    { "id": "f8-agb", "fase": "Fase 8 — AGB e ADMF", "item": "Módulos de AGB usando a DRE e o balanço do aluno", "quem": "Claude", "feito": false },
+    { "id": "f8-admf", "fase": "Fase 8 — AGB e ADMF", "item": "Módulos de ADMF", "quem": "Claude", "feito": false },
+    { "id": "f8-teste", "fase": "Fase 8 — AGB e ADMF", "item": "Teste e aprovação do professor", "quem": "Professor", "feito": false },
+
+    { "id": "f9-sipp", "fase": "Fase 9 — Área do professor e fechamento", "item": "Analisar o SIPP e decidir como entra no planejamento de aulas", "quem": "Professor e Claude", "feito": false },
+    { "id": "f9-planejamento", "fase": "Fase 9 — Área do professor e fechamento", "item": "Planejamento de aulas e Guia Pedagógico", "quem": "Claude", "feito": false },
+    { "id": "f9-suporte", "fase": "Fase 9 — Área do professor e fechamento", "item": "Suporte por chamados", "quem": "Claude", "feito": false },
+    { "id": "f9-backup", "fase": "Fase 9 — Área do professor e fechamento", "item": "Backup completo e auditoria", "quem": "Claude", "feito": false },
+    { "id": "f9-manuais", "fase": "Fase 9 — Área do professor e fechamento", "item": "Manuais do aluno, do professor e de operacionalização", "quem": "Claude", "feito": false },
+
+    { "id": "g-natureza", "fase": "Ajustes gerais", "item": "Conferir a natureza das contas 4.2.01 a 4.2.06 (deduções da receita)", "quem": "Professor", "feito": false },
+    { "id": "g-turma-teste", "fase": "Ajustes gerais", "item": "Excluir a turma \"Teste CB\" ao final dos testes", "quem": "Professor", "feito": false }
+  ]
+}
