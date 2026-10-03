@@ -1,0 +1,123 @@
+rules_version = '2';
+
+// ============================================================================
+// CTC — Regras de segurança do Firestore (Fase 1)
+// Cole este arquivo inteiro em: Console Firebase > Firestore > Regras > Publicar
+//
+// Quem é quem:
+//  - Administrador e Professor: e-mail cadastrado em autorizados/{email}
+//    (papel "admin" ou "professor"). Não existe código de acesso.
+//  - Aluno: qualquer conta Google que tenha vinculado uma matrícula que o
+//    professor incluiu na lista de uma turma.
+// ============================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- funções de apoio ----------
+    function logado() {
+      return request.auth != null && request.auth.token.email != null;
+    }
+    function meuEmail() {
+      return request.auth.token.email.lower();
+    }
+    function autorizado() {
+      return logado() && exists(/databases/$(database)/documents/autorizados/$(meuEmail()));
+    }
+    function papel() {
+      return get(/databases/$(database)/documents/autorizados/$(meuEmail())).data.papel;
+    }
+    function souAdmin() {
+      return autorizado() && papel() == 'admin';
+    }
+    function souProfessor() {
+      // administrador também pode tudo o que o professor pode
+      return autorizado() && papel() in ['professor', 'admin'];
+    }
+    function minhaMatricula() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.get('matricula', '');
+    }
+    function souProfessorDaTurma(turmaId) {
+      return souAdmin() || (souProfessor() &&
+        get(/databases/$(database)/documents/turmas/$(turmaId)).data.professorUid == request.auth.uid);
+    }
+    function souAlunoDaTurma(turmaId) {
+      let m = minhaMatricula();
+      return logado() && m != '' &&
+        exists(/databases/$(database)/documents/turmas/$(turmaId)/alunos/$(m)) &&
+        get(/databases/$(database)/documents/matriculas/$(m)).data.get('uid', null) == request.auth.uid;
+    }
+
+    // ---------- professores e administradores autorizados ----------
+    match /autorizados/{email} {
+      // cada pessoa pode ver o próprio registro; o administrador vê todos
+      allow read: if logado() && (email == meuEmail() || souAdmin());
+      // só o administrador inclui ou remove (o primeiro é criado pelo Console)
+      allow write: if souAdmin();
+    }
+
+    // ---------- perfil de cada usuário ----------
+    match /usuarios/{uid} {
+      allow read: if logado() && (request.auth.uid == uid || souProfessor());
+      // o próprio aluno cria/atualiza o perfil; a matrícula só pode ser gravada
+      // se, ao final da mesma operação, a matrícula estiver vinculada a ele
+      allow create, update: if logado() && request.auth.uid == uid &&
+        (request.resource.data.get('matricula', '') == '' ||
+         getAfter(/databases/$(database)/documents/matriculas/$(request.resource.data.matricula)).data.get('uid', null) == request.auth.uid);
+      allow delete: if souAdmin();
+    }
+
+    // ---------- matrículas (índice de todos os alunos das listas) ----------
+    match /matriculas/{matricula} {
+      // buscar UMA matrícula (primeiro acesso) qualquer pessoa logada pode;
+      // listar todas, só professor
+      allow get: if logado();
+      allow list: if souProfessor();
+      // o professor inclui, atualiza ou desvincula
+      allow create, delete: if souProfessor();
+      allow update: if souProfessor() ||
+        // o aluno vincula a matrícula livre à própria conta, e nada além disso
+        (logado() &&
+         resource.data.get('uid', null) == null &&
+         request.resource.data.uid == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid', 'vinculadoEm']));
+    }
+
+    // ---------- turmas ----------
+    match /turmas/{turmaId} {
+      allow read: if souProfessor() || souAlunoDaTurma(turmaId);
+      allow create: if souProfessor() && request.resource.data.professorUid == request.auth.uid;
+      allow update, delete: if souProfessorDaTurma(turmaId);
+
+      match /alunos/{matricula} {
+        allow read: if souProfessorDaTurma(turmaId) ||
+          (souAlunoDaTurma(turmaId) && matricula == minhaMatricula());
+        // a lista pode ser gravada junto com a criação da turma (ou com a exclusão),
+        // por isso confere a turma antes e depois da gravação
+        allow write: if souAdmin() || (souProfessor() && (
+          (exists(/databases/$(database)/documents/turmas/$(turmaId)) &&
+           get(/databases/$(database)/documents/turmas/$(turmaId)).data.professorUid == request.auth.uid) ||
+          (existsAfter(/databases/$(database)/documents/turmas/$(turmaId)) &&
+           getAfter(/databases/$(database)/documents/turmas/$(turmaId)).data.professorUid == request.auth.uid)));
+      }
+    }
+
+    // ---------- Banco de Dados comum ----------
+    // plano de contas, cronograma IBS/CBS e outras tabelas de referência
+    match /config/{docId} {
+      allow read: if logado();
+      allow write: if souProfessor() && (docId == 'planoContas' || souAdmin());
+    }
+
+    // histórico de alterações: ninguém altera nem apaga um registro
+    match /historico/{id} {
+      allow read: if souProfessor();
+      allow create: if souProfessor() && request.resource.data.porUid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // qualquer outra coleção fica fechada
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
