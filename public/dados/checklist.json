@@ -238,6 +238,13 @@
       "item": "Excluir a turma \"Teste CB\" ao final dos testes",
       "quem": "Professor",
       "feito": false
+    },
+    {
+      "id": "g-login-rodape",
+      "fase": "Ajustes gerais",
+      "item": "Nova tela de entrada (opção 7) e rodapé de direitos autorais em todas as telas",
+      "quem": "Claude",
+      "feito": true
     }
   ]
 }

@@ -8,6 +8,7 @@ import Turmas from "./telas/Turmas";
 import BancoDados from "./telas/BancoDados";
 import Autorizados from "./telas/Autorizados";
 import Checklist from "./telas/Checklist";
+import Rodape from "./componentes/Rodape";
 
 // Itens do menu por perfil
 const MENUS = {
@@ -18,6 +19,9 @@ const MENUS = {
 
 // A página atual fica no endereço (#turmas, #banco...) para sobreviver ao F5
 const lerPagina = () => (window.location.hash || "#inicio").slice(1).split("/");
+
+// Toda tela leva o rodapé de direitos autorais
+const comRodape = (tela) => <div className="pagina">{tela}<Rodape /></div>;
 
 export default function App() {
   const sessao = useSessao();
@@ -31,10 +35,10 @@ export default function App() {
 
   const ir = (...partes) => { window.location.hash = partes.join("/"); };
 
-  if (sessao.carregando) return <div className="tela-login"><p className="suave">Carregando…</p></div>;
-  if (!sessao.usuario) return <Login />;
+  if (sessao.carregando) return comRodape(<div className="tela-login"><p className="suave">Carregando…</p></div>);
+  if (!sessao.usuario) return comRodape(<Login />);
   if (sessao.erro) {
-    return (
+    return comRodape(
       <div className="tela-login">
         <div className="caixa-login">
           <div className="aviso erro">{sessao.erro}</div>
@@ -44,7 +48,7 @@ export default function App() {
     );
   }
   if (sessao.papel === "aluno" && !sessao.perfil?.matricula) {
-    return <PrimeiroAcesso usuario={sessao.usuario} aoConcluir={sessao.recarregar} />;
+    return comRodape(<PrimeiroAcesso usuario={sessao.usuario} aoConcluir={sessao.recarregar} />);
   }
 
   const papel = sessao.papel;
@@ -52,7 +56,7 @@ export default function App() {
   const [pagina, ...resto] = menu.some(([id]) => id === rota[0]) ? rota : ["inicio"];
   const props = { sessao, papel, ir, rota: resto };
 
-  return (
+  return comRodape(
     <>
       <header className="topo">
         <div className="marca">
