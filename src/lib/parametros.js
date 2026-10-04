@@ -153,6 +153,12 @@ export async function salvarParametrosDaTurma(turma, fixos) {
   auditar("Fixou parâmetros da turma", `${turma.nome}: ${Object.keys(fixos).length} parâmetro(s)`);
 }
 
+// professor: nível de ajuda nos lançamentos e tributos nas operações (turmas/{id}.configLancamentos)
+export async function salvarConfigLancamentos(turma, config) {
+  await setDoc(doc(db, "turmas", turma.id), { configLancamentos: config }, { merge: true });
+  auditar("Configurou os lançamentos da turma", `${turma.nome}: ajuda ${config.ajuda}, tributos ${config.tributos}`);
+}
+
 // datas de fim de período aceitas para o encerramento (ARE)
 export function fimDePeriodoValido(data, apuracao, exercicioFim) {
   if (!data) return false;

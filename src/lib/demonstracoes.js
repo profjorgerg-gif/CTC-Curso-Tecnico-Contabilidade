@@ -2,7 +2,7 @@
 // (base: SECCHH; estrutura conforme a Lei 6.404/76 e a NBC TG 26).
 // Os lançamentos de encerramento levam a marca `encerramento: true`, para que a
 // DRE continue mostrando o resultado do período mesmo depois do fechamento.
-import { arred, totaisDaConta } from "./contabil";
+import { arred, partidasDe, totaisDaConta } from "./contabil";
 
 export const CONTA_ARE = "7.1.01";
 export const CONTA_LUCROS = "3.9"; // Resultado do Exercício (lucros acumulados)
@@ -93,13 +93,24 @@ export function dlpa(plano, lancamentos, saldos) {
   const saldoInicial = arred(ini(CONTA_LUCROS) + ini(CONTA_PREJUIZOS));
   const resultado = dre(plano, lancamentos, saldos).resultado;
   // destinações: lançamentos que tiram dos lucros (débito em 3.9) para reservas ou dividendos
-  const destinacoes = semEncerramento(lancamentos)
-    .filter((l) => l.contaDebito === CONTA_LUCROS && (doRamo(l.contaCredito, "3.4") || doRamo(l.contaCredito, "2.1.7") || doRamo(l.contaCredito, "3.2")))
-    .map((l) => ({ l, conta: plano.porCodigo[l.contaCredito], valor: Number(l.valor) }));
-  // outras movimentações diretas em 3.9 / 3.6 (ex.: compensação de prejuízos, ajustes)
-  const outras = semEncerramento(lancamentos)
-    .filter((l) => (l.contaDebito === CONTA_LUCROS || l.contaCredito === CONTA_LUCROS || l.contaDebito === CONTA_PREJUIZOS || l.contaCredito === CONTA_PREJUIZOS) && !destinacoes.some((d) => d.l.id === l.id))
-    .map((l) => ({ l, valor: arred(((l.contaCredito === CONTA_LUCROS || l.contaCredito === CONTA_PREJUIZOS) ? 1 : -1) * Number(l.valor)) }));
+  const destino = (c) => doRamo(c, "3.4") || doRamo(c, "2.1.7") || doRamo(c, "3.2");
+  const destinacoes = [];
+  const outras = [];
+  for (const l of semEncerramento(lancamentos)) {
+    const ps = partidasDe(l);
+    const tiraDosLucros = ps.some((p) => p.d === "D" && p.conta === CONTA_LUCROS);
+    ps.forEach((p, i) => {
+      if (tiraDosLucros && p.d === "C" && destino(p.conta)) {
+        destinacoes.push({ l, chave: `${l.id}-${i}`, conta: plano.porCodigo[p.conta], valor: Number(p.valor) });
+      }
+    });
+    // outras movimentações diretas em 3.9 / 3.6 (ex.: compensação de prejuízos, ajustes)
+    ps.forEach((p, i) => {
+      if (p.conta !== CONTA_LUCROS && p.conta !== CONTA_PREJUIZOS) return;
+      if (tiraDosLucros && p.conta === CONTA_LUCROS && p.d === "D" && ps.filter((x) => x.d === "C").every((x) => destino(x.conta))) return;
+      outras.push({ l, chave: `${l.id}-${i}`, valor: arred((p.d === "C" ? 1 : -1) * Number(p.valor)) });
+    });
+  }
   const totalDest = arred(destinacoes.reduce((s, d) => s + d.valor, 0));
   const totalOutras = arred(outras.reduce((s, d) => s + d.valor, 0));
   const saldoFinal = arred(saldoInicial + totalOutras + resultado - totalDest);

@@ -59,9 +59,8 @@ export function gerarLista({ quantidade, tipos, minimo, maximo, inicio, fim, sem
 
   const possiveis = () => {
     const p = [];
-    if (tipos.includes("compras")) p.push("compraVista", "compraPrazo", "compraPrazo");
-    // uma venda precisa de mais um fato depois dela (a baixa do CMV)
-    if (tipos.includes("vendas") && qtdEstoque() >= 5 && fatos.length < quantidade - 1) p.push("vendaVista", "vendaPrazo", "vendaPrazo");
+    if (tipos.includes("compras")) p.push("compraVista", "compraPrazo", "compraPrazo", "compraMista");
+    if (tipos.includes("vendas") && qtdEstoque() >= 5) p.push("vendaVista", "vendaPrazo", "vendaPrazo");
     if (tipos.includes("liquidacoes")) { if (fornecedores.length) p.push("pagaFornecedor"); if (clientes.length) p.push("recebeCliente"); }
     if (tipos.includes("despesas")) p.push("despesa", "despesa");
     if (tipos.includes("financeiras")) { p.push(emprestimo ? "juros" : "emprestimo", aplicacao ? "rendimento" : "aplicacao"); }
@@ -78,12 +77,23 @@ export function gerarLista({ quantidade, tipos, minimo, maximo, inicio, fim, sem
     const banco = r.item(BANCOS);
     const lim = (v) => Math.min(Math.max(v, minimo), maximo);
     let f = null;
-    if (tipo === "compraVista" || tipo === "compraPrazo") {
+    if (tipo === "compraVista" || tipo === "compraPrazo" || tipo === "compraMista") {
       const unit = r.valor(Math.max(minimo / 50, 5), Math.max(maximo / 20, 10), 1);
       const qtd = Math.max(5, Math.round(lim(r.valor(minimo, maximo, 10)) / unit / 5) * 5);
       const valor = arred(qtd * unit);
       estoque.push({ qtd, unit });
-      if (tipo === "compraVista") {
+      if (tipo === "compraMista") {
+        // lançamento composto: parte à vista, parte a prazo
+        const vista = arred(Math.round(valor * (0.3 + r.rnd() * 0.4) / 10) * 10);
+        const prazo = arred(valor - vista);
+        fornecedores.push({ valor: prazo, n: fatos.length + 1 });
+        f = { tipo: "compra", texto: `A empresa comprou ${qtd} unidades de mercadorias a ${moeda(unit)} cada — total de ${moeda(valor)} —, pagando ${moeda(vista)} à vista pelo ${banco[1]} e o restante (${moeda(prazo)}) a prazo.`,
+          gabarito: { partidas: [
+            { d: "D", conta: "1.1.3.01", valor, quantidade: qtd },
+            { d: "C", conta: banco[0], valor: vista },
+            { d: "C", conta: FORNECEDORES, valor: prazo },
+          ] } };
+      } else if (tipo === "compraVista") {
         const caixa = r.rnd() < 0.4;
         f = { tipo: "compra", texto: `A empresa comprou ${qtd} unidades de mercadorias a ${moeda(unit)} cada, pagando à vista ${caixa ? "em dinheiro (Caixa)" : `pelo ${banco[1]}`} — total de ${moeda(valor)}.`,
           gabarito: { contaDebito: "1.1.3.01", contaCredito: caixa ? "1.1.1.01" : banco[0], valor, quantidade: qtd } };
@@ -100,26 +110,26 @@ export function gerarLista({ quantidade, tipos, minimo, maximo, inicio, fim, sem
       const valor = arred(Math.round(qtd * custoMedio * (1.3 + r.rnd() * 0.6) / 10) * 10);
       let falta = qtd;
       while (falta > 0 && estoque.length) { const l = estoque[0]; const u = Math.min(l.qtd, falta); l.qtd -= u; falta -= u; if (!l.qtd) estoque.shift(); }
+      // a venda já inclui a baixa do CMV (custo pelo estoque e método de cada aluno; não se aplica no periódico)
+      const cmv = [
+        { d: "D", conta: "6.2.01", valor: null, soPermanente: true },
+        { d: "C", conta: "1.1.3.01", valor: null, quantidade: qtd, soPermanente: true },
+      ];
       if (tipo === "vendaVista") {
-        f = { tipo: "venda", texto: `A empresa vendeu ${qtd} unidades de mercadorias à vista, recebendo ${moeda(valor)} no ${banco[1]}.`,
-          gabarito: { contaDebito: banco[0], contaCredito: "4.1.1.01", valor } };
+        f = { tipo: "venda", texto: `A empresa vendeu ${qtd} unidades de mercadorias à vista, recebendo ${moeda(valor)} no ${banco[1]}. Registre a venda e a baixa do CMV.`,
+          gabarito: { partidas: [{ d: "D", conta: banco[0], valor }, { d: "C", conta: "4.1.1.01", valor }, ...cmv] } };
       } else {
         clientes.push({ valor, n: fatos.length + 1 });
-        f = { tipo: "venda", texto: `A empresa vendeu ${qtd} unidades de mercadorias a prazo para um cliente, no valor de ${moeda(valor)}.`,
-          gabarito: { contaDebito: CLIENTES, contaCredito: "4.1.1.01", valor } };
+        f = { tipo: "venda", texto: `A empresa vendeu ${qtd} unidades de mercadorias a prazo para um cliente, no valor de ${moeda(valor)}. Registre a venda e a baixa do CMV.`,
+          gabarito: { partidas: [{ d: "D", conta: CLIENTES, valor }, { d: "C", conta: "4.1.1.01", valor }, ...cmv] } };
       }
-      fatos.push({ ...f, n: fatos.length + 1 });
-      if (fatos.length < quantidade) {
-        f = { tipo: "cmv", soPermanente: true, texto: `Registre a baixa do custo das mercadorias vendidas (CMV) referente à venda do fato ${fatos.length} (${qtd} unidades).`,
-          gabarito: { contaDebito: "6.2.01", contaCredito: "1.1.3.01", valor: null, quantidade: qtd } };
-      } else f = null;
     } else if (tipo === "pagaFornecedor") {
       const c = fornecedores.shift();
-      f = { tipo: "liquidacao", texto: `A empresa pagou ao fornecedor a duplicata referente à compra do fato ${c.n} (${moeda(c.valor)}), pelo ${banco[1]}.`,
+      f = { tipo: "pagamento", texto: `A empresa pagou ao fornecedor a duplicata referente à compra do fato ${c.n} (${moeda(c.valor)}), pelo ${banco[1]}.`,
         gabarito: { contaDebito: FORNECEDORES, contaCredito: banco[0], valor: c.valor } };
     } else if (tipo === "recebeCliente") {
       const c = clientes.shift();
-      f = { tipo: "liquidacao", texto: `A empresa recebeu do cliente a duplicata referente à venda do fato ${c.n} (${moeda(c.valor)}), no ${banco[1]}.`,
+      f = { tipo: "recebimento", texto: `A empresa recebeu do cliente a duplicata referente à venda do fato ${c.n} (${moeda(c.valor)}), no ${banco[1]}.`,
         gabarito: { contaDebito: banco[0], contaCredito: CLIENTES, valor: c.valor } };
     } else if (tipo === "despesa") {
       const [conta, nome] = r.item(DESPESAS);
@@ -154,6 +164,8 @@ export function gerarLista({ quantidade, tipos, minimo, maximo, inicio, fim, sem
     }
     if (f) fatos.push({ ...f, n: fatos.length + 1 });
   }
+  // gabarito sempre em partidas (débitos e créditos)
+  fatos.forEach((f) => { f.gabarito = emPartidas(f.gabarito); });
   // datas em ordem crescente dentro do período
   const passo = total / Math.max(fatos.length, 1);
   fatos.forEach((f, i) => {
@@ -184,31 +196,52 @@ export async function excluirLista(turma, lista) {
   auditar("Excluiu lista de exercícios", `${lista.titulo} — ${turma.nome}`);
 }
 
-// ---------- correção: compara o lançamento do aluno com o gabarito ----------
-// valorEsperado: para a baixa do CMV, o custo calculado pelo estoque e método do aluno
-export function corrigir(lancamento, fato, valorEsperado) {
-  if (!lancamento || !fato) return null;
-  const g = fato.gabarito;
-  const esperado = g.valor ?? valorEsperado;
-  const erros = [];
-  const aceita = (v, ok) => (Array.isArray(ok) ? ok.includes(v) : v === ok);
-  if (!aceita(lancamento.contaDebito, g.contaDebito)) erros.push("conta a débito");
-  if (!aceita(lancamento.contaCredito, g.contaCredito)) erros.push("conta a crédito");
-  if (esperado != null && Math.abs(Number(lancamento.valor) - Number(esperado)) > 0.005) erros.push("valor");
-  if (g.quantidade && Number(lancamento.quantidade) !== Number(g.quantidade)) erros.push("quantidade");
-  return { ok: erros.length === 0, erros };
+// ---------- gabarito em partidas ----------
+// formato simples { contaDebito, contaCredito, valor, quantidade } vira partidas
+export function emPartidas(g) {
+  if (!g || g.partidas) return g;
+  const estoqueD = g.contaDebito === "1.1.3.01";
+  return { partidas: [
+    { d: "D", conta: g.contaDebito, valor: g.valor, ...(estoqueD && g.quantidade ? { quantidade: g.quantidade } : {}) },
+    { d: "C", conta: g.contaCredito, valor: g.valor, ...(!estoqueD && g.quantidade ? { quantidade: g.quantidade } : {}) },
+  ] };
 }
 
-// gabarito dos 10 fatos orientados da CB (contas equivalentes também são aceitas)
+// ---------- correção: compara as partidas do aluno com o gabarito ----------
+// ctx.cmv: custo esperado da baixa (pelo estoque e método do aluno); ctx.periodico: ignora a baixa do CMV
+export function corrigir(partidasAluno, fato, ctx = {}) {
+  if (!fato?.gabarito) return null;
+  const esperado = emPartidas(fato.gabarito).partidas.filter((p) => !(ctx.periodico && p.soPermanente));
+  const aceita = (v, ok) => (Array.isArray(ok) ? ok.includes(v) : v === ok);
+  const erros = new Set();
+  const usadas = new Set();
+  for (const e of esperado) {
+    const i = partidasAluno.findIndex((p, k) => !usadas.has(k) && p.d === e.d && aceita(p.conta, e.conta));
+    if (i < 0) { erros.add(e.d === "D" ? "conta a débito" : "conta a crédito"); continue; }
+    usadas.add(i);
+    const p = partidasAluno[i];
+    const valorEsperado = e.valor ?? ctx.cmv;
+    if (valorEsperado != null && Math.abs(Number(p.valor) - Number(valorEsperado)) > 0.005) erros.add("valor");
+    if (e.quantidade && Number(p.quantidade) !== Number(e.quantidade)) erros.add("quantidade");
+  }
+  // com tributos ligados na turma, as linhas de ICMS/PIS/COFINS/Simples não contam como "a mais"
+  const tributo = (c) => /^(4\.2\.|2\.1\.8\.|1\.1\.2\.1[1-5])/.test(c || "");
+  partidasAluno.forEach((p, k) => {
+    if (usadas.has(k) || (ctx.tributos && tributo(p.conta))) return;
+    erros.add(p.d === "D" ? "conta a débito a mais" : "conta a crédito a mais");
+  });
+  return { ok: erros.size === 0, erros: [...erros] };
+}
+
+// gabarito dos 8 fatos orientados da CB (contas equivalentes também são aceitas)
+const CMV_ORIENTADO = (q) => [{ d: "D", conta: "6.2.01", valor: null, soPermanente: true }, { d: "C", conta: "1.1.3.01", valor: null, quantidade: q, soPermanente: true }];
 export const GABARITO_ORIENTADOS = [
-  { contaDebito: "1.1.3.01", contaCredito: "1.1.1.01", valor: 2000, quantidade: 100 },
-  { contaDebito: "1.1.3.01", contaCredito: FORNECEDORES, valor: 1250, quantidade: 50 },
-  { contaDebito: "1.1.1.02.01", contaCredito: "4.1.1.01", valor: 3000 },
-  { contaDebito: "6.2.01", contaCredito: "1.1.3.01", valor: null, quantidade: 40 },
-  { contaDebito: CLIENTES, contaCredito: "4.1.1.01", valor: 2400 },
-  { contaDebito: "6.2.01", contaCredito: "1.1.3.01", valor: null, quantidade: 30 },
-  { contaDebito: FORNECEDORES, contaCredito: "1.1.1.02.02", valor: 1250 },
-  { contaDebito: "1.1.1.02.01", contaCredito: CLIENTES, valor: 2400 },
-  { contaDebito: "5.1.14", contaCredito: "1.1.1.02.02", valor: 800 },
-  { contaDebito: "5.1.02", contaCredito: "1.1.1.02.01", valor: 3500 },
+  { partidas: [{ d: "D", conta: "1.1.3.01", valor: 2000, quantidade: 100 }, { d: "C", conta: "1.1.1.01", valor: 2000 }] },
+  { partidas: [{ d: "D", conta: "1.1.3.01", valor: 1250, quantidade: 50 }, { d: "C", conta: FORNECEDORES, valor: 1250 }] },
+  { partidas: [{ d: "D", conta: "1.1.1.02.01", valor: 3000 }, { d: "C", conta: "4.1.1.01", valor: 3000 }, ...CMV_ORIENTADO(40)] },
+  { partidas: [{ d: "D", conta: CLIENTES, valor: 2400 }, { d: "C", conta: "4.1.1.01", valor: 2400 }, ...CMV_ORIENTADO(30)] },
+  { partidas: [{ d: "D", conta: FORNECEDORES, valor: 1250 }, { d: "C", conta: "1.1.1.02.02", valor: 1250 }] },
+  { partidas: [{ d: "D", conta: "1.1.1.02.01", valor: 2400 }, { d: "C", conta: CLIENTES, valor: 2400 }] },
+  { partidas: [{ d: "D", conta: "5.1.14", valor: 800 }, { d: "C", conta: "1.1.1.02.02", valor: 800 }] },
+  { partidas: [{ d: "D", conta: "5.1.02", valor: 3500 }, { d: "C", conta: "1.1.1.02.01", valor: 3500 }] },
 ];

@@ -47,15 +47,21 @@ async function alterarDiario(empresaId, mudar) {
   });
 }
 
+// lançamento composto: grava as partidas (débitos e créditos) e o total
+const r2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 function dadosDoForm(f) {
-  const d = {
+  const partidas = (f.partidas || []).filter((p) => p.conta).map((p) => {
+    const x = { d: p.d, conta: p.conta, valor: r2(p.valor) };
+    if (p.efeito) x.efeito = p.efeito;
+    if (Number(p.quantidade) > 0) x.quantidade = Number(p.quantidade);
+    if (Number(p.valorUnitario) > 0) x.valorUnitario = r2(p.valorUnitario);
+    return x;
+  });
+  return {
     data: f.data, historico: f.historico.trim(), documento: (f.documento || "").trim(),
-    contaDebito: f.contaDebito, contaCredito: f.contaCredito,
-    valor: Math.round(Number(f.valor) * 100) / 100,
+    tipoOperacao: f.tipo || "livre", partidas,
+    valor: r2(partidas.filter((p) => p.d === "D").reduce((s, p) => s + p.valor, 0)),
   };
-  if (Number(f.quantidade) > 0) d.quantidade = Number(f.quantidade);
-  if (Number(f.valorUnitario) > 0) d.valorUnitario = Math.round(Number(f.valorUnitario) * 100) / 100;
-  return d;
 }
 
 export async function incluirLancamento(sessao, empresaId, f, fatoOrientado, extras = {}) {
@@ -65,10 +71,16 @@ export async function incluirLancamento(sessao, empresaId, f, fatoOrientado, ext
   auditarSeProfessor(sessao, "Incluiu lançamento", `${empresaId}: ${novo.historico}`);
 }
 
+// lançamentos antigos (uma conta a débito e uma a crédito) viram partidas ao serem corrigidos
+function semCamposAntigos(l) {
+  const { contaDebito, contaCredito, quantidade, valorUnitario, ...resto } = l;
+  return resto;
+}
+
 export async function alterarLancamento(sessao, empresaId, id, f) {
   // a correção nunca muda a qual fato orientado o lançamento pertence
   await alterarDiario(empresaId, (lista) => lista.map((l) => (l.id === id
-    ? { ...l, ...dadosDoForm(f), alteradoEm: new Date().toISOString(), alteradoPor: autor(sessao) }
+    ? { ...semCamposAntigos(l), ...dadosDoForm(f), alteradoEm: new Date().toISOString(), alteradoPor: autor(sessao) }
     : l)));
   auditarSeProfessor(sessao, "Corrigiu lançamento", `${empresaId}: ${f.historico}`);
 }
@@ -84,7 +96,8 @@ export async function gravarEncerramento(sessao, empresaId, propostos, data) {
   const agora = new Date().toISOString();
   const novos = propostos.map((p, i) => ({
     id: `${novoId()}${i}`, data, historico: p.historico, documento: "",
-    contaDebito: p.contaDebito, contaCredito: p.contaCredito, valor: Math.round(p.valor * 100) / 100,
+    partidas: [{ d: "D", conta: p.contaDebito, valor: r2(p.valor) }, { d: "C", conta: p.contaCredito, valor: r2(p.valor) }],
+    valor: r2(p.valor),
     encerramento: true, criadoEm: `${agora}#${String(i).padStart(3, "0")}`, criadoPor: quem,
   }));
   await alterarDiario(empresaId, (lista) => [...lista.filter((l) => !l.encerramento), ...novos]);

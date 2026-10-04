@@ -1,5 +1,5 @@
 {
-  "atualizadoEm": "2026-10-03",
+  "atualizadoEm": "2026-10-04",
   "itens": [
     {
       "id": "f2-empresa",
@@ -40,6 +40,13 @@
       "id": "f2-listas",
       "fase": "Fase 2 — Contabilidade Básica",
       "item": "Listas de exercícios geradas pelo professor, com gabarito e correção automática (Confere/Diferente)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-lancamento-composto",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Lançamento composto (+ Débito / + Crédito), modelos por tipo de operação, nível de ajuda e tributos definidos pelo professor na turma; venda com CMV no mesmo lançamento (8 fatos orientados)",
       "quem": "Claude",
       "feito": true
     },

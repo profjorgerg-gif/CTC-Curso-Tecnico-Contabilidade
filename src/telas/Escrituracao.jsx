@@ -1,5 +1,6 @@
-// Escrituração da empresa (CB): Saldos iniciais, Lançamentos (10 fatos orientados
-// + lançamento livre), Razão por conta e Balancete de Verificação.
+// Escrituração da empresa (CB): Saldos iniciais, Lançamentos (8 fatos orientados,
+// listas do professor e lançamento livre — compostos, com modelo por operação),
+// Razão, Controle de estoque, Balancete e Demonstrações.
 import { useEffect, useMemo, useState } from "react";
 import { useTurmas } from "../lib/useTurmas";
 import { traduzirErro } from "../lib/sessao";
@@ -14,8 +15,9 @@ import { apuracaoPeriodica, custoDaSaida, kardex, METODOS, movimentosDeEstoque }
 import { semAcento } from "../lib/arquivos";
 import {
   arred, balancete, CONTAS_ABERTURA, CONTAS_ESTOQUE, conferirLancamento, dataBR, dinheiro,
-  FATOS_ORIENTADOS, numero, razao, usePlano,
+  FATOS_ORIENTADOS, numero, partidasDe, razao, totalDoLancamento, totaisDaConta, usePlano,
 } from "../lib/contabil";
+import { avisosDaOperacao, configLancamentos, modeloDeLancamento, NIVEIS_AJUDA, TIPOS_OPERACAO } from "../lib/modelos";
 import {
   alterarLancamento, desfazerEncerramento, excluirLancamento, gravarEncerramento, incluirLancamento, lerEscrituracao, salvarSaldos,
 } from "../lib/escrituracao";
@@ -116,7 +118,6 @@ function Livros({ sessao, empresa, turma, donoAluno }) {
   const pc = params.contabil;
   const metodo = pc.metodoEstoque || "peps";
   const periodico = pc.inventario === "periodico";
-  const fatosNaoAplicaveis = periodico ? [4, 6] : [];
   const carregar = () => lerEscrituracao(empresa.id).then(setDados).catch((e) => setErro(traduzirErro(e)));
   useEffect(() => { carregar(); }, [empresa.id]);
   const [listas, setListas] = useState([]);
@@ -125,9 +126,9 @@ function Livros({ sessao, empresa, turma, donoAluno }) {
 
   if (erroPlano || erro) return <div className="aviso erro">{erroPlano || erro}</div>;
   if (!plano || !dados) return <p className="suave">Carregando os livros…</p>;
-  const props = { sessao, empresa, plano, dados, recarregar: carregar, donoAluno, metodo, params, periodico, fatosNaoAplicaveis, listas };
+  const props = { sessao, empresa, turma, plano, dados, recarregar: carregar, donoAluno, metodo, params, periodico, listas };
   const rotulo = (area, campo) => AREAS.find((a) => a.id === area).campos.find((c) => c.id === campo).opcoes?.find((o) => o.valor === params[area][campo])?.rotulo || params[area][campo];
-  const totalFatos = FATOS_ORIENTADOS.length - fatosNaoAplicaveis.length;
+  const totalFatos = FATOS_ORIENTADOS.length;
 
   return (
     <>
@@ -141,7 +142,7 @@ function Livros({ sessao, empresa, turma, donoAluno }) {
           </span>
         </div>
         <Indicador rotulo="Lançamentos" valor={dados.lancamentos.length} />
-        <Indicador rotulo="Fatos orientados" valor={`${Math.min(dados.lancamentos.filter((l) => l.fatoOrientado && !fatosNaoAplicaveis.includes(l.fatoOrientado)).length, totalFatos)}/${totalFatos}`} />
+        <Indicador rotulo="Fatos orientados" valor={`${Math.min(new Set(dados.lancamentos.filter((l) => l.fatoOrientado && l.fatoOrientado <= totalFatos).map((l) => l.fatoOrientado)).size, totalFatos)}/${totalFatos}`} />
       </section>
       {pc.regimeReconhecimento === "caixa" && <div className="aviso atencao pequeno">Parâmetro escolhido: regime de caixa. Lembre-se: a escrituração contábil segue a competência; o regime de caixa vale só para a apuração de tributos em casos permitidos.</div>}
       <div className="abas" role="tablist">
@@ -295,13 +296,22 @@ function SaldosIniciais({ sessao, empresa, plano, dados, recarregar }) {
 }
 
 // ---------------- lançamentos (Livro Diário) ----------------
+// Lançamento composto (aprovado em 04/10/2026): várias linhas de débito e de crédito,
+// com modelo por tipo de operação conforme o nível de ajuda definido na turma.
+const linhaVazia = (d, efeito = "") => ({ d, efeito, conta: "", valor: "", quantidade: "", valorUnitario: "" });
 const formVazio = (empresa) => ({
   data: empresa.inicioExercicio || new Date().toISOString().slice(0, 10),
-  historico: "", documento: "", contaDebito: "", contaCredito: "", valor: "", quantidade: "", valorUnitario: "",
+  historico: "", documento: "", tipo: "livre", partidas: [linhaVazia("D"), linhaVazia("C")],
 });
+const formEmBranco = (f) => !f.historico.trim() && f.partidas.every((p) => !p.conta && !p.valor);
+const somaLado = (partidas, lado) => arred(partidas.filter((p) => p.d === lado).reduce((s, p) => s + (Number(p.valor) || 0), 0));
+// quantidade que sai do estoque no lançamento (créditos na conta de estoque)
+const qtdSaida = (partidas) => partidas.filter((p) => p.d === "C" && CONTAS_ESTOQUE.includes(p.conta)).reduce((s, p) => s + (Number(p.quantidade) || 0), 0);
 
-function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, metodo, params, periodico, listas = [] }) {
+function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAluno, metodo, params, periodico, listas = [] }) {
   const lista = dados.lancamentos;
+  const cfg = configLancamentos(turma);
+  const contexto = { periodico, tributos: cfg.tributos, regime: params.fiscal.regimeTributario, contribuinteIcms: params.fiscal.contribuinteIcms };
   const [form, setForm] = useState(() => formVazio(empresa));
   const [editando, setEditando] = useState(null);
   const [erros, setErros] = useState([]);
@@ -310,24 +320,25 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
   const [busca, setBusca] = useState("");
   const [vendoFato, setVendoFato] = useState(null);
 
-  // roteiros guiados: os 10 fatos orientados + as listas enviadas pelo professor
+  // resultado da correção (para a baixa do CMV, o custo vem do estoque e do método do próprio aluno)
+  const resultado = (l, fato) => {
+    if (!l || !fato) return null;
+    const partidas = partidasDe(l);
+    const q = qtdSaida(partidas);
+    const cmv = !periodico && q > 0 ? custoDaSaida(lista, metodo, q, l.data, l.id).custo : null;
+    return corrigir(partidas, fato, { cmv, periodico, tributos: cfg.tributos });
+  };
+  // roteiros guiados: os 8 fatos orientados + as listas enviadas pelo professor
   const roteiros = useMemo(() => [
-    { id: "orientados", titulo: "Fatos orientados", fatos: FATOS_ORIENTADOS.map((texto, i) => ({ n: i + 1, texto, gabarito: GABARITO_ORIENTADOS[i], soPermanente: i === 3 || i === 5 })) },
+    { id: "orientados", titulo: "Fatos orientados", fatos: FATOS_ORIENTADOS.map((f, i) => ({ n: i + 1, texto: f.texto, tipo: f.tipo, gabarito: GABARITO_ORIENTADOS[i] })) },
     ...listas.map((l) => ({ id: l.id, titulo: l.titulo, prazo: l.prazo, fatos: l.fatos })),
   ], [listas]);
   const estadoDo = (r) => {
     const lanc = {};
     lista.forEach((l) => { const n = numeroNoRoteiro(l, r.id); if (n) lanc[n] = l; });
-    const naoSeAplica = new Set(periodico ? r.fatos.filter((f) => f.soPermanente).map((f) => f.n) : []);
-    const proximo = r.fatos.find((f) => !lanc[f.n] && !naoSeAplica.has(f.n))?.n || 0;
+    const proximo = r.fatos.find((f) => !lanc[f.n])?.n || 0;
     const corrigidos = r.fatos.filter((f) => lanc[f.n]).map((f) => resultado(lanc[f.n], f));
-    return { lanc, naoSeAplica, proximo, acertos: corrigidos.filter((c) => c?.ok).length, lancados: corrigidos.length, aplicaveis: r.fatos.length - naoSeAplica.size };
-  };
-  // resultado da correção (para a baixa do CMV, o custo vem do estoque e do método do próprio aluno)
-  const resultado = (l, fato) => {
-    if (!l || !fato) return null;
-    const esperadoCMV = fato.gabarito?.valor == null && !periodico ? custoDaSaida(lista, metodo, l.quantidade, l.data, l.id).custo : null;
-    return corrigir(l, fato, esperadoCMV);
+    return { lanc, proximo, acertos: corrigidos.filter((c) => c?.ok).length, lancados: corrigidos.length, aplicaveis: r.fatos.length };
   };
   const [roteiroId, setRoteiroId] = useState(null);
   const roteiro = roteiros.find((r) => r.id === roteiroId) || roteiros.find((r) => estadoDo(r).proximo) || roteiros[0];
@@ -336,32 +347,60 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
   const etapaGuiada = donoAluno && proximoFato > 0 && !editando;
   const fatoNaTela = vendoFato || proximoFato;
   const fatoDaTela = roteiro.fatos.find((f) => f.n === fatoNaTela);
-  // nas listas, a data do fato já vem preenchida no formulário
-  const dataDoProximo = roteiro.fatos.find((f) => f.n === proximoFato)?.data;
-  useEffect(() => { if (etapaGuiada && dataDoProximo) setForm((f) => ({ ...f, data: dataDoProximo })); }, [roteiro.id, proximoFato]);
+  const fatoDoProximo = roteiro.fatos.find((f) => f.n === proximoFato);
+  // no fato guiado, o formulário já vem com o modelo da operação (e, nas listas, com a data)
+  useEffect(() => {
+    if (!etapaGuiada || !fatoDoProximo) return;
+    setForm((f) => {
+      if (!formEmBranco(f)) return f;
+      const tipo = fatoDoProximo.tipo || "livre";
+      return { ...f, tipo, data: fatoDoProximo.data || f.data, partidas: modeloDeLancamento(tipo, cfg.ajuda, contexto) };
+    });
+  }, [roteiro.id, proximoFato, etapaGuiada]);
   const fatoDoLancamento = (l) => {
     for (const r of roteiros) { const n = numeroNoRoteiro(l, r.id); if (n) return { r, fato: r.fatos.find((f) => f.n === n) }; }
     return null;
   };
 
-  const compraEstoque = CONTAS_ESTOQUE.includes(form.contaDebito);
-  const baixaEstoque = CONTAS_ESTOQUE.includes(form.contaCredito);
-  // na compra, o valor é quantidade × valor unitário
-  useEffect(() => {
-    if (compraEstoque && Number(form.quantidade) > 0 && Number(form.valorUnitario) > 0) {
-      setForm((f) => ({ ...f, valor: String(arred(Number(f.quantidade) * Number(f.valorUnitario))) }));
-    }
-  }, [compraEstoque, form.quantidade, form.valorUnitario]);
-
   const muda = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const mudarTipo = (tipo) => {
+    if (!form.partidas.every((p) => !p.conta && !p.valor) && !window.confirm("Trocar o tipo de operação recomeça as linhas do lançamento. Continuar?")) return;
+    setForm((f) => ({ ...f, tipo, partidas: modeloDeLancamento(tipo, cfg.ajuda, contexto) }));
+  };
+  const mudarLinha = (i, campo, valor) => setForm((f) => {
+    const partidas = f.partidas.map((p, k) => {
+      if (k !== i) return p;
+      const n = { ...p, [campo]: valor };
+      // na entrada no estoque, o valor é quantidade × valor unitário
+      if (n.d === "D" && CONTAS_ESTOQUE.includes(n.conta) && Number(n.quantidade) > 0 && Number(n.valorUnitario) > 0) {
+        n.valor = String(arred(Number(n.quantidade) * Number(n.valorUnitario)));
+      }
+      return n;
+    });
+    return { ...f, partidas };
+  });
+  const incluirLinha = (d) => setForm((f) => {
+    const partidas = [...f.partidas];
+    const ultimaDoLado = partidas.map((p) => p.d).lastIndexOf(d);
+    partidas.splice(ultimaDoLado >= 0 ? ultimaDoLado + 1 : partidas.length, 0, linhaVazia(d));
+    return { ...f, partidas };
+  });
+  const tirarLinha = (i) => setForm((f) => ({ ...f, partidas: f.partidas.filter((_, k) => k !== i) }));
   const cancelar = () => { setEditando(null); setForm(formVazio(empresa)); setErros([]); };
+
+  const totD = somaLado(form.partidas, "D");
+  const totC = somaLado(form.partidas, "C");
+  const baixaEstoque = form.partidas.some((p) => p.d === "C" && CONTAS_ESTOQUE.includes(p.conta));
+  const linhaCMV = form.partidas.findIndex((p) => p.d === "D" && p.conta === "6.2.01");
+  const linhaBaixa = form.partidas.findIndex((p) => p.d === "C" && CONTAS_ESTOQUE.includes(p.conta));
+  const avisos = avisosDaOperacao(form.tipo, form.partidas, plano);
 
   const salvar = async (e) => {
     e.preventDefault();
     const problemas = conferirLancamento(form, plano);
     const pc = params.contabil;
     if (form.data && (form.data < pc.exercicioInicio || form.data > pc.exercicioFim)) problemas.push(`A data precisa estar dentro do exercício (${dataBR(pc.exercicioInicio)} a ${dataBR(pc.exercicioFim)}).`);
-    if (periodico && baixaEstoque) problemas.push("No inventário periódico não se baixa o CMV a cada venda: o CMV é apurado no fim do período, na aba Controle de estoque.");
+    if (periodico && baixaEstoque) problemas.push("No inventário periódico não se baixa o estoque a cada venda: o CMV é apurado no fim do período, na aba Controle de estoque.");
     setErros(problemas); setMsg({});
     if (problemas.length) return;
     setSalvando(true);
@@ -372,8 +411,8 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
       else await incluirLancamento(sessao, empresa.id, form, null);
       setMsg({ texto: editando ? "Lançamento corrigido." : etapaGuiada ? `Fato ${proximoFato} lançado.` : "Lançamento incluído." });
       setVendoFato(null);
-      cancelar();
-      setForm((f) => ({ ...f, data: form.data })); // mantém a data para o próximo
+      setEditando(null); setErros([]);
+      setForm({ ...formVazio(empresa), data: form.data }); // mantém a data para o próximo
       await recarregar();
     } catch (err) { setMsg({ tipo: "erro", texto: traduzirErro(err) }); }
     setSalvando(false);
@@ -381,7 +420,13 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
 
   const editar = (l) => {
     setEditando(l.id); setErros([]); setMsg({});
-    setForm({ data: l.data, historico: l.historico, documento: l.documento || "", contaDebito: l.contaDebito, contaCredito: l.contaCredito, valor: String(l.valor), quantidade: l.quantidade ? String(l.quantidade) : "", valorUnitario: l.valorUnitario ? String(l.valorUnitario) : "" });
+    setForm({
+      data: l.data, historico: l.historico, documento: l.documento || "", tipo: l.tipoOperacao || "livre",
+      partidas: partidasDe(l).map((p) => ({
+        d: p.d, efeito: p.efeito || "", conta: p.conta, valor: String(p.valor),
+        quantidade: p.quantidade ? String(p.quantidade) : "", valorUnitario: p.valorUnitario ? String(p.valorUnitario) : "",
+      })),
+    });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const excluir = async (l) => {
@@ -393,9 +438,10 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
     const b = semAcento(busca);
     return [...lista]
       .sort((a, c) => (a.data || "").localeCompare(c.data || "") || (a.criadoEm || "").localeCompare(c.criadoEm || ""))
-      .filter((l) => !b || semAcento(`${l.historico} ${l.contaDebito} ${l.contaCredito} ${l.documento || ""}`).includes(b));
+      .filter((l) => !b || semAcento(`${l.historico} ${partidasDe(l).map((p) => p.conta).join(" ")} ${l.documento || ""}`).includes(b));
   }, [lista, busca]);
   const nome = (c) => plano.porCodigo[c]?.nome || c;
+  const nivel = NIVEIS_AJUDA.find((n) => n.valor === cfg.ajuda);
 
   return (
     <>
@@ -421,7 +467,6 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
             <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
               {(() => {
                 const l = est.lanc[fatoNaTela];
-                if (est.naoSeAplica.has(fatoNaTela)) return <span className="selo cinza">Não se aplica (inventário periódico)</span>;
                 if (!l) return <span className="selo ocre">Pendente — lance no formulário abaixo</span>;
                 const c = resultado(l, fatoDaTela);
                 return c?.ok ? <span className="selo verde">Lançado · confere</span> : <span className="selo ocre">Lançado · diferente: {c?.erros.join(", ")}</span>;
@@ -431,7 +476,7 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
             </div>
           </div>
           <p style={{ fontSize: 16 }}>{fatoDaTela.texto}</p>
-          {est.naoSeAplica.size > 0 && <p className="pequeno suave">Inventário periódico: os fatos {[...est.naoSeAplica].join(", ")} (baixa do CMV a cada venda) não se aplicam — o CMV será apurado no fim do período.</p>}
+          {periodico && fatoDaTela.tipo === "venda" && <p className="pequeno suave">Inventário periódico: registre só a venda. A baixa do CMV não é feita a cada venda — ele é apurado no fim do período (aba Controle de estoque).</p>}
           {fatoNaTela !== proximoFato && <p className="pequeno suave">Você está relendo um fato. O formulário continua registrando o fato {proximoFato}.</p>}
           <span className="pequeno suave">Acertos até agora: {est.acertos} de {est.lancados} lançado(s).</span>
         </section>
@@ -446,70 +491,114 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
 
       <form className="cartao" onSubmit={salvar}>
         <h2>{editando ? "Corrigir lançamento" : etapaGuiada ? `Lançar o fato ${proximoFato}` : "Novo lançamento"}</h2>
-        <p className="pequeno suave">Partidas dobradas: uma conta a débito e uma a crédito, sempre no mesmo valor.</p>
+        <p className="pequeno suave">
+          Partidas dobradas: um lançamento pode ter várias contas a débito e várias a crédito; a soma dos débitos é sempre igual à soma dos créditos.
+          {nivel && cfg.ajuda !== "livre" ? ` Ajuda da turma: ${nivel.rotulo.toLowerCase()} — ${nivel.ajuda.charAt(0).toLowerCase()}${nivel.ajuda.slice(1)}` : ""}
+        </p>
         <div className="linha-form">
           <div className="campo" style={{ flex: "0 1 180px" }}>
             <label htmlFor="l-data">Data</label>
             <input id="l-data" type="date" value={form.data} onChange={muda("data")} />
           </div>
+          <div className="campo" style={{ flex: "0 1 260px" }}>
+            <label htmlFor="l-tipo">Tipo de operação</label>
+            <select id="l-tipo" value={form.tipo} onChange={(e) => mudarTipo(e.target.value)}>
+              {TIPOS_OPERACAO.map((t) => <option key={t.id} value={t.id}>{t.nome}</option>)}
+            </select>
+          </div>
           <div className="campo" style={{ flex: "3 1 320px" }}>
             <label htmlFor="l-hist">Histórico</label>
-            <input id="l-hist" value={form.historico} onChange={muda("historico")} maxLength={200} placeholder="Ex.: Compra de mercadorias à vista, NF 123" />
+            <input id="l-hist" value={form.historico} onChange={muda("historico")} maxLength={200} placeholder="Ex.: Compra de mercadorias, NF 123, parte à vista e parte a prazo" />
           </div>
           <div className="campo" style={{ flex: "0 1 160px" }}>
             <label htmlFor="l-doc">Documento (opcional)</label>
             <input id="l-doc" value={form.documento} onChange={muda("documento")} maxLength={40} />
           </div>
         </div>
-        <div className="linha-form" style={{ alignItems: "flex-start" }}>
-          <CampoConta id="l-deb" rotulo="Conta a DÉBITO" valor={form.contaDebito} aoMudar={(c) => setForm((f) => ({ ...f, contaDebito: c }))} plano={plano} />
-          <CampoConta id="l-cred" rotulo="Conta a CRÉDITO" valor={form.contaCredito} aoMudar={(c) => setForm((f) => ({ ...f, contaCredito: c }))} plano={plano} />
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {form.partidas.map((p, i) => {
+            const estoque = CONTAS_ESTOQUE.includes(p.conta);
+            const entrada = estoque && p.d === "D";
+            return (
+              <div key={i} className="linha-form" style={{ alignItems: "flex-start", borderLeft: `3px solid ${p.d === "D" ? "var(--destaque)" : "var(--ocre)"}`, paddingLeft: 10 }}>
+                <div className="campo" style={{ flex: "0 0 92px" }}>
+                  <label htmlFor={`l-dc-${i}`}>Lado</label>
+                  <select id={`l-dc-${i}`} value={p.d} onChange={(e) => mudarLinha(i, "d", e.target.value)}>
+                    <option value="D">Débito</option>
+                    <option value="C">Crédito</option>
+                  </select>
+                </div>
+                <div style={{ flex: "3 1 300px", display: "flex" }}>
+                  <CampoConta id={`l-conta-${i}`} rotulo={`${p.d === "D" ? "Conta a DÉBITO" : "Conta a CRÉDITO"}${p.efeito ? ` — ${p.efeito}` : ""}`} valor={p.conta} aoMudar={(c) => mudarLinha(i, "conta", c)} plano={plano} />
+                </div>
+                {estoque && (
+                  <div className="campo" style={{ flex: "0 1 120px" }}>
+                    <label htmlFor={`l-qtd-${i}`}>Quantidade</label>
+                    <input id={`l-qtd-${i}`} type="number" min="0" step="1" className="mono" value={p.quantidade} onChange={(e) => mudarLinha(i, "quantidade", e.target.value)} />
+                  </div>
+                )}
+                {entrada && (
+                  <div className="campo" style={{ flex: "0 1 140px" }}>
+                    <label htmlFor={`l-unit-${i}`}>Valor unitário</label>
+                    <input id={`l-unit-${i}`} type="number" min="0" step="0.01" className="mono" value={p.valorUnitario} onChange={(e) => mudarLinha(i, "valorUnitario", e.target.value)} />
+                  </div>
+                )}
+                <div className="campo" style={{ flex: "0 1 160px" }}>
+                  <label htmlFor={`l-valor-${i}`}>Valor (R$)</label>
+                  <input id={`l-valor-${i}`} type="number" min="0" step="0.01" className="mono" value={p.valor} onChange={(e) => mudarLinha(i, "valor", e.target.value)} readOnly={entrada && Number(p.valorUnitario) > 0} />
+                </div>
+                <div style={{ display: "flex", alignItems: "flex-end", alignSelf: "stretch" }}>
+                  <button type="button" className="botao secundario pequeno" aria-label={`Remover a linha ${i + 1}`} title="Remover linha" disabled={form.partidas.length <= 2} onClick={() => tirarLinha(i)}>✕</button>
+                </div>
+              </div>
+            );
+          })}
         </div>
-        <div className="linha-form">
-          {(compraEstoque || baixaEstoque) && (
-            <div className="campo" style={{ flex: "0 1 160px" }}>
-              <label htmlFor="l-qtd">Quantidade (unidades)</label>
-              <input id="l-qtd" type="number" min="0" step="1" className="mono" value={form.quantidade} onChange={muda("quantidade")} />
-            </div>
-          )}
-          {compraEstoque && (
-            <div className="campo" style={{ flex: "0 1 180px" }}>
-              <label htmlFor="l-unit">Valor unitário (R$)</label>
-              <input id="l-unit" type="number" min="0" step="0.01" className="mono" value={form.valorUnitario} onChange={muda("valorUnitario")} />
-            </div>
-          )}
-          <div className="campo" style={{ flex: "0 1 200px" }}>
-            <label htmlFor="l-valor">Valor (R$)</label>
-            <input id="l-valor" type="number" min="0" step="0.01" className="mono" value={form.valor} onChange={muda("valor")} readOnly={compraEstoque && Number(form.valorUnitario) > 0} />
-          </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "flex-end", marginLeft: "auto" }}>
+
+        <div className="linha-form" style={{ alignItems: "center" }}>
+          <button type="button" className="botao secundario pequeno" onClick={() => incluirLinha("D")}>+ Débito</button>
+          <button type="button" className="botao secundario pequeno" onClick={() => incluirLinha("C")}>+ Crédito</button>
+          <span className="pequeno mono">Débitos {numero(totD)} · Créditos {numero(totC)}</span>
+          <span className={`selo ${totD > 0 && Math.abs(totD - totC) < 0.005 ? "verde" : "ocre"}`}>
+            {totD === 0 && totC === 0 ? "Preencha os valores" : Math.abs(totD - totC) < 0.005 ? "Débito = Crédito" : `Diferença de ${dinheiro(Math.abs(totD - totC))}`}
+          </span>
+          <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
             {editando && <button type="button" className="botao secundario" onClick={cancelar}>Cancelar</button>}
             <button className="botao" disabled={salvando}>{salvando ? "Salvando…" : editando ? "Salvar correção" : "Lançar"}</button>
           </div>
         </div>
-        {baixaEstoque && periodico && <div className="aviso atencao pequeno">Inventário periódico: a baixa do CMV é feita só no fim do período (aba Controle de estoque → Apuração do CMV).</div>}
-        {baixaEstoque && !periodico && Number(form.quantidade) > 0 && (() => {
-          const c = custoDaSaida(lista, metodo, form.quantidade, form.data, editando);
+
+        {baixaEstoque && periodico && <div className="aviso atencao pequeno">Inventário periódico: a baixa do estoque (CMV) é feita só no fim do período (aba Controle de estoque → Apuração do CMV).</div>}
+        {/* ajuda do CMV: só quando o lançamento tem débito no CMV (6.2.01) */}
+        {!periodico && linhaCMV >= 0 && (() => {
+          const q = qtdSaida(form.partidas);
+          if (linhaBaixa < 0 || !(q > 0)) return <div className="aviso pequeno">Baixa do CMV: inclua a linha de crédito em Mercadorias (1.1.3.01) com a quantidade vendida — o CTC mostra o custo pelo método da empresa ({METODOS[metodo].nome}).</div>;
+          const c = custoDaSaida(lista, metodo, q, form.data, editando);
+          const vCMV = Number(form.partidas[linhaCMV].valor);
+          const vBaixa = Number(form.partidas[linhaBaixa].valor);
+          const confere = Math.abs(vCMV - c.custo) < 0.005 && Math.abs(vBaixa - c.custo) < 0.005;
           return (
             <div className={`aviso ${c.insuficiente ? "erro" : ""}`} style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
               {c.insuficiente
                 ? <span>Estoque insuficiente: até esta data há {c.disponivel} unidade(s) disponível(is).</span>
-                : <span>Custo de {form.quantidade} un. pelo método da empresa ({METODOS[metodo].nome}): <strong className="mono">{dinheiro(c.custo)}</strong>
-                    {Number(form.valor) > 0 && Math.abs(Number(form.valor) - c.custo) > 0.005 && <> — o valor digitado ({dinheiro(form.valor)}) está diferente.</>}
+                : <span>Custo de {q} un. pelo método da empresa ({METODOS[metodo].nome}): <strong className="mono">{dinheiro(c.custo)}</strong>
+                    {(vCMV > 0 || vBaixa > 0) && !confere && <> — o valor do CMV e da baixa do estoque precisa ser este.</>}
                   </span>}
-              {!c.insuficiente && Math.abs(Number(form.valor) - c.custo) > 0.005 && (
-                <button type="button" className="botao secundario pequeno" onClick={() => setForm((f) => ({ ...f, valor: String(c.custo) }))}>Usar este custo</button>
+              {!c.insuficiente && !confere && (
+                <button type="button" className="botao secundario pequeno" onClick={() => setForm((f) => ({ ...f, partidas: f.partidas.map((p, k) => (k === linhaCMV || k === linhaBaixa ? { ...p, valor: String(c.custo) } : p)) }))}>Usar este custo</button>
               )}
             </div>
           );
         })()}
+        {avisos.length > 0 && <div className="aviso atencao pequeno">{avisos.map((a) => <div key={a}>{a}</div>)}</div>}
         {erros.length > 0 && <div className="aviso atencao pequeno">{erros.map((e) => <div key={e}>{e}</div>)}</div>}
         {msg.texto && <div className={`aviso ${msg.tipo || ""}`} role="status">{msg.texto}</div>}
       </form>
 
       <section className="cartao sem-padding">
         <div className="cartao-topo">
-          <h2>Livro Diário <span className="suave pequeno">· {lista.length} lançamento(s) · {dinheiro(lista.reduce((s, l) => s + Number(l.valor), 0))}</span></h2>
+          <h2>Livro Diário <span className="suave pequeno">· {lista.length} lançamento(s) · {dinheiro(lista.reduce((s, l) => s + totalDoLancamento(l), 0))}</span></h2>
           <input aria-label="Buscar lançamento" placeholder="Buscar histórico ou conta" value={busca} onChange={(e) => setBusca(e.target.value)} style={{ flex: "0 1 240px" }} />
         </div>
         <div className="tabela-caixa" style={{ maxHeight: 560, overflowY: "auto" }}>
@@ -517,40 +606,51 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
             <thead><tr><th>Data</th><th>Histórico</th><th>Débito</th><th>Crédito</th><th style={{ textAlign: "right" }}>Valor</th><th></th></tr></thead>
             <tbody>
               {ordenados.length === 0 && <tr><td colSpan={6} className="suave">Nenhum lançamento ainda.</td></tr>}
-              {ordenados.map((l) => (
-                <tr key={l.id}>
-                  <td className="mono pequeno" style={{ whiteSpace: "nowrap" }}>{dataBR(l.data)}</td>
-                  <td>
-                    {(() => {
-                      const ref = fatoDoLancamento(l);
-                      if (!ref) return null;
-                      const c = resultado(l, ref.fato);
-                      return (
-                        <>
-                          <span className="selo cheio" style={{ marginRight: 6 }}>{ref.r.id === "orientados" ? "Fato" : `${ref.r.titulo} ·`} {ref.fato?.n}</span>
-                          {c && <span className={`selo ${c.ok ? "verde" : "ocre"}`} style={{ marginRight: 6 }} title={c.ok ? "" : `Confira: ${c.erros.join(", ")}`}>{c.ok ? "Confere" : `Diferente: ${c.erros.join(", ")}`}</span>}
-                        </>
-                      );
-                    })()}
-                    {l.encerramento && <span className="selo cinza" style={{ marginRight: 6 }}>Encerramento</span>}
-                    {l.historico}
-                    {(l.quantidade || l.documento || l.alteradoPor) && (
-                      <span className="pequeno suave" style={{ display: "block" }}>
-                        {l.quantidade ? `${l.quantidade} un.${l.valorUnitario ? ` × ${dinheiro(l.valorUnitario)}` : ""}` : ""}
-                        {l.documento ? ` · doc. ${l.documento}` : ""}
-                        {l.alteradoPor && l.alteradoPor.papel !== "aluno" ? ` · corrigido por ${l.alteradoPor.nome}` : ""}
-                      </span>
-                    )}
-                  </td>
-                  <td className="pequeno"><span className="mono">{l.contaDebito}</span> {nome(l.contaDebito)}</td>
-                  <td className="pequeno"><span className="mono">{l.contaCredito}</span> {nome(l.contaCredito)}</td>
-                  <td className="mono" style={{ textAlign: "right", whiteSpace: "nowrap" }}>{numero(l.valor)}</td>
-                  <td style={{ whiteSpace: "nowrap", textAlign: "right" }}>
-                    <button className="botao secundario pequeno" onClick={() => editar(l)}>Corrigir</button>{" "}
-                    <button className="botao perigo pequeno" onClick={() => excluir(l)}>Excluir</button>
-                  </td>
-                </tr>
-              ))}
+              {ordenados.map((l) => {
+                const ps = partidasDe(l);
+                const composto = ps.length > 2;
+                const qtds = ps.filter((p) => p.quantidade);
+                const lado = (d) => ps.filter((p) => p.d === d).map((p, k) => (
+                  <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                    <span><span className="mono">{p.conta}</span> {nome(p.conta)}</span>
+                    {composto && <span className="mono suave">{numero(p.valor)}</span>}
+                  </div>
+                ));
+                return (
+                  <tr key={l.id}>
+                    <td className="mono pequeno" style={{ whiteSpace: "nowrap" }}>{dataBR(l.data)}</td>
+                    <td>
+                      {(() => {
+                        const ref = fatoDoLancamento(l);
+                        if (!ref) return null;
+                        const c = resultado(l, ref.fato);
+                        return (
+                          <>
+                            <span className="selo cheio" style={{ marginRight: 6 }}>{ref.r.id === "orientados" ? "Fato" : `${ref.r.titulo} ·`} {ref.fato?.n}</span>
+                            {c && <span className={`selo ${c.ok ? "verde" : "ocre"}`} style={{ marginRight: 6 }} title={c.ok ? "" : `Confira: ${c.erros.join(", ")}`}>{c.ok ? "Confere" : `Diferente: ${c.erros.join(", ")}`}</span>}
+                          </>
+                        );
+                      })()}
+                      {l.encerramento && <span className="selo cinza" style={{ marginRight: 6 }}>Encerramento</span>}
+                      {l.historico}
+                      {(qtds.length > 0 || l.documento || l.alteradoPor) && (
+                        <span className="pequeno suave" style={{ display: "block" }}>
+                          {qtds.map((p) => `${p.d === "D" ? "entrada" : "saída"} ${p.quantidade} un.${p.valorUnitario ? ` × ${dinheiro(p.valorUnitario)}` : ""}`).join(" · ")}
+                          {l.documento ? ` · doc. ${l.documento}` : ""}
+                          {l.alteradoPor && l.alteradoPor.papel !== "aluno" ? ` · corrigido por ${l.alteradoPor.nome}` : ""}
+                        </span>
+                      )}
+                    </td>
+                    <td className="pequeno">{lado("D")}</td>
+                    <td className="pequeno">{lado("C")}</td>
+                    <td className="mono" style={{ textAlign: "right", whiteSpace: "nowrap" }}>{numero(totalDoLancamento(l))}</td>
+                    <td style={{ whiteSpace: "nowrap", textAlign: "right" }}>
+                      <button className="botao secundario pequeno" onClick={() => editar(l)}>Corrigir</button>{" "}
+                      <button className="botao perigo pequeno" onClick={() => excluir(l)}>Excluir</button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -562,7 +662,7 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
 // ---------------- razão por conta ----------------
 function Razao({ plano, dados }) {
   const movimentadas = useMemo(() => {
-    const usadas = new Set([...Object.keys(dados.saldos), ...dados.lancamentos.flatMap((l) => [l.contaDebito, l.contaCredito])]);
+    const usadas = new Set([...Object.keys(dados.saldos), ...dados.lancamentos.flatMap((l) => partidasDe(l).map((p) => p.conta))]);
     return plano.lancaveis.filter((c) => usadas.has(c.codigo));
   }, [plano, dados]);
   const [codigo, setCodigo] = useState(movimentadas[0]?.codigo || "");
@@ -571,8 +671,8 @@ function Razao({ plano, dados }) {
   const debitos = r ? r.linhas.filter((x) => x.debito) : [];
   const creditos = r ? r.linhas.filter((x) => !x.debito) : [];
   const ini = dados.saldos[codigo] || {};
-  const somaD = arred(debitos.reduce((s, x) => s + Number(x.l.valor), Number(ini.devedor || 0)));
-  const somaC = arred(creditos.reduce((s, x) => s + Number(x.l.valor), Number(ini.credor || 0)));
+  const somaD = arred(debitos.reduce((s, x) => s + x.valor, Number(ini.devedor || 0)));
+  const somaC = arred(creditos.reduce((s, x) => s + x.valor, Number(ini.credor || 0)));
 
   if (movimentadas.length === 0) return <div className="aviso atencao">Nenhuma conta movimentada ainda. Lance os saldos iniciais e os fatos.</div>;
 
@@ -593,13 +693,13 @@ function Razao({ plano, dados }) {
               <div style={{ borderRight: "2px solid var(--destaque)", padding: "8px 14px", display: "flex", flexDirection: "column", gap: 4 }}>
                 <span className="pequeno suave mono">DÉBITO</span>
                 {Number(ini.devedor) > 0 && <LinhaT rotulo="Saldo inicial" valor={ini.devedor} />}
-                {debitos.map((x) => <LinhaT key={x.l.id} rotulo={x.l.fatoOrientado ? `Fato ${x.l.fatoOrientado}` : dataBR(x.l.data)} valor={x.l.valor} />)}
+                {debitos.map((x) => <LinhaT key={x.chave} rotulo={x.l.fatoOrientado ? `Fato ${x.l.fatoOrientado}` : dataBR(x.l.data)} valor={x.valor} />)}
                 <LinhaT rotulo="Total" valor={somaD} forte />
               </div>
               <div style={{ padding: "8px 14px", display: "flex", flexDirection: "column", gap: 4 }}>
                 <span className="pequeno suave mono">CRÉDITO</span>
                 {Number(ini.credor) > 0 && <LinhaT rotulo="Saldo inicial" valor={ini.credor} />}
-                {creditos.map((x) => <LinhaT key={x.l.id} rotulo={x.l.fatoOrientado ? `Fato ${x.l.fatoOrientado}` : dataBR(x.l.data)} valor={x.l.valor} />)}
+                {creditos.map((x) => <LinhaT key={x.chave} rotulo={x.l.fatoOrientado ? `Fato ${x.l.fatoOrientado}` : dataBR(x.l.data)} valor={x.valor} />)}
                 <LinhaT rotulo="Total" valor={somaC} forte />
               </div>
             </div>
@@ -619,12 +719,14 @@ function Razao({ plano, dados }) {
                 <tbody>
                   <tr><td colSpan={5} className="suave">Saldo inicial</td><td className="mono" style={{ textAlign: "right" }}>{numero(r.inicial)}</td></tr>
                   {r.linhas.map((x) => (
-                    <tr key={x.l.id}>
+                    <tr key={x.chave}>
                       <td className="mono pequeno">{dataBR(x.l.data)}</td>
                       <td>{x.l.historico}</td>
-                      <td className="pequeno"><span className="mono">{x.contrapartida}</span> {plano.porCodigo[x.contrapartida]?.nome}</td>
-                      <td className="mono" style={{ textAlign: "right" }}>{x.debito ? numero(x.l.valor) : ""}</td>
-                      <td className="mono" style={{ textAlign: "right" }}>{!x.debito ? numero(x.l.valor) : ""}</td>
+                      <td className="pequeno">{x.contrapartida
+                        ? <><span className="mono">{x.contrapartida}</span> {plano.porCodigo[x.contrapartida]?.nome}</>
+                        : <span title={x.contrapartidas.map((c) => `${c} ${plano.porCodigo[c]?.nome || ""}`).join("\n")}>Diversas ({x.contrapartidas.length} contas)</span>}</td>
+                      <td className="mono" style={{ textAlign: "right" }}>{x.debito ? numero(x.valor) : ""}</td>
+                      <td className="mono" style={{ textAlign: "right" }}>{!x.debito ? numero(x.valor) : ""}</td>
                       <td className="mono" style={{ textAlign: "right", color: x.acumulado < 0 ? "var(--vermelho)" : undefined }}>{numero(x.acumulado)}</td>
                     </tr>
                   ))}
@@ -696,10 +798,8 @@ function ControleEstoque({ sessao, empresa, dados, plano, metodo, periodico, par
   const [ver, setVer] = useState(metodo);
   const conta = plano.porCodigo["1.1.3.01"];
   const saldoConta = (() => {
-    const ini = dados.saldos["1.1.3.01"] || {};
-    let v = Number(ini.devedor || 0) - Number(ini.credor || 0);
-    for (const l of dados.lancamentos) { if (l.contaDebito === "1.1.3.01") v += Number(l.valor); if (l.contaCredito === "1.1.3.01") v -= Number(l.valor); }
-    return arred(v);
+    const { deb, cred } = totaisDaConta(dados.lancamentos, dados.saldos, "1.1.3.01");
+    return arred(deb - cred);
   })();
   const daEmpresa = fichas[metodo];
   const saidas = daEmpresa.linhas.filter((x) => x.tipo === "Saída");
@@ -833,7 +933,10 @@ function ApuracaoPeriodica({ sessao, empresa, dados, metodo, params, recarregar 
     try {
       await incluirLancamento(sessao, empresa.id, {
         data, historico: `Apuração do CMV — inventário periódico (${METODOS[metodo].nome}): EI ${numero(r.ei)} + Compras ${numero(r.vC)} − EF ${numero(r.ef)}`,
-        contaDebito: "6.2.01", contaCredito: "1.1.3.01", valor: r.cmv, quantidade: r.qVendida, documento: "",
+        documento: "", tipo: "livre", partidas: [
+          { d: "D", conta: "6.2.01", valor: r.cmv, efeito: "CMV apurado" },
+          { d: "C", conta: "1.1.3.01", valor: r.cmv, quantidade: r.qVendida, efeito: "Baixa do estoque" },
+        ],
       }, null, { apuracaoCMV: true });
       await recarregar();
       setMsg({ texto: "Apuração do CMV lançada no Livro Diário." });
@@ -962,7 +1065,7 @@ function Encerramento({ sessao, empresa, plano, dados, recarregar, params, perio
   })();
   const [data, setData] = useState(sugestao);
   const dataOk = fimDePeriodoValido(data, pc.apuracao, pc.exercicioFim) && data >= ultimaData;
-  const faltaApurarCMV = periodico && dados.lancamentos.some((l) => l.contaDebito === "1.1.3.01" && !l.apuracaoCMV) && !dados.lancamentos.some((l) => l.apuracaoCMV);
+  const faltaApurarCMV = periodico && dados.lancamentos.some((l) => !l.apuracaoCMV && partidasDe(l).some((p) => p.d === "D" && p.conta === "1.1.3.01")) && !dados.lancamentos.some((l) => l.apuracaoCMV);
   const [msg, setMsg] = useState({});
   const [ocupado, setOcupado] = useState(false);
   const nome = (c) => `${c} ${plano.porCodigo[c]?.nome || ""}`;
@@ -1041,9 +1144,9 @@ function Encerramento({ sessao, empresa, plano, dados, recarregar, params, perio
                 {doEncerramento.map((l) => (
                   <tr key={l.id}>
                     <td className="mono pequeno">{dataBR(l.data)}</td>
-                    <td className="pequeno">{nome(l.contaDebito)}</td>
-                    <td className="pequeno">{nome(l.contaCredito)}</td>
-                    <td className="mono" style={{ textAlign: "right" }}>{numero(l.valor)}</td>
+                    <td className="pequeno">{partidasDe(l).filter((p) => p.d === "D").map((p) => nome(p.conta)).join(", ")}</td>
+                    <td className="pequeno">{partidasDe(l).filter((p) => p.d === "C").map((p) => nome(p.conta)).join(", ")}</td>
+                    <td className="mono" style={{ textAlign: "right" }}>{numero(totalDoLancamento(l))}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1062,10 +1165,10 @@ function Dlpa({ empresa, plano, dados, params }) {
   const d = dlpa(plano, dados.lancamentos, dados.saldos);
   const capital = Number(empresa.capitalSocial) || 0;
   const reservaLegalAtual = (() => {
-    const { deb, cred } = (() => { let a = 0, b = 0; const ini = dados.saldos["3.4.01"] || {}; a += Number(ini.devedor || 0); b += Number(ini.credor || 0); for (const l of dados.lancamentos) { if (l.contaDebito === "3.4.01") a += Number(l.valor); if (l.contaCredito === "3.4.01") b += Number(l.valor); } return { deb: a, cred: b }; })();
+    const { deb, cred } = totaisDaConta(dados.lancamentos, dados.saldos, "3.4.01");
     return arred(cred - deb);
   })();
-  const sugestaoRL = d.resultado > 0 ? arred(Math.min(d.resultado * 0.05, Math.max(capital * 0.2 - reservaLegalAtual + d.destinacoes.filter((x) => x.l.contaCredito === "3.4.01").reduce((s, x) => s + x.valor, 0), 0))) : 0;
+  const sugestaoRL = d.resultado > 0 ? arred(Math.min(d.resultado * 0.05, Math.max(capital * 0.2 - reservaLegalAtual + d.destinacoes.filter((x) => x.conta?.codigo === "3.4.01").reduce((s, x) => s + x.valor, 0), 0))) : 0;
   const encerrado = jaEncerrado(dados.lancamentos);
   return (
     <>
@@ -1074,11 +1177,11 @@ function Dlpa({ empresa, plano, dados, params }) {
         <span className="pequeno suave">{empresa.razaoSocial} · mostra de onde veio e para onde foi o resultado</span>
         <div style={{ maxWidth: 760 }}>
           <LinhaValor rotulo="Saldo inicial de lucros ou prejuízos acumulados" valor={d.saldoInicial} />
-          {d.outras.map((x) => <LinhaValor key={x.l.id} rotulo={`(±) ${x.l.historico}`} valor={x.valor} recuo />)}
+          {d.outras.map((x) => <LinhaValor key={x.chave} rotulo={`(±) ${x.l.historico}`} valor={x.valor} recuo />)}
           <LinhaValor rotulo={d.resultado >= 0 ? "(+) Lucro líquido do exercício" : "(-) Prejuízo líquido do exercício"} valor={d.resultado} />
           <LinhaValor rotulo="(=) Resultado à disposição" valor={arred(d.saldoInicial + d.totalOutras + d.resultado)} tipo="subtotal" />
           {d.destinacoes.length === 0 && <LinhaValor rotulo="(-) Destinações (reservas e dividendos)" valor={0} />}
-          {d.destinacoes.map((x) => <LinhaValor key={x.l.id} rotulo={`(-) ${x.conta?.nome || x.l.contaCredito}`} valor={-x.valor} />)}
+          {d.destinacoes.map((x) => <LinhaValor key={x.chave} rotulo={`(-) ${x.conta?.nome || "Destinação"}`} valor={-x.valor} />)}
           <LinhaValor rotulo="(=) Saldo final de lucros ou prejuízos acumulados" valor={d.saldoFinal} tipo="final" />
         </div>
         <Assinaturas empresa={empresa} params={params} />

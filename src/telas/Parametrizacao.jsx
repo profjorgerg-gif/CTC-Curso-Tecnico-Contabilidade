@@ -6,8 +6,9 @@ import { disciplinaPorId } from "../dados/disciplinas";
 import { garantirEmpresa } from "../lib/empresas";
 import { lerEscrituracao } from "../lib/escrituracao";
 import {
-  AREAS, areaConfirmada, conferirArea, confirmarArea, fixadoNaTurma, parametrosEfetivos, salvarParametrosDaTurma,
+  AREAS, areaConfirmada, conferirArea, confirmarArea, fixadoNaTurma, parametrosEfetivos, salvarConfigLancamentos, salvarParametrosDaTurma,
 } from "../lib/parametros";
+import { configLancamentos, NIVEIS_AJUDA } from "../lib/modelos";
 
 export default function Parametrizacao({ sessao, ir }) {
   const { turmas, carregando, erro } = useTurmas(sessao);
@@ -217,6 +218,50 @@ export function ParametrosDaTurma({ turma, aoSalvar }) {
           {msg.texto && <div className={`aviso ${msg.tipo || ""}`} role="status">{msg.texto}</div>}
         </>
       )}
+    </section>
+  );
+}
+
+// ---------------- professor: como os alunos da turma lançam ----------------
+export function ConfigLancamentosDaTurma({ turma, aoSalvar }) {
+  const atual = configLancamentos(turma);
+  const [ajuda, setAjuda] = useState(atual.ajuda);
+  const [tributos, setTributos] = useState(atual.tributos ? "sim" : "nao");
+  const [msg, setMsg] = useState({});
+  const mudou = ajuda !== atual.ajuda || (tributos === "sim") !== atual.tributos;
+  const salvar = async () => {
+    try { await salvarConfigLancamentos(turma, { ajuda, tributos }); setMsg({ texto: "Configuração dos lançamentos salva." }); await aoSalvar?.(); }
+    catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
+  };
+  return (
+    <section className="cartao">
+      <div>
+        <h2>Lançamentos da turma</h2>
+        <span className="pequeno suave">Quanto o CTC ajuda o aluno a montar cada lançamento, conforme o tipo de operação escolhido.</span>
+      </div>
+      <div className="linha-form" style={{ alignItems: "flex-start" }}>
+        <div className="campo" style={{ flex: "1 1 320px" }}>
+          <label htmlFor="cfg-ajuda">Nível de ajuda nos lançamentos</label>
+          <select id="cfg-ajuda" value={ajuda} onChange={(e) => setAjuda(e.target.value)}>
+            {NIVEIS_AJUDA.map((n) => <option key={n.valor} value={n.valor}>{n.rotulo}{n.valor === "estrutura" ? " (padrão)" : ""}</option>)}
+          </select>
+          <span className="pequeno suave">{NIVEIS_AJUDA.find((n) => n.valor === ajuda)?.ajuda}</span>
+        </div>
+        <div className="campo" style={{ flex: "1 1 320px" }}>
+          <label htmlFor="cfg-trib">Considerar tributos nas operações</label>
+          <select id="cfg-trib" value={tributos} onChange={(e) => setTributos(e.target.value)}>
+            <option value="nao">Não (padrão na CB)</option>
+            <option value="sim">Sim (a partir de CI/CT)</option>
+          </select>
+          <span className="pequeno suave">
+            Com "Sim", os modelos de compra e venda incluem ICMS, PIS e COFINS (ou o Simples Nacional), conforme o regime tributário da empresa de cada aluno.
+          </span>
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <button className="botao" onClick={salvar} disabled={!mudou}>Salvar</button>
+        {msg.texto && <div className={`aviso ${msg.tipo || ""}`} role="status">{msg.texto}</div>}
+      </div>
     </section>
   );
 }

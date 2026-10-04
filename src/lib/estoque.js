@@ -1,7 +1,7 @@
 // Controle de Estoque (CB): ficha de controle (kardex) por PEPS, UEPS e Média
 // Ponderada Móvel, montada a partir dos lançamentos da empresa (base: SECCHH).
 // Entrada = débito na conta de estoque; saída = crédito na conta de estoque.
-import { CONTAS_ESTOQUE, arred } from "./contabil";
+import { CONTAS_ESTOQUE, arred, ordenarLancamentos, partidasDe } from "./contabil";
 
 export const METODOS = {
   peps: { nome: "PEPS", longo: "PEPS — Primeiro que Entra, Primeiro que Sai" },
@@ -10,20 +10,16 @@ export const METODOS = {
 };
 export const METODO_PADRAO = "peps";
 
-export function movimentosDeEstoque(lancamentos, ateId = null) {
-  const ordenados = [...(lancamentos || [])]
-    .sort((a, b) => (a.data || "").localeCompare(b.data || "") || (a.criadoEm || "").localeCompare(b.criadoEm || ""));
+export function movimentosDeEstoque(lancamentos) {
   const movs = [];
-  for (const l of ordenados) {
-    if (ateId && l.id === ateId) break;
-    const q = Number(l.quantidade) || 0;
-    if (!q) continue;
-    if (CONTAS_ESTOQUE.includes(l.contaDebito)) {
-      movs.push({ id: l.id, data: l.data, historico: l.historico, tipo: "Entrada", quantidade: q,
-        valorUnit: Number(l.valorUnitario) || Number(l.valor) / q, valorLancado: Number(l.valor), fato: l.fatoOrientado });
-    } else if (CONTAS_ESTOQUE.includes(l.contaCredito)) {
-      movs.push({ id: l.id, data: l.data, historico: l.historico, tipo: "Saída", quantidade: q, valorLancado: Number(l.valor), fato: l.fatoOrientado });
-    }
+  for (const l of ordenarLancamentos(lancamentos)) {
+    partidasDe(l).forEach((p, i) => {
+      const q = Number(p.quantidade) || 0;
+      if (!q || !CONTAS_ESTOQUE.includes(p.conta)) return;
+      const base = { id: `${l.id}-${i}`, lancamentoId: l.id, data: l.data, historico: l.historico, quantidade: q, valorLancado: Number(p.valor), fato: l.fatoOrientado || l.roteiro?.n || l.lista?.n };
+      if (p.d === "D") movs.push({ ...base, tipo: "Entrada", valorUnit: Number(p.valorUnitario) || Number(p.valor) / q });
+      else movs.push({ ...base, tipo: "Saída" });
+    });
   }
   return movs;
 }
@@ -91,7 +87,7 @@ export function kardex(movs, metodo) {
 
 // custo que uma saída teria pelo método, considerando só o que veio antes dela
 export function custoDaSaida(lancamentos, metodo, quantidade, data, ignorarId = null) {
-  const anteriores = movimentosDeEstoque((lancamentos || []).filter((l) => l.id !== ignorarId && (l.data || "") <= (data || "9999")));
+  const anteriores = movimentosDeEstoque((lancamentos || []).filter((l) => l.id !== ignorarId && !l.apuracaoCMV && (l.data || "") <= (data || "9999")));
   const k = kardex([...anteriores, { id: "_nova", tipo: "Saída", quantidade: Number(quantidade) || 0 }], metodo);
   const ultima = k.linhas[k.linhas.length - 1];
   return { custo: ultima?.custoSaida || 0, insuficiente: !!ultima?.insuficiente, disponivel: anteriores.length ? k.linhas[k.linhas.length - 2]?.saldoQtd || 0 : 0 };
@@ -103,10 +99,15 @@ export function custoDaSaida(lancamentos, metodo, quantidade, data, ignorarId = 
 // Média Ponderada (fixa do período) → custo médio de tudo o que esteve disponível.
 export function apuracaoPeriodica(lancamentos, saldos, metodo, qtdInicial, qtdFinal) {
   const ei = Number(saldos?.["1.1.3.01"]?.devedor || 0) - Number(saldos?.["1.1.3.01"]?.credor || 0);
-  const compras = (lancamentos || [])
-    .filter((l) => CONTAS_ESTOQUE.includes(l.contaDebito) && !l.apuracaoCMV)
-    .sort((a, b) => (a.data || "").localeCompare(b.data || "") || (a.criadoEm || "").localeCompare(b.criadoEm || ""))
-    .map((l) => ({ id: l.id, data: l.data, historico: l.historico, quantidade: Number(l.quantidade) || 0, valor: Number(l.valor), unit: Number(l.valorUnitario) || (Number(l.quantidade) ? Number(l.valor) / Number(l.quantidade) : 0) }));
+  const compras = [];
+  for (const l of ordenarLancamentos(lancamentos)) {
+    if (l.apuracaoCMV) continue;
+    for (const p of partidasDe(l)) {
+      if (p.d !== "D" || !CONTAS_ESTOQUE.includes(p.conta)) continue;
+      const q = Number(p.quantidade) || 0;
+      compras.push({ id: l.id, data: l.data, historico: l.historico, quantidade: q, valor: Number(p.valor), unit: Number(p.valorUnitario) || (q ? Number(p.valor) / q : 0) });
+    }
+  }
   const qEI = Number(qtdInicial) || 0;
   const qC = compras.reduce((s, c) => s + c.quantidade, 0);
   const vC = arred(compras.reduce((s, c) => s + c.valor, 0));

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { traduzirErro } from "../lib/sessao";
 import { dataBR, dinheiro, usePlano } from "../lib/contabil";
-import { excluirLista, gerarLista, listasDaTurma, salvarLista, TIPOS } from "../lib/exercicios";
+import { emPartidas, excluirLista, gerarLista, listasDaTurma, salvarLista, TIPOS } from "../lib/exercicios";
 
 const QUANTIDADES = [5, 10, 15, 20];
 
@@ -24,7 +24,7 @@ export function ExerciciosDaTurma({ turma }) {
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
         <div>
           <h2>Exercícios da turma</h2>
-          <span className="pequeno suave">Além dos 10 fatos orientados, gere listas de fatos com gabarito e envie para todos os alunos.</span>
+          <span className="pequeno suave">Além dos 8 fatos orientados, gere listas de fatos com gabarito e envie para todos os alunos.</span>
         </div>
         {!editando && <button className="botao" onClick={nova}>Gerar exercícios</button>}
       </div>
@@ -150,9 +150,14 @@ function EditorLista({ turma, inicial, aoFechar }) {
                   <td className="mono">{f.n}</td>
                   <td>{f.texto}</td>
                   <td className="pequeno" style={{ minWidth: 260 }}>
-                    D {nome(f.gabarito.contaDebito)}<br />C {nome(f.gabarito.contaCredito)}<br />
-                    <span className="mono">{f.gabarito.valor == null ? "custo pelo estoque e método de cada aluno" : dinheiro(f.gabarito.valor)}</span>
-                    {f.gabarito.quantidade ? ` · ${f.gabarito.quantidade} un.` : ""}
+                    {emPartidas(f.gabarito).partidas.map((p, i) => (
+                      <div key={i} style={p.soPermanente ? { opacity: 0.8 } : undefined}>
+                        <strong>{p.d}</strong> {nome(p.conta)} ·{" "}
+                        <span className="mono">{p.valor == null ? "custo pelo estoque e método de cada aluno" : dinheiro(p.valor)}</span>
+                        {p.quantidade ? ` · ${p.quantidade} un.` : ""}
+                      </div>
+                    ))}
+                    {emPartidas(f.gabarito).partidas.some((p) => p.soPermanente) && <span className="suave">Baixa do CMV só no inventário permanente.</span>}
                   </td>
                   {!somenteLeitura && <td><button type="button" className="botao perigo pequeno" onClick={() => remover(f.n)}>Remover</button></td>}
                 </tr>

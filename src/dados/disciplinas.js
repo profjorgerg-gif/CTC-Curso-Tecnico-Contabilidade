@@ -8,7 +8,7 @@ export const DISCIPLINAS = [
     usa: ["Plano de Contas", "Débito/Crédito"],
     modulos: [
       "Introdução à Contabilidade (princípios, classificação, regimes)",
-      "Plano de Contas", "Saldos Iniciais", "Lançamentos (10 fatos orientados)",
+      "Plano de Contas", "Saldos Iniciais", "Lançamentos (8 fatos orientados)",
       "Consulta por Conta", "Controle de Estoque (PEPS, UEPS, Média)", "Balancete",
       "DRE", "DLPA — Demonstração de Lucros ou Prejuízos Acumulados",
       "Encerramento (ARE)", "Balanço Patrimonial",

@@ -41,14 +41,34 @@ export const numero = (n) => (Number(n) || 0).toLocaleString("pt-BR", { minimumF
 export const dataBR = (d) => (d && d.length === 10 ? `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(0, 4)}` : d || "");
 export const arred = (n) => Math.round((Number(n) || 0) * 100) / 100;
 
+// ---------- lançamento composto (aprovado em 04/10/2026) ----------
+// Cada lançamento tem várias partidas: { d: "D" | "C", conta, valor, quantidade?, valorUnitario?, efeito? }.
+// Lançamentos antigos (uma conta a débito e uma a crédito) são convertidos na leitura.
+export function partidasDe(l) {
+  if (Array.isArray(l?.partidas)) return l.partidas;
+  if (!l?.contaDebito) return [];
+  const q = Number(l.quantidade) || 0;
+  const estD = CONTAS_ESTOQUE.includes(l.contaDebito);
+  const estC = CONTAS_ESTOQUE.includes(l.contaCredito);
+  return [
+    { d: "D", conta: l.contaDebito, valor: Number(l.valor), ...(estD && q ? { quantidade: q, valorUnitario: Number(l.valorUnitario) || Number(l.valor) / q } : {}) },
+    { d: "C", conta: l.contaCredito, valor: Number(l.valor), ...(estC && q ? { quantidade: q } : {}) },
+  ];
+}
+export const totalDoLancamento = (l) => arred(partidasDe(l).filter((p) => p.d === "D").reduce((s, p) => s + Number(p.valor || 0), 0));
+export const contasDoLado = (l, lado) => partidasDe(l).filter((p) => p.d === lado).map((p) => p.conta);
+export const usaConta = (l, codigo) => partidasDe(l).some((p) => p.conta === codigo);
+
 // ---------- saldos ----------
 export function totaisDaConta(lancamentos, saldos, codigo) {
   const ini = saldos?.[codigo] || {};
   let deb = Number(ini.devedor || 0);
   let cred = Number(ini.credor || 0);
   for (const l of lancamentos || []) {
-    if (l.contaDebito === codigo) deb += Number(l.valor);
-    if (l.contaCredito === codigo) cred += Number(l.valor);
+    for (const p of partidasDe(l)) {
+      if (p.conta !== codigo) continue;
+      if (p.d === "D") deb += Number(p.valor); else cred += Number(p.valor);
+    }
   }
   return { deb: arred(deb), cred: arred(cred) };
 }
@@ -74,49 +94,62 @@ export function balancete(plano, lancamentos, saldos) {
   return { linhas, tot, fecha: Math.abs(tot.deb - tot.cred) < 0.005 && Math.abs(tot.dev - tot.cre) < 0.005 };
 }
 
+export const ordenarLancamentos = (lista) => [...(lista || [])]
+  .sort((a, b) => (a.data || "").localeCompare(b.data || "") || (a.criadoEm || "").localeCompare(b.criadoEm || ""));
+
 // razão (extrato) de uma conta, com saldo acumulado no sentido da natureza da conta
 export function razao(conta, lancamentos, saldos) {
   const ini = saldos?.[conta.codigo] || {};
   const sinal = conta.natureza === "Credora" ? -1 : 1; // saldo positivo = do lado da natureza
   let acumulado = arred(sinal * (Number(ini.devedor || 0) - Number(ini.credor || 0)));
   const inicial = acumulado;
-  const linhas = (lancamentos || [])
-    .filter((l) => l.contaDebito === conta.codigo || l.contaCredito === conta.codigo)
-    .sort((a, b) => (a.data || "").localeCompare(b.data || "") || (a.criadoEm || "").localeCompare(b.criadoEm || ""))
-    .map((l) => {
-      const debito = l.contaDebito === conta.codigo;
-      acumulado = arred(acumulado + sinal * (debito ? 1 : -1) * Number(l.valor));
-      return { l, debito, contrapartida: debito ? l.contaCredito : l.contaDebito, acumulado };
+  const linhas = [];
+  for (const l of ordenarLancamentos(lancamentos)) {
+    const partidas = partidasDe(l);
+    partidas.forEach((p, i) => {
+      if (p.conta !== conta.codigo) return;
+      const debito = p.d === "D";
+      acumulado = arred(acumulado + sinal * (debito ? 1 : -1) * Number(p.valor));
+      const outras = [...new Set(partidas.filter((x) => x.d !== p.d).map((x) => x.conta))];
+      linhas.push({ l, chave: `${l.id}-${i}`, debito, valor: Number(p.valor), contrapartida: outras.length === 1 ? outras[0] : null, contrapartidas: outras, acumulado });
     });
+  }
   return { inicial, linhas, final: acumulado };
 }
 
-// ---------- conferência de um lançamento ----------
+// ---------- conferência de um lançamento (partidas dobradas) ----------
 export function conferirLancamento(f, plano) {
   const erros = [];
   if (!f.data) erros.push("Informe a data.");
   if (!f.historico?.trim()) erros.push("Escreva o histórico (o que aconteceu).");
-  if (!plano.porCodigo[f.contaDebito]?.aceitaLancamento) erros.push("Escolha a conta a débito.");
-  if (!plano.porCodigo[f.contaCredito]?.aceitaLancamento) erros.push("Escolha a conta a crédito.");
-  if (f.contaDebito && f.contaDebito === f.contaCredito) erros.push("A conta a débito e a conta a crédito não podem ser a mesma.");
-  const estoque = CONTAS_ESTOQUE.includes(f.contaDebito) || CONTAS_ESTOQUE.includes(f.contaCredito);
-  if (estoque && !(Number(f.quantidade) > 0)) erros.push("Esta operação movimenta o estoque de mercadorias: informe a quantidade.");
-  if (!(Number(f.valor) > 0)) erros.push("Informe o valor (maior que zero).");
+  const partidas = f.partidas || [];
+  const deb = partidas.filter((p) => p.d === "D");
+  const cred = partidas.filter((p) => p.d === "C");
+  if (!deb.length || !cred.length) erros.push("O lançamento precisa de pelo menos uma conta a débito e uma a crédito.");
+  partidas.forEach((p, i) => {
+    const onde = `Linha ${i + 1} (${p.d === "D" ? "débito" : "crédito"}${p.efeito ? ` — ${p.efeito}` : ""})`;
+    if (!plano.porCodigo[p.conta]?.aceitaLancamento) erros.push(`${onde}: escolha a conta.`);
+    if (!(Number(p.valor) > 0)) erros.push(`${onde}: informe o valor.`);
+    if (CONTAS_ESTOQUE.includes(p.conta) && !(Number(p.quantidade) > 0)) erros.push(`${onde}: movimenta o estoque de mercadorias — informe a quantidade.`);
+  });
+  const contasD = new Set(deb.map((p) => p.conta));
+  if (cred.some((p) => p.conta && contasD.has(p.conta))) erros.push("A mesma conta não pode estar a débito e a crédito no mesmo lançamento.");
+  const somaD = arred(deb.reduce((s, p) => s + (Number(p.valor) || 0), 0));
+  const somaC = arred(cred.reduce((s, p) => s + (Number(p.valor) || 0), 0));
+  if (somaD > 0 && somaC > 0 && Math.abs(somaD - somaC) > 0.005) erros.push(`Os débitos (${dinheiro(somaD)}) precisam ser iguais aos créditos (${dinheiro(somaC)}).`);
   return erros;
 }
 
-// ---------- os 10 fatos orientados da CB (mesmos do SECCHH) ----------
+// ---------- os 8 fatos orientados da CB (base SECCHH; a venda já inclui a baixa do CMV) ----------
 export const FATOS_ORIENTADOS = [
-  "A empresa comprou 100 unidades de mercadorias, pagando à vista em dinheiro (Caixa), a R$ 20,00 cada — total de R$ 2.000,00.",
-  "A empresa comprou 50 unidades de mercadorias a prazo do fornecedor, a R$ 25,00 cada — total de R$ 1.250,00, para pagamento futuro.",
-  "A empresa vendeu 40 unidades de mercadorias à vista, recebendo R$ 3.000,00 no Banco X.",
-  "Registre a baixa do custo das mercadorias vendidas (CMV) referente à venda do fato anterior.",
-  "A empresa vendeu 30 unidades de mercadorias a prazo para um cliente, no valor de R$ 2.400,00, para recebimento futuro.",
-  "Registre a baixa do custo das mercadorias vendidas (CMV) referente à venda do fato anterior.",
-  "A empresa pagou ao fornecedor a duplicata referente à compra do fato 2, através do Banco Y.",
-  "A empresa recebeu do cliente a duplicata referente à venda do fato 5, através do Banco X.",
-  "A empresa pagou R$ 800,00 de aluguel do mês, através do Banco Y.",
-  "A empresa pagou R$ 3.500,00 de salários dos funcionários, através do Banco X.",
+  { tipo: "compra", texto: "A empresa comprou 100 unidades de mercadorias, pagando à vista em dinheiro (Caixa), a R$ 20,00 cada — total de R$ 2.000,00." },
+  { tipo: "compra", texto: "A empresa comprou 50 unidades de mercadorias a prazo do fornecedor, a R$ 25,00 cada — total de R$ 1.250,00, para pagamento futuro." },
+  { tipo: "venda", texto: "A empresa vendeu 40 unidades de mercadorias à vista, recebendo R$ 3.000,00 no Banco X. Registre a venda e a baixa do custo das mercadorias vendidas (CMV)." },
+  { tipo: "venda", texto: "A empresa vendeu 30 unidades de mercadorias a prazo para um cliente, no valor de R$ 2.400,00. Registre a venda e a baixa do CMV." },
+  { tipo: "pagamento", texto: "A empresa pagou ao fornecedor a duplicata referente à compra do fato 2, através do Banco Y." },
+  { tipo: "recebimento", texto: "A empresa recebeu do cliente a duplicata referente à venda do fato 4, através do Banco X." },
+  { tipo: "despesa", texto: "A empresa pagou R$ 800,00 de aluguel do mês, através do Banco Y." },
+  { tipo: "despesa", texto: "A empresa pagou R$ 3.500,00 de salários dos funcionários, através do Banco X." },
 ];
 
 // contas mais usadas no lançamento de abertura (saldos iniciais)
