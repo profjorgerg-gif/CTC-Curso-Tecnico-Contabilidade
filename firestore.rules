@@ -136,6 +136,11 @@ service cloud.firestore {
         allow read, write: if souProfessorDaTurma(turmaId);
       }
 
+      // Guia Pedagógico: planos semestral e mensais da turma (só o professor)
+      match /planos/{planoId} {
+        allow read, write: if souProfessorDaTurma(turmaId);
+      }
+
       // boletim publicado: o aluno lê só o próprio; só o professor grava
       match /boletim/{matricula} {
         allow read: if souProfessorDaTurma(turmaId) ||

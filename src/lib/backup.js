@@ -80,6 +80,7 @@ export async function backupCompleto(sessao) {
   const turmas = await Promise.all(turmasBase.map(async (t) => ({
     ...t, alunos: await lerColecao("turmas", t.id, "alunos"), listas: await lerColecao("turmas", t.id, "listas"),
     avaliacoes: await lerColecao("turmas", t.id, "avaliacoes"), boletim: await lerColecao("turmas", t.id, "boletim"),
+    planos: await lerColecao("turmas", t.id, "planos"),
   })));
   const contagem = {
     autorizados: autorizados.length,
@@ -126,7 +127,7 @@ export async function backupDaTurma(sessao, turma) {
     a.empresa = e?.exists() ? paraJson(e.data()) : null;
     if (a.empresa) a.livros = await lerColecao("empresas", `${turma.id}_${a.id}`, "livros").catch(() => []);
   }));
-  const [listas, avaliacoes, boletim] = await Promise.all(["listas", "avaliacoes", "boletim"].map((c) => lerColecao("turmas", turma.id, c).catch(() => [])));
+  const [listas, avaliacoes, boletim, planos] = await Promise.all(["listas", "avaliacoes", "boletim", "planos"].map((c) => lerColecao("turmas", turma.id, c).catch(() => [])));
   const { id, alunos: _ignorar, ...dadosTurma } = turma;
   const agora = new Date();
   const arquivo = `Backup-CTC-Turma-${semAcentoNome(turma.nome)}-${carimbo(agora)}.json`;
@@ -135,7 +136,7 @@ export async function backupDaTurma(sessao, turma) {
     geradoEm: agora.toISOString(), geradoPor: quem(sessao),
     contagem: { alunos: alunos.length },
     turma: { id, dados: paraJson(dadosTurma) },
-    alunos, listas, avaliacoes, boletim,
+    alunos, listas, avaliacoes, boletim, planos,
   });
   await registrar(sessao, `turma ${turma.nome}`, `${arquivo} — ${alunos.length} aluno(s)`);
   auditar("Backup da turma", arquivo);
@@ -178,6 +179,7 @@ export async function restaurarBackup(sessao, d, aoAvancar = () => {}) {
     por(["turmas", t.id, "listas"], t.listas || []);
     por(["turmas", t.id, "avaliacoes"], t.avaliacoes || []); // backups anteriores às notas não têm esta parte
     por(["turmas", t.id, "boletim"], t.boletim || []);
+    por(["turmas", t.id, "planos"], t.planos || []);
   });
   por(["usuarios"], c.usuarios);
   (c.empresas || []).forEach((e) => { // backups anteriores às empresas não têm esta parte

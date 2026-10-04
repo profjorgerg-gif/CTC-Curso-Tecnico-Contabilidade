@@ -214,16 +214,16 @@
     {
       "id": "f9-sipp",
       "fase": "Fase 9 — Área do professor e fechamento",
-      "item": "Analisar o SIPP e decidir como entra no planejamento de aulas",
+      "item": "Analisar o SIPP: formulários oficiais (Plano Semestral e Sequência Didática) incorporados ao Guia Pedagógico",
       "quem": "Professor e Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "f9-planejamento",
       "fase": "Fase 9 — Área do professor e fechamento",
-      "item": "Planejamento de aulas e Guia Pedagógico",
+      "item": "Guia Pedagógico: Plano Semestral e Plano de Aula Mensal (modelo SED/SC), com impressão em PDF",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "f9-suporte",
@@ -245,6 +245,13 @@
       "item": "Auditoria completa (quem acessou e o que fez)",
       "quem": "Claude",
       "feito": true
+    },
+    {
+      "id": "f9-slides",
+      "fase": "Fase 9 — Área do professor e fechamento",
+      "item": "Slides por módulo no Guia Pedagógico (começando pela CB)",
+      "quem": "Claude",
+      "feito": false
     },
     {
       "id": "f9-manuais",

@@ -15,6 +15,7 @@ import MinhaEmpresa from "./telas/Empresa";
 import Escrituracao from "./telas/Escrituracao";
 import Parametrizacao from "./telas/Parametrizacao";
 import MinhasNotas from "./telas/Notas";
+import Guia from "./telas/Guia";
 import { definirSessaoAuditoria, registrarAcesso } from "./lib/auditoria";
 import { confirmadoNesteNavegador, useSaidaPorInatividade } from "./lib/seguranca";
 import { ConfirmarAluno, ConfirmarProfessor } from "./telas/Confirmacao";
@@ -23,8 +24,8 @@ import Rodape from "./componentes/Rodape";
 // Itens do menu por perfil
 const MENUS = {
   aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["empresa", "Minha empresa"], ["parametrizacao", "Parametrização"], ["escrituracao", "Escrituração"], ["notas", "Minhas notas"], ["turmas", "Minhas turmas"], ["banco", "Consultas"], ["suporte", "Suporte"]],
-  professor: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"]],
-  admin: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"], ["auditoria", "Auditoria"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
+  professor: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["guia", "Guia Pedagógico"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"]],
+  admin: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["guia", "Guia Pedagógico"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"], ["auditoria", "Auditoria"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
 };
 
 // A página atual fica no endereço (#turmas, #banco...) para sobreviver ao F5
@@ -117,6 +118,7 @@ export default function App() {
           {pagina === "empresa" && <MinhaEmpresa {...props} />}
           {pagina === "parametrizacao" && <Parametrizacao {...props} />}
           {pagina === "notas" && <MinhasNotas {...props} />}
+          {pagina === "guia" && <Guia {...props} />}
           {pagina === "escrituracao" && <Escrituracao key={resto.join("/")} {...props} />}
         </main>
       </div>
