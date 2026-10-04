@@ -235,9 +235,9 @@
     {
       "id": "g-natureza",
       "fase": "Ajustes gerais",
-      "item": "Conferir a natureza das contas 4.2.01 a 4.2.06 (deduções da receita)",
+      "item": "Natureza das contas 4.2.01 a 4.2.06 (deduções da receita) corrigida para Devedora",
       "quem": "Professor",
-      "feito": false
+      "feito": true
     },
     {
       "id": "g-turma-teste",

@@ -15,10 +15,12 @@ const nomes = {
   '7.1.11': 'Lucro do Exercício',
   '7.1.12': 'Prejuízo do Exercício',
 };
+// deduções da receita são contas redutoras: natureza devedora (aprovado pelo professor em 03/10/2026)
+const natureza = c => (c.codigo.startsWith('4.2.') ? 'Devedora' : c.natureza);
 const destino = g => ({ '1': 'BP', '2': 'BP', '3': 'BP', '4': 'DRE', '5': 'DRE', '6': 'DRE', '7': 'ARE' })[g];
 const ordem = c => c.split('.').map(n => n.padStart(3, '0')).join('.');
 const plano = [...cb, ...extras]
-  .map(c => ({ ...c, nome: nomes[c.codigo] || c.nome, destino: destino(c.codigo[0]) }))
+  .map(c => ({ ...c, nome: nomes[c.codigo] || c.nome, natureza: natureza(c), destino: destino(c.codigo[0]) }))
   .sort((a, b) => ordem(a.codigo).localeCompare(ordem(b.codigo)));
 fs.writeFileSync('public/dados/plano-contas.json', JSON.stringify(plano));
 console.log('contas:', plano.length, '| exemplo:', JSON.stringify(plano.find(c => c.codigo === '1.2.3.57')));
