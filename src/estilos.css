@@ -143,16 +143,17 @@ tbody tr:hover td { background: rgba(255, 255, 255, 0.02); }
 /* rodapé de direitos autorais (todas as telas) */
 .rodape {
   display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 8px; text-align: center;
-  padding: 14px 20px; background: #0b1312; border-top: 1px solid var(--linha-suave);
+  padding: 10px 20px; background: #0b1312; border-top: 1px solid var(--linha-suave);
   font-size: 12.5px; color: var(--tinta-suave);
 }
 .rodape strong { color: var(--tinta-media); font-weight: 600; }
 
 /* tela de entrada dividida (opção 7 — Monograma + Trilha) */
 .login-dividido { flex: 1; display: flex; border-top: 4px solid var(--verde); }
+/* na tela de entrada, as medidas acompanham a altura da janela para tudo caber sem rolar */
 .login-apresentacao {
   flex: 0 1 54%; background: var(--lateral); border-right: 1px solid var(--linha-suave);
-  padding: 48px clamp(24px, 5vw, 72px); display: flex; flex-direction: column; gap: 28px;
+  padding: clamp(18px, 4.5vh, 48px) clamp(24px, 5vw, 72px); display: flex; flex-direction: column; justify-content: center; gap: clamp(12px, 3vh, 28px);
 }
 .login-instituicao { display: flex; align-items: center; gap: 14px; }
 .login-instituicao > div { display: flex; flex-direction: column; gap: 2px; }
@@ -161,22 +162,22 @@ tbody tr:hover td { background: rgba(255, 255, 255, 0.02); }
 .login-titulo { display: flex; flex-direction: column; gap: 4px; }
 .login-monograma {
   font-family: var(--mono); font-weight: 600; color: var(--destaque);
-  font-size: clamp(72px, 9vw, 128px); line-height: 0.9; letter-spacing: -0.04em;
+  font-size: clamp(52px, min(9vw, 12vh), 128px); line-height: 0.9; letter-spacing: -0.04em;
 }
-.login-titulo h1 { font-size: clamp(20px, 2vw, 26px); margin: 0; }
-.login-titulo p { color: var(--tinta-media); font-size: 16px; margin-top: 6px; }
+.login-titulo h1 { font-size: clamp(18px, min(2vw, 3.2vh), 26px); margin: 0; }
+.login-titulo p { color: var(--tinta-media); font-size: clamp(14px, 2vh, 16px); margin-top: 4px; }
 .login-trilha { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.login-trilha li { display: flex; align-items: center; gap: 18px; padding: 7px 0; font-size: 16px; }
+.login-trilha li { display: flex; align-items: center; gap: 16px; padding: clamp(2px, 0.7vh, 7px) 0; font-size: clamp(14px, 2.1vh, 16px); }
 .login-numero {
-  width: 34px; height: 34px; flex: none; border-radius: 50%; border: 2px solid var(--destaque);
-  background: var(--papel); color: var(--destaque); font-family: var(--mono); font-size: 13px; font-weight: 600;
+  width: clamp(26px, 4vh, 34px); height: clamp(26px, 4vh, 34px); flex: none; border-radius: 50%; border: 2px solid var(--destaque);
+  background: var(--papel); color: var(--destaque); font-family: var(--mono); font-size: clamp(11px, 1.6vh, 13px); font-weight: 600;
   display: flex; align-items: center; justify-content: center;
 }
 .login-sigla { font-family: var(--mono); width: 58px; flex: none; font-weight: 600; color: var(--destaque-forte); }
-.login-lado { flex: 1 1 46%; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+.login-lado { flex: 1 1 46%; display: flex; align-items: center; justify-content: center; padding: clamp(16px, 4vh, 40px) 20px; }
 .login-cartao {
   width: 100%; max-width: 440px; background: var(--superficie); border: 1px solid var(--linha); border-radius: 14px;
-  padding: 36px 32px 30px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  padding: clamp(22px, 4vh, 36px) 32px clamp(20px, 3.4vh, 30px); display: flex; flex-direction: column; gap: clamp(12px, 2vh, 18px); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
 .login-cartao-topo { display: flex; align-items: center; gap: 12px; }
 .login-cartao-topo h2 { font-size: 24px; }
