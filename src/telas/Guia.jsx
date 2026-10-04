@@ -6,7 +6,7 @@ import { traduzirErro } from "../lib/sessao";
 import { disciplinaPorId } from "../dados/disciplinas";
 import { listasDaTurma } from "../lib/exercicios";
 import {
-  excluirPlano, imprimirPlano, lerPlanos, nomeDoMes, planoMensalPadrao, planoSemestralPadrao, salvarPlano,
+  excluirPlano, imprimirPlano, lerPlanos, noModeloAtual, nomeDoMes, planoMensalPadrao, planoSemestralPadrao, salvarPlano,
 } from "../lib/planos";
 import { dataBR } from "../lib/contabil";
 import { Slides } from "./Slides";
@@ -73,7 +73,7 @@ function PlanosDaTurma({ sessao, turma, tipo }) {
       const [p, l] = await Promise.all([lerPlanos(turma.id), listasDaTurma(turma.id, false)]);
       setDados(p); setListas(l);
       // planos salvos antes do modelo do CEDUP recebem os campos novos com os textos-padrão
-      if (tipo === "semestral") setEditando({ id: "semestral", plano: { ...planoSemestralPadrao(turma, professor, l), ...(p.semestral || {}) }, novo: !p.semestral });
+      if (tipo === "semestral") setEditando({ id: "semestral", plano: noModeloAtual(p.semestral, planoSemestralPadrao(turma, professor, l)), novo: !p.semestral });
     } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
   };
   useEffect(() => { carregar(); }, [turma.id]);
@@ -124,8 +124,8 @@ function PlanosDaTurma({ sessao, turma, tipo }) {
                     <td className="mono pequeno">{dataBR(m.inicio)} a {dataBR(m.fim)}</td>
                     <td><span className={`selo ${m.status === "Pronto" ? "verde" : "ocre"}`}>{m.status}</span></td>
                     <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                      <button className="botao secundario pequeno" onClick={() => setEditando({ id: m.id, plano: { ...planoMensalPadrao(turma, professor, dados.semestral, listas, m.mes), ...m } })}>Editar</button>{" "}
-                      <button className="botao secundario pequeno" onClick={() => imprimir({ ...planoMensalPadrao(turma, professor, dados.semestral, listas, m.mes), ...m })}>Imprimir / PDF</button>{" "}
+                      <button className="botao secundario pequeno" onClick={() => setEditando({ id: m.id, plano: noModeloAtual(m, planoMensalPadrao(turma, professor, dados.semestral, listas, m.mes)) })}>Editar</button>{" "}
+                      <button className="botao secundario pequeno" onClick={() => imprimir(noModeloAtual(m, planoMensalPadrao(turma, professor, dados.semestral, listas, m.mes)))}>Imprimir / PDF</button>{" "}
                       <button className="botao perigo pequeno" onClick={async () => {
                         if (!window.confirm(`Excluir o plano de ${nomeDoMes(m.mes)}?`)) return;
                         try { await excluirPlano(turma, m.id); await carregar(); } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
@@ -205,6 +205,7 @@ function FormPlano({ plano, semestral, aoSalvar, aoImprimir, aoCancelar, turma, 
         </div>
       </div>
       <p className="pequeno suave" style={{ margin: 0 }}>Mesmo formato do modelo do CEDUP Hermann Hering (A4 paisagem, com o cabeçalho da escola). Os campos já vêm com os textos-padrão do modelo; ajuste o que precisar.</p>
+      {p.modeloAntigo && <div className="aviso atencao pequeno">Este plano tinha sido salvo no modelo anterior e foi convertido para o modelo do CEDUP, com os textos-padrão. Revise os campos e clique em Salvar.</div>}
       <h3 className="pequeno" style={{ margin: 0, color: "var(--destaque)" }}>Identificação</h3>
       {semestral ? (
         <>

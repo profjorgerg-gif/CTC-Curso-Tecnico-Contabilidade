@@ -76,9 +76,26 @@ export function planoSemestralPadrao(turma, professor, listas) {
   };
 }
 
+// planos salvos antes do modelo do CEDUP (04/10/2026) tinham outros campos (instrumentos em lista,
+// textos antigos): são convertidos para o modelo novo, mantendo só a identificação
+export function noModeloAtual(salvo, padrao) {
+  if (!salvo) return padrao;
+  const atual = salvo.tipo === "semestral" ? "ementa" in salvo : "competenciaGeral" in salvo;
+  if (atual) {
+    const r = { ...padrao, ...salvo };
+    for (const k of Object.keys(padrao)) if (typeof padrao[k] === "string" && typeof r[k] !== "string") r[k] = padrao[k];
+    return r;
+  }
+  const manter = ["status", "turma", "aulasSemanais", "mes", "inicio", "fim", "local", "dataDocumento"];
+  const r = { ...padrao, modeloAntigo: true };
+  for (const k of manter) if (salvo[k]) r[k] = salvo[k];
+  return r;
+}
+
 // a sequência didática (plano de aula) herda do Plano Semestral os campos comuns
 export function planoMensalPadrao(turma, professor, semestral, listas, mes) {
-  const s = { ...planoSemestralPadrao(turma, professor, listas), ...(semestral || {}) };
+  const base = planoSemestralPadrao(turma, professor, listas);
+  const s = semestral ? noModeloAtual(semestral, base) : base;
   const inicio = `${mes}-01`;
   const fim = fimDoMes(mes);
   return {
@@ -101,7 +118,7 @@ export async function lerPlanos(turmaId) {
 }
 
 export async function salvarPlano(turma, id, dados) {
-  const { id: _id, ...resto } = dados;
+  const { id: _id, modeloAntigo: _antigo, ...resto } = dados;
   await setDoc(doc(db, "turmas", turma.id, "planos", id), { ...resto, atualizadoEm: serverTimestamp() });
   auditar("Salvou plano", `${dados.tipo === "semestral" ? "Plano Semestral" : `Sequência didática ${nomeDoMes(dados.mes)}`} — ${turma.nome}`);
 }
