@@ -48,8 +48,8 @@ export const MANUAL_PROFESSOR = [
   ] },
   { id: "guia", titulo: "Guia Pedagógico", passos: [
     "Slides: escolha a disciplina e o módulo. Use as setas do teclado ou clique para avançar, \"Tela cheia\" para projetar e \"Notas do professor\" para ver as suas anotações.",
-    "Plano Semestral: vem preenchido com a ementa oficial, os módulos e as datas das listas avaliativas. Revise, salve e use \"Imprimir / PDF\".",
-    "Plano de Aula Mensal: escolha o mês e clique em \"Novo plano mensal\". Ele herda os campos do Plano Semestral e já traz as listas do mês.",
+    "Plano Semestral: no mesmo formato do modelo do CEDUP Hermann Hering (A4 paisagem, com o cabeçalho da escola). Vem preenchido com a ementa oficial, os módulos, os textos-padrão da Portaria nº 874/2025 e as datas das listas avaliativas. Revise, salve e use \"Imprimir / PDF\". Nos textos, **trecho** sai em negrito.",
+    "Sequência Didática (plano de aula): escolha o mês e clique em \"Nova sequência didática\". Ela herda os campos do Plano Semestral e já traz as avaliações do período.",
   ], dica: "Para gerar o PDF, escolha \"Salvar como PDF\" na janela de impressão. Se nada abrir, permita pop-ups para o CTC." },
   { id: "banco", titulo: "Banco de Dados", passos: [
     "Consulta do Plano de Contas, CFOP, NCM (por capítulo) e cronograma IBS/CBS.",

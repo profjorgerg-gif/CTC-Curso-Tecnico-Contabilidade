@@ -6,13 +6,13 @@ import { traduzirErro } from "../lib/sessao";
 import { disciplinaPorId } from "../dados/disciplinas";
 import { listasDaTurma } from "../lib/exercicios";
 import {
-  excluirPlano, imprimirPlano, INSTRUMENTOS, lerPlanos, nomeDoMes, planoMensalPadrao, planoSemestralPadrao, salvarPlano,
+  excluirPlano, imprimirPlano, lerPlanos, nomeDoMes, planoMensalPadrao, planoSemestralPadrao, salvarPlano,
 } from "../lib/planos";
 import { dataBR } from "../lib/contabil";
 import { Slides } from "./Slides";
 import { ManualDoAluno, ManualDoProfessor } from "./Manuais";
 
-const ABAS = [["slides", "Slides"], ["semestral", "Plano Semestral"], ["mensal", "Plano de Aula Mensal"], ["professor", "Manual do Professor"], ["aluno", "Manual do Aluno"]];
+const ABAS = [["slides", "Slides"], ["semestral", "Plano Semestral"], ["mensal", "Sequência Didática (Plano de Aula)"], ["professor", "Manual do Professor"], ["aluno", "Manual do Aluno"]];
 
 export default function Guia({ sessao, rota, ir }) {
   const aba = ABAS.some(([id]) => id === rota[0]) ? rota[0] : "slides";
@@ -72,7 +72,8 @@ function PlanosDaTurma({ sessao, turma, tipo }) {
     try {
       const [p, l] = await Promise.all([lerPlanos(turma.id), listasDaTurma(turma.id, false)]);
       setDados(p); setListas(l);
-      if (tipo === "semestral") setEditando({ id: "semestral", plano: p.semestral || planoSemestralPadrao(turma, professor, l), novo: !p.semestral });
+      // planos salvos antes do modelo do CEDUP recebem os campos novos com os textos-padrão
+      if (tipo === "semestral") setEditando({ id: "semestral", plano: { ...planoSemestralPadrao(turma, professor, l), ...(p.semestral || {}) }, novo: !p.semestral });
     } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
   };
   useEffect(() => { carregar(); }, [turma.id]);
@@ -102,29 +103,29 @@ function PlanosDaTurma({ sessao, turma, tipo }) {
   };
   return (
     <>
-      {!dados.semestral && <div className="aviso atencao pequeno">Dica: salve primeiro o Plano Semestral — o plano mensal herda dele os campos comuns (habilidades, recursos, recuperação, referências).</div>}
+      {!dados.semestral && <div className="aviso atencao pequeno">Dica: salve primeiro o Plano Semestral — a sequência didática herda dele os campos comuns (objetos, habilidades, metodologia, recuperação, referências).</div>}
       {!editando && (
         <section className="cartao sem-padding">
           <div className="cartao-topo">
-            <h2>Planos de aula mensais</h2>
+            <h2>Sequências didáticas (plano de aula)</h2>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <input aria-label="Mês do novo plano" type="month" value={novoMes} onChange={(e) => setNovoMes(e.target.value)} />
-              <button className="botao pequeno" onClick={criar}>Novo plano mensal</button>
+              <button className="botao pequeno" onClick={criar}>Nova sequência didática</button>
             </div>
           </div>
           <div className="tabela-caixa">
             <table>
               <thead><tr><th>Mês</th><th>Período</th><th>Situação</th><th></th></tr></thead>
               <tbody>
-                {dados.mensais.length === 0 && <tr><td colSpan={4} className="suave">Nenhum plano mensal ainda. Escolha o mês e clique em "Novo plano mensal".</td></tr>}
+                {dados.mensais.length === 0 && <tr><td colSpan={4} className="suave">Nenhuma sequência didática ainda. Escolha o mês e clique em "Nova sequência didática".</td></tr>}
                 {dados.mensais.map((m) => (
                   <tr key={m.id}>
                     <td style={{ textTransform: "capitalize" }}>{nomeDoMes(m.mes)}</td>
                     <td className="mono pequeno">{dataBR(m.inicio)} a {dataBR(m.fim)}</td>
                     <td><span className={`selo ${m.status === "Pronto" ? "verde" : "ocre"}`}>{m.status}</span></td>
                     <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                      <button className="botao secundario pequeno" onClick={() => setEditando({ id: m.id, plano: m })}>Editar</button>{" "}
-                      <button className="botao secundario pequeno" onClick={() => imprimir(m)}>Imprimir / PDF</button>{" "}
+                      <button className="botao secundario pequeno" onClick={() => setEditando({ id: m.id, plano: { ...planoMensalPadrao(turma, professor, dados.semestral, listas, m.mes), ...m } })}>Editar</button>{" "}
+                      <button className="botao secundario pequeno" onClick={() => imprimir({ ...planoMensalPadrao(turma, professor, dados.semestral, listas, m.mes), ...m })}>Imprimir / PDF</button>{" "}
                       <button className="botao perigo pequeno" onClick={async () => {
                         if (!window.confirm(`Excluir o plano de ${nomeDoMes(m.mes)}?`)) return;
                         try { await excluirPlano(turma, m.id); await carregar(); } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
@@ -145,20 +146,48 @@ function PlanosDaTurma({ sessao, turma, tipo }) {
   );
 }
 
-// ---------------- formulário (semestral ou mensal) ----------------
+// ---------------- formulário (semestral ou sequência didática), no formato do CEDUP ----------------
+const CAMPOS_SEMESTRAL = [
+  ["ementa", "Ementa", 4, "Vem da ementa oficial (PPC)."],
+  ["habilidades", "Habilidades", 5],
+  ["bases", "Bases tecnológicas / conteúdos por unidade", 6, "Uma unidade por linha. Use **texto** para negrito (ex.: **Unidade 1 – Fundamentos:** conteúdos…)."],
+  ["objetoConhecimento", "Objeto do conhecimento", 3],
+  ["metodologia", "Metodologia de ensino-aprendizagem", 4],
+  ["recursos", "Recursos utilizados", 2],
+  ["instrumentos", "Instrumentos diversificados de avaliação", 6],
+  ["datasAvaliacao", "Datas previstas de avaliações e recuperações", 5, "As listas avaliativas e de recuperação com prazo já entram aqui."],
+  ["recuperacao", "Recuperação paralela de aprendizagem", 6],
+  ["adaptacoes", "Adaptações e observações", 4],
+  ["referencias", "Referências bibliográficas", 6, "Uma referência por linha."],
+];
+const CAMPOS_SEQUENCIA = [
+  ["objetos", "Objetos de conhecimento", 4],
+  ["habilidades", "Habilidades", 5],
+  ["competenciaGeral", "Competência geral da unidade curricular", 4],
+  ["observacaoMetodologica", "Observação metodológica", 2],
+  ["objetivo", "Objetivo de aprendizagem", 5, "Conteúdos do período. Use **texto** para negrito."],
+  ["metodologia", "Metodologia de ensino-aprendizagem", 4],
+  ["recursos", "Recursos utilizados", 2],
+  ["instrumentos", "Instrumentos diversificados de avaliação", 6],
+  ["datasAvaliacao", "Datas previstas de avaliações e recuperações", 5, "As listas avaliativas e de recuperação com prazo dentro do período já entram aqui."],
+  ["recuperacao", "Recuperação paralela de aprendizagem", 6],
+  ["adaptacoes", "Adaptações e observações", 4],
+  ["referencias", "Referências bibliográficas", 6, "Uma referência por linha."],
+];
+
 function FormPlano({ plano, semestral, aoSalvar, aoImprimir, aoCancelar, turma, msg }) {
   const [p, setP] = useState(plano);
   const [salvando, setSalvando] = useState(false);
   const muda = (k) => (e) => setP({ ...p, [k]: e.target.value });
-  const Texto = ({ k, rotulo, linhas = 4, ajuda }) => (
-    <div className="campo" style={{ flex: "none" }}>
+  const Texto = (k, rotulo, linhas = 4, ajuda) => (
+    <div key={k} className="campo" style={{ flex: "none" }}>
       <label htmlFor={`pl-${k}`}>{rotulo}</label>
       <textarea id={`pl-${k}`} rows={linhas} value={p[k] || ""} onChange={muda(k)} style={{ minHeight: 0, fontFamily: "inherit" }} />
       {ajuda && <span className="pequeno suave">{ajuda}</span>}
     </div>
   );
-  const Linha = ({ k, rotulo, largura = "1 1 220px", tipo = "text" }) => (
-    <div className="campo" style={{ flex: largura }}>
+  const Linha = (k, rotulo, largura = "1 1 220px", tipo = "text") => (
+    <div key={k} className="campo" style={{ flex: largura }}>
       <label htmlFor={`pl-${k}`}>{rotulo}</label>
       <input id={`pl-${k}`} type={tipo} value={p[k] || ""} onChange={muda(k)} />
     </div>
@@ -169,90 +198,71 @@ function FormPlano({ plano, semestral, aoSalvar, aoImprimir, aoCancelar, turma, 
   return (
     <section className="cartao">
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-        <h2>{semestral ? `Plano Semestral — ${p.componente}` : `Plano de aula — ${nomeDoMes(p.mes)}`}</h2>
+        <h2>{semestral ? `Plano Semestral Pós-Médio ${p.periodo || ""} — ${p.disciplina}` : `Sequência didática — ${nomeDoMes(p.mes)}`}</h2>
         <div className="campo" style={{ flex: "0 0 160px" }}>
           <label htmlFor="pl-status">Situação</label>
           <select id="pl-status" value={p.status} onChange={muda("status")}><option>Pendente</option><option>Pronto</option></select>
         </div>
       </div>
+      <p className="pequeno suave" style={{ margin: 0 }}>Mesmo formato do modelo do CEDUP Hermann Hering (A4 paisagem, com o cabeçalho da escola). Os campos já vêm com os textos-padrão do modelo; ajuste o que precisar.</p>
       <h3 className="pequeno" style={{ margin: 0, color: "var(--destaque)" }}>Identificação</h3>
-      <div className="linha-form">
-        {Linha({ k: "escola", rotulo: "Unidade escolar", largura: "1 1 260px" })}
-        {Linha({ k: "curso", rotulo: "Curso" })}
-        {Linha({ k: "modalidade", rotulo: "Modalidade", largura: "1 1 280px" })}
-      </div>
-      <div className="linha-form">
-        {Linha({ k: "componente", rotulo: "Componente curricular" })}
-        {Linha({ k: "turma", rotulo: "Turma", largura: "0 1 200px" })}
-        {Linha({ k: "semestre", rotulo: "Semestre", largura: "0 1 120px" })}
-        {Linha({ k: "aulasSemanais", rotulo: "Aulas semanais", largura: "0 1 130px" })}
-        {Linha({ k: "professor", rotulo: "Professor(a)" })}
-      </div>
-      {!semestral && (
-        <div className="linha-form">
-          {Linha({ k: "inicio", rotulo: "Início", tipo: "date", largura: "0 1 180px" })}
-          {Linha({ k: "fim", rotulo: "Fim", tipo: "date", largura: "0 1 180px" })}
-        </div>
-      )}
-
-      <h3 className="pequeno" style={{ margin: "6px 0 0", color: "var(--destaque)" }}>Conteúdo</h3>
       {semestral ? (
         <>
-          {Texto({ k: "objetos", rotulo: "Objetos de conhecimento", linhas: 4, ajuda: "Vem da ementa oficial (PPC). Ajuste se precisar." })}
-          {Texto({ k: "habilidades", rotulo: "Habilidades", linhas: 5 })}
-          {Texto({ k: "objetivo", rotulo: "Objetivo de aprendizagem", linhas: 3 })}
-          {Texto({ k: "modulos", rotulo: "Organização dos conteúdos (módulos)", linhas: 6 })}
+          <div className="linha-form">
+            {Linha("curso", "Curso")}
+            {Linha("disciplina", "Disciplina")}
+            {Linha("periodo", "Período (ano)", "0 1 130px")}
+          </div>
+          <div className="linha-form">
+            {Linha("modulo", "Módulo", "0 1 110px")}
+            {Linha("turma", "Turma", "0 1 160px")}
+            {Linha("professor", "Professor")}
+            {Linha("aulasSemanais", "Nº aulas", "0 1 110px")}
+          </div>
         </>
       ) : (
         <>
-          <div className="campo" style={{ flex: "none" }}>
-            <label htmlFor="pl-objetos">Objetos de conhecimento do mês</label>
-            <textarea id="pl-objetos" rows={4} value={p.objetos || ""} onChange={muda("objetos")} style={{ minHeight: 0, fontFamily: "inherit" }} />
-            {modulos.length > 0 && (
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
-                <span className="pequeno suave">Incluir módulo:</span>
-                {modulos.map((m) => (
-                  <button key={m} type="button" className="botao secundario pequeno" onClick={() => setP({ ...p, objetos: [p.objetos, m].filter(Boolean).join("\n") })}>{m.length > 40 ? `${m.slice(0, 40)}…` : m}</button>
-                ))}
-              </div>
-            )}
+          <div className="linha-form">
+            {Linha("inicio", "Período: de", "0 1 180px", "date")}
+            {Linha("fim", "até", "0 1 180px", "date")}
+            {Linha("curso", "Curso")}
           </div>
-          {Texto({ k: "habilidades", rotulo: "Habilidades", linhas: 4 })}
-          {Texto({ k: "expectativas", rotulo: "Expectativas de aprendizagem", linhas: 3 })}
-          {Texto({ k: "atividades", rotulo: "Experiências de aprendizagem (atividades)", linhas: 5, ajuda: "As listas de exercícios do mês já entram aqui. Acrescente as aulas, slides e demais atividades." })}
+          <div className="linha-form">
+            {Linha("professor", "Professor(a)")}
+            {Linha("area", "Área(s) do conhecimento")}
+            {Linha("turma", "Turma(s)", "0 1 140px")}
+            {Linha("aulasSemanais", "Nº aulas semanais", "0 1 150px")}
+          </div>
+          <div className="linha-form">{Linha("componente", "Componente curricular", "1 1 400px")}</div>
         </>
       )}
-
-      <h3 className="pequeno" style={{ margin: "6px 0 0", color: "var(--destaque)" }}>Metodologia e avaliação</h3>
-      {semestral && Texto({ k: "metodologia", rotulo: "Metodologia", linhas: 4 })}
-      {Texto({ k: "recursos", rotulo: "Recursos didáticos", linhas: 3 })}
-      <fieldset style={{ border: 0, padding: 0, margin: 0, display: "flex", flexWrap: "wrap", gap: "6px 18px" }}>
-        <legend className="pequeno" style={{ color: "var(--tinta-media)", marginBottom: 6 }}>Instrumentos de avaliação</legend>
-        {INSTRUMENTOS.map((i) => (
-          <label key={i} className="pequeno" style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <input type="checkbox" style={{ minHeight: 0 }} checked={(p.instrumentos || []).includes(i)}
-              onChange={(e) => setP({ ...p, instrumentos: e.target.checked ? [...(p.instrumentos || []), i] : p.instrumentos.filter((x) => x !== i) })} />
-            {i}
-          </label>
-        ))}
-      </fieldset>
-      <div className="linha-form">{Linha({ k: "outrosInstrumentos", rotulo: "Outros instrumentos", largura: "1 1 400px" })}</div>
-      {Texto({ k: "datasAvaliacao", rotulo: "Datas das avaliações", linhas: 3, ajuda: "As listas avaliativas e de recuperação com prazo já entram aqui." })}
-      {Texto({ k: "recuperacao", rotulo: "Recuperação paralela", linhas: 3 })}
-      {Texto({ k: "adaptacoes", rotulo: "Adaptações curriculares", linhas: 2 })}
-      {!semestral && Texto({ k: "observacoes", rotulo: "Observações gerais", linhas: 2 })}
-      {Texto({ k: "referencias", rotulo: "Referências", linhas: 5 })}
-      <div className="linha-form">
-        {Linha({ k: "local", rotulo: "Local", largura: "0 1 220px" })}
-        {Linha({ k: "dataDocumento", rotulo: "Data", tipo: "date", largura: "0 1 180px" })}
-      </div>
+      <h3 className="pequeno" style={{ margin: "6px 0 0", color: "var(--destaque)" }}>Conteúdo</h3>
+      {(semestral ? CAMPOS_SEMESTRAL : CAMPOS_SEQUENCIA).map(([k, r, n, a]) => (
+        <div key={k}>
+          {Texto(k, r, n, a)}
+          {((semestral && k === "bases") || (!semestral && k === "objetivo")) && modulos.length > 0 && (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
+              <span className="pequeno suave">Incluir módulo:</span>
+              {modulos.map((m) => (
+                <button key={m} type="button" className="botao secundario pequeno" onClick={() => setP({ ...p, [k]: [p[k], m].filter(Boolean).join("\n") })}>{m.length > 40 ? `${m.slice(0, 40)}…` : m}</button>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+      {semestral && (
+        <div className="linha-form">
+          {Linha("local", "Local", "0 1 220px")}
+          {Linha("dataDocumento", "Data", "0 1 180px", "date")}
+        </div>
+      )}
       {msg?.texto && <div className={`aviso ${msg.tipo || ""}`} role="status">{msg.texto}</div>}
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <button className="botao" disabled={salvando} onClick={salvar}>{salvando ? "Salvando…" : "Salvar"}</button>
         <button className="botao secundario" onClick={() => aoImprimir(p)}>Imprimir / PDF</button>
         {aoCancelar && <button className="botao secundario" onClick={aoCancelar}>Voltar</button>}
       </div>
-      <p className="pequeno suave" style={{ margin: 0 }}>Para gerar o PDF, escolha "Salvar como PDF" na janela de impressão do navegador.</p>
+      <p className="pequeno suave" style={{ margin: 0 }}>Para gerar o PDF, escolha "Salvar como PDF" na janela de impressão do navegador (o layout já vem em paisagem). Desmarque "Cabeçalhos e rodapés" nas opções para não sair o endereço da página.</p>
     </section>
   );
 }
