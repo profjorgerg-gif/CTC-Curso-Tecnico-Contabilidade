@@ -221,29 +221,58 @@ function Cfop() {
 function Ncm() {
   const [dados, setDados] = useState(null);
   const [busca, setBusca] = useState("");
+  const [capitulo, setCapitulo] = useState("");
   useEffect(() => { carregarTabela("ncm").then(setDados); }, []);
+  const so = (c) => c.replace(/\D/g, "");
+  // sem busca: lista os capítulos (2 dígitos); ao abrir um capítulo, mostra todos os códigos dele
+  const capitulos = useMemo(() => (dados || []).filter((n) => so(n.codigo).length === 2), [dados]);
   const lista = useMemo(() => {
-    if (!dados || busca.trim().length < 2) return [];
-    const b = semAcento(busca);
-    const digitos = b.replace(/\D/g, "");
-    return dados.filter((n) => (digitos && n.codigo.replace(/\D/g, "").startsWith(digitos)) || semAcento(n.descricao).includes(b)).slice(0, 100);
-  }, [dados, busca]);
+    if (!dados) return [];
+    if (busca.trim().length >= 2) {
+      const b = semAcento(busca);
+      const digitos = b.replace(/\D/g, "");
+      return dados.filter((n) => (digitos && so(n.codigo).startsWith(digitos)) || semAcento(n.descricao).includes(b)).slice(0, 300);
+    }
+    if (capitulo) return dados.filter((n) => so(n.codigo).startsWith(capitulo));
+    return [];
+  }, [dados, busca, capitulo]);
+  const buscando = busca.trim().length >= 2;
+  const nivel = (c) => Math.min(Math.max(so(c).length - 2, 0), 8);
   return (
     <section className="cartao sem-padding">
       <div className="cartao-topo">
         <h2>NCM {dados && <span className="suave pequeno">· {dados.length.toLocaleString("pt-BR")} códigos oficiais</span>}</h2>
         <input aria-label="Buscar NCM" placeholder="Código (6109) ou descrição (camiseta)" value={busca} onChange={(e) => setBusca(e.target.value)} style={{ flex: "0 1 300px" }} />
       </div>
+      {!buscando && capitulo && (
+        <div style={{ padding: "10px 16px", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <button className="botao secundario pequeno" onClick={() => setCapitulo("")}>← Todos os capítulos</button>
+          <span className="pequeno suave">Capítulo {capitulo} · {lista.length.toLocaleString("pt-BR")} códigos</span>
+        </div>
+      )}
+      {buscando && <p className="pequeno suave" style={{ padding: "10px 16px 0" }}>{lista.length >= 300 ? "Mostrando os 300 primeiros resultados — refine a busca." : `${lista.length} resultado(s).`}</p>}
       <div className="tabela-caixa" style={{ maxHeight: 620, overflowY: "auto" }}>
         <table>
-          <thead><tr><th>Código</th><th>Descrição</th></tr></thead>
+          <thead><tr><th>{!buscando && !capitulo ? "Capítulo" : "Código"}</th><th>Descrição</th></tr></thead>
           <tbody>
             {!dados && <tr><td colSpan={2} className="suave">Carregando a tabela…</td></tr>}
-            {dados && busca.trim().length < 2 && <tr><td colSpan={2} className="suave">Digite pelo menos 2 caracteres para buscar.</td></tr>}
-            {lista.map((n) => <tr key={n.codigo}><td className="mono">{n.codigo}</td><td>{n.descricao}</td></tr>)}
+            {dados && !buscando && !capitulo && capitulos.map((n) => (
+              <tr key={n.codigo} onClick={() => setCapitulo(so(n.codigo))} style={{ cursor: "pointer" }} title="Abrir o capítulo">
+                <td className="mono" style={{ color: "var(--destaque)", fontWeight: 600 }}>{n.codigo}</td>
+                <td>{n.descricao}</td>
+              </tr>
+            ))}
+            {(buscando || capitulo) && lista.map((n) => (
+              <tr key={n.codigo}>
+                <td className="mono" style={{ paddingLeft: 16 + nivel(n.codigo) * 6, whiteSpace: "nowrap" }}>{n.codigo}</td>
+                <td style={{ fontWeight: so(n.codigo).length <= 4 ? 600 : 400 }}>{n.descricao}</td>
+              </tr>
+            ))}
+            {dados && buscando && lista.length === 0 && <tr><td colSpan={2} className="suave">Nenhum código encontrado.</td></tr>}
           </tbody>
         </table>
       </div>
+      {!buscando && !capitulo && dados && <p className="pequeno suave" style={{ padding: "8px 16px 14px" }}>Clique num capítulo para ver todos os códigos dele, ou use a busca.</p>}
     </section>
   );
 }
