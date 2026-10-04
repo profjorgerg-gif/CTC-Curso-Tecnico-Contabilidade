@@ -77,3 +77,21 @@ export async function excluirLancamento(sessao, empresaId, l) {
   await alterarDiario(empresaId, (lista) => lista.filter((x) => x.id !== l.id));
   auditarSeProfessor(sessao, "Excluiu lançamento", `${empresaId}: ${l.historico}`);
 }
+
+// encerramento do exercício: grava de uma vez os lançamentos de encerramento (marcados)
+export async function gravarEncerramento(sessao, empresaId, propostos, data) {
+  const quem = autor(sessao);
+  const agora = new Date().toISOString();
+  const novos = propostos.map((p, i) => ({
+    id: `${novoId()}${i}`, data, historico: p.historico, documento: "",
+    contaDebito: p.contaDebito, contaCredito: p.contaCredito, valor: Math.round(p.valor * 100) / 100,
+    encerramento: true, criadoEm: `${agora}#${String(i).padStart(3, "0")}`, criadoPor: quem,
+  }));
+  await alterarDiario(empresaId, (lista) => [...lista.filter((l) => !l.encerramento), ...novos]);
+  auditar("Encerrou o exercício", `${empresaId}: ${novos.length} lançamento(s)`);
+}
+
+export async function desfazerEncerramento(sessao, empresaId) {
+  await alterarDiario(empresaId, (lista) => lista.filter((l) => !l.encerramento));
+  auditar("Desfez o encerramento do exercício", empresaId);
+}

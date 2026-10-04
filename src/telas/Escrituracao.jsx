@@ -5,6 +5,7 @@ import { useTurmas } from "../lib/useTurmas";
 import { traduzirErro } from "../lib/sessao";
 import { disciplinaPorId } from "../dados/disciplinas";
 import { garantirEmpresa, lerEmpresa, salvarMetodoEstoque } from "../lib/empresas";
+import { balanco, CONTA_LUCROS, dlpa, dre, jaEncerrado, propostaEncerramento } from "../lib/demonstracoes";
 import { custoDaSaida, kardex, METODO_PADRAO, METODOS, movimentosDeEstoque } from "../lib/estoque";
 import { semAcento } from "../lib/arquivos";
 import {
@@ -12,10 +13,10 @@ import {
   FATOS_ORIENTADOS, numero, razao, usePlano,
 } from "../lib/contabil";
 import {
-  alterarLancamento, excluirLancamento, incluirLancamento, lerEscrituracao, salvarSaldos,
+  alterarLancamento, desfazerEncerramento, excluirLancamento, gravarEncerramento, incluirLancamento, lerEscrituracao, salvarSaldos,
 } from "../lib/escrituracao";
 
-const ABAS = [["saldos", "Saldos iniciais"], ["lancamentos", "Lançamentos"], ["razao", "Razão por conta"], ["estoque", "Controle de estoque"], ["balancete", "Balancete"]];
+const ABAS = [["saldos", "Saldos iniciais"], ["lancamentos", "Lançamentos"], ["razao", "Razão por conta"], ["estoque", "Controle de estoque"], ["balancete", "Balancete"], ["dre", "DRE"], ["are", "Encerramento (ARE)"], ["dlpa", "DLPA"], ["balanco", "Balanço Patrimonial"]];
 
 export default function Escrituracao({ sessao, papel, ir, rota }) {
   return papel === "aluno"
@@ -129,6 +130,10 @@ function Livros({ sessao, empresa, donoAluno }) {
       {aba === "razao" && <Razao {...props} />}
       {aba === "estoque" && <ControleEstoque {...props} />}
       {aba === "balancete" && <Balancete {...props} />}
+      {aba === "dre" && <Dre {...props} />}
+      {aba === "are" && <Encerramento {...props} />}
+      {aba === "dlpa" && <Dlpa {...props} />}
+      {aba === "balanco" && <Balanco {...props} />}
     </>
   );
 }
@@ -427,6 +432,7 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
                   <td className="mono pequeno" style={{ whiteSpace: "nowrap" }}>{dataBR(l.data)}</td>
                   <td>
                     {l.fatoOrientado && <span className="selo cheio" style={{ marginRight: 6 }}>Fato {l.fatoOrientado}</span>}
+                    {l.encerramento && <span className="selo cinza" style={{ marginRight: 6 }}>Encerramento</span>}
                     {l.historico}
                     {(l.quantidade || l.documento || l.alteradoPor) && (
                       <span className="pequeno suave" style={{ display: "block" }}>
@@ -714,4 +720,245 @@ function ControleEstoque({ dados, plano, metodo, mudarMetodo }) {
 
 function Num({ v, int }) {
   return <td className="mono" style={{ textAlign: "right", whiteSpace: "nowrap" }}>{int ? Number(v).toLocaleString("pt-BR") : numero(v)}</td>;
+}
+
+// ---------------- DRE ----------------
+function LinhaValor({ rotulo, valor, tipo, recuo }) {
+  const forte = tipo === "subtotal" || tipo === "final";
+  return (
+    <div style={{
+      display: "flex", justifyContent: "space-between", gap: 12, padding: "7px 0", paddingLeft: recuo ? 22 : 0,
+      borderTop: forte ? "1px solid var(--linha)" : 0, fontWeight: forte ? 600 : 400,
+      color: tipo === "final" ? "var(--destaque)" : recuo ? "var(--tinta-suave)" : undefined, fontSize: recuo ? 13 : tipo === "final" ? 17 : 15,
+    }}>
+      <span>{rotulo}</span>
+      <span className="mono" style={{ color: valor < 0 && !recuo ? "var(--vermelho)" : undefined }}>{valor < 0 ? `(${numero(-valor)})` : numero(valor)}</span>
+    </div>
+  );
+}
+
+function Dre({ empresa, plano, dados }) {
+  const d = dre(plano, dados.lancamentos, dados.saldos);
+  const [detalhe, setDetalhe] = useState(true);
+  return (
+    <section className="cartao">
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+        <div>
+          <h2>Demonstração do Resultado do Exercício</h2>
+          <span className="pequeno suave">{empresa.razaoSocial} · Lei 6.404/76 e NBC TG 26 · valores entre parênteses reduzem o resultado</span>
+        </div>
+        <label className="pequeno suave" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <input type="checkbox" checked={detalhe} onChange={(e) => setDetalhe(e.target.checked)} style={{ minHeight: 0 }} /> Mostrar as contas
+        </label>
+      </div>
+      <div style={{ maxWidth: 760 }}>
+        {d.linhas.map((x) => (
+          <div key={x.rotulo}>
+            <LinhaValor {...x} />
+            {detalhe && x.contas.map((c) => <LinhaValor key={c.conta.codigo} rotulo={`${c.conta.codigo} ${c.conta.nome}`} valor={c.valor} recuo />)}
+          </div>
+        ))}
+      </div>
+      <span className={`selo ${d.resultado >= 0 ? "verde" : "ocre"}`} style={{ alignSelf: "flex-start" }}>{d.resultado >= 0 ? "Lucro" : "Prejuízo"} de {dinheiro(Math.abs(d.resultado))}</span>
+      {jaEncerrado(dados.lancamentos) && <p className="pequeno suave">O exercício já foi encerrado: a DRE ignora os lançamentos de encerramento e continua mostrando o resultado do período.</p>}
+    </section>
+  );
+}
+
+// ---------------- Encerramento (ARE) ----------------
+function Encerramento({ sessao, empresa, plano, dados, recarregar }) {
+  const encerrado = jaEncerrado(dados.lancamentos);
+  const p = propostaEncerramento(plano, dados.lancamentos, dados.saldos);
+  const ultimaData = dados.lancamentos.reduce((m, l) => (l.data > m ? l.data : m), empresa.inicioExercicio || "");
+  const [data, setData] = useState(ultimaData);
+  const [msg, setMsg] = useState({});
+  const [ocupado, setOcupado] = useState(false);
+  const nome = (c) => `${c} ${plano.porCodigo[c]?.nome || ""}`;
+  const fazer = async (f, ok) => {
+    setOcupado(true); setMsg({});
+    try { await f(); await recarregar(); setMsg({ texto: ok }); } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
+    setOcupado(false);
+  };
+  const doEncerramento = dados.lancamentos.filter((l) => l.encerramento);
+
+  return (
+    <>
+      <section className="cartao">
+        <h2>Encerramento do exercício — Apuração do Resultado (ARE)</h2>
+        <p className="pequeno suave" style={{ maxWidth: 820 }}>
+          No fim do exercício, as contas de resultado (receitas, despesas e custos) são zeradas contra a conta {nome("7.1.01")}.
+          O saldo que sobra na ARE é o lucro ou o prejuízo, transferido para o Patrimônio Líquido
+          ({nome(CONTA_LUCROS)} se for lucro; {nome("3.6")} se for prejuízo).
+        </p>
+        <div className="grade" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))" }}>
+          <Indicador rotulo="Receitas a encerrar" valor={dinheiro(p.receitas)} />
+          <Indicador rotulo="Despesas e custos a encerrar" valor={dinheiro(p.despesasCustos)} />
+          <Indicador rotulo={p.resultado >= 0 ? "Lucro apurado" : "Prejuízo apurado"} valor={dinheiro(Math.abs(p.resultado))} />
+        </div>
+      </section>
+
+      {!encerrado && (
+        <section className="cartao sem-padding">
+          <div className="cartao-topo"><h2>Lançamentos de encerramento propostos</h2><span className="pequeno suave">{p.propostos.length} lançamento(s)</span></div>
+          <div className="tabela-caixa">
+            <table>
+              <thead><tr><th>Débito</th><th>Crédito</th><th style={{ textAlign: "right" }}>Valor</th><th>Histórico</th></tr></thead>
+              <tbody>
+                {p.propostos.length === 0 && <tr><td colSpan={4} className="suave">Não há saldo em contas de resultado para encerrar.</td></tr>}
+                {p.propostos.map((x, i) => (
+                  <tr key={i}>
+                    <td className="pequeno">{nome(x.contaDebito)}</td>
+                    <td className="pequeno">{nome(x.contaCredito)}</td>
+                    <td className="mono" style={{ textAlign: "right" }}>{numero(x.valor)}</td>
+                    <td className="pequeno suave">{x.historico}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ padding: "12px 18px 16px", display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div className="campo" style={{ flex: "0 1 200px" }}>
+              <label htmlFor="are-data">Data do encerramento</label>
+              <input id="are-data" type="date" value={data} onChange={(e) => setData(e.target.value)} />
+            </div>
+            <button className="botao" disabled={ocupado || !p.propostos.length || !data}
+              onClick={() => fazer(() => gravarEncerramento(sessao, empresa.id, p.propostos, data), "Exercício encerrado. Confira a DLPA e o Balanço Patrimonial.")}>
+              {ocupado ? "Gravando…" : "Gravar os lançamentos de encerramento"}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {encerrado && (
+        <section className="cartao sem-padding">
+          <div className="cartao-topo">
+            <h2>Exercício encerrado</h2>
+            <button className="botao secundario pequeno" disabled={ocupado}
+              onClick={() => window.confirm("Apagar os lançamentos de encerramento? Você poderá encerrar de novo depois.") && fazer(() => desfazerEncerramento(sessao, empresa.id), "Encerramento desfeito.")}>
+              Desfazer encerramento
+            </button>
+          </div>
+          <div className="tabela-caixa">
+            <table>
+              <thead><tr><th>Data</th><th>Débito</th><th>Crédito</th><th style={{ textAlign: "right" }}>Valor</th></tr></thead>
+              <tbody>
+                {doEncerramento.map((l) => (
+                  <tr key={l.id}>
+                    <td className="mono pequeno">{dataBR(l.data)}</td>
+                    <td className="pequeno">{nome(l.contaDebito)}</td>
+                    <td className="pequeno">{nome(l.contaCredito)}</td>
+                    <td className="mono" style={{ textAlign: "right" }}>{numero(l.valor)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {p.propostos.length > 0 && <div className="aviso atencao" style={{ margin: 16 }}>Há lançamentos de resultado feitos depois do encerramento. Desfaça e encerre de novo para incluí-los.</div>}
+        </section>
+      )}
+      {msg.texto && <div className={`aviso ${msg.tipo || ""}`} role="status">{msg.texto}</div>}
+    </>
+  );
+}
+
+// ---------------- DLPA ----------------
+function Dlpa({ empresa, plano, dados }) {
+  const d = dlpa(plano, dados.lancamentos, dados.saldos);
+  const capital = Number(empresa.capitalSocial) || 0;
+  const reservaLegalAtual = (() => {
+    const { deb, cred } = (() => { let a = 0, b = 0; const ini = dados.saldos["3.4.01"] || {}; a += Number(ini.devedor || 0); b += Number(ini.credor || 0); for (const l of dados.lancamentos) { if (l.contaDebito === "3.4.01") a += Number(l.valor); if (l.contaCredito === "3.4.01") b += Number(l.valor); } return { deb: a, cred: b }; })();
+    return arred(cred - deb);
+  })();
+  const sugestaoRL = d.resultado > 0 ? arred(Math.min(d.resultado * 0.05, Math.max(capital * 0.2 - reservaLegalAtual + d.destinacoes.filter((x) => x.l.contaCredito === "3.4.01").reduce((s, x) => s + x.valor, 0), 0))) : 0;
+  const encerrado = jaEncerrado(dados.lancamentos);
+  return (
+    <>
+      <section className="cartao">
+        <h2>Demonstração de Lucros ou Prejuízos Acumulados (DLPA)</h2>
+        <span className="pequeno suave">{empresa.razaoSocial} · mostra de onde veio e para onde foi o resultado</span>
+        <div style={{ maxWidth: 760 }}>
+          <LinhaValor rotulo="Saldo inicial de lucros ou prejuízos acumulados" valor={d.saldoInicial} />
+          {d.outras.map((x) => <LinhaValor key={x.l.id} rotulo={`(±) ${x.l.historico}`} valor={x.valor} recuo />)}
+          <LinhaValor rotulo={d.resultado >= 0 ? "(+) Lucro líquido do exercício" : "(-) Prejuízo líquido do exercício"} valor={d.resultado} />
+          <LinhaValor rotulo="(=) Resultado à disposição" valor={arred(d.saldoInicial + d.totalOutras + d.resultado)} tipo="subtotal" />
+          {d.destinacoes.length === 0 && <LinhaValor rotulo="(-) Destinações (reservas e dividendos)" valor={0} />}
+          {d.destinacoes.map((x) => <LinhaValor key={x.l.id} rotulo={`(-) ${x.conta?.nome || x.l.contaCredito}`} valor={-x.valor} />)}
+          <LinhaValor rotulo="(=) Saldo final de lucros ou prejuízos acumulados" valor={d.saldoFinal} tipo="final" />
+        </div>
+      </section>
+      <section className="cartao">
+        <h2>Como destinar o lucro</h2>
+        <p className="pequeno" style={{ maxWidth: 820 }}>
+          Depois do encerramento, o lucro fica em <span className="mono">{CONTA_LUCROS}</span> {plano.porCodigo[CONTA_LUCROS]?.nome}. As destinações
+          são lançadas normalmente na aba Lançamentos, a <strong>débito de {CONTA_LUCROS}</strong> e a crédito de:
+        </p>
+        <ul className="pequeno" style={{ margin: 0, paddingLeft: 20 }}>
+          <li><span className="mono">3.4.01</span> Reserva Legal — 5% do lucro líquido, até atingir 20% do capital social (Lei 6.404/76, art. 193).
+            {sugestaoRL > 0 && <strong> Sugestão para esta empresa: {dinheiro(sugestaoRL)}.</strong>}</li>
+          <li><span className="mono">3.4.02 a 3.4.05</span> outras reservas de lucros (estatutária, para expansão etc.).</li>
+          <li><span className="mono">2.1.7.01</span> Dividendos a Pagar — a parte distribuída aos sócios.</li>
+        </ul>
+        {!encerrado && <div className="aviso atencao">O exercício ainda não foi encerrado. Faça primeiro o Encerramento (ARE).</div>}
+      </section>
+    </>
+  );
+}
+
+// ---------------- Balanço Patrimonial ----------------
+function NoBalanco({ no, nivel = 0 }) {
+  if (!no) return null;
+  return (
+    <>
+      {nivel > 0 && (
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "4px 0", paddingLeft: (nivel - 1) * 14, fontWeight: nivel <= 2 ? 600 : 400, fontSize: nivel <= 2 ? 14 : 13, color: nivel > 3 ? "var(--tinta-media)" : undefined }}>
+          <span>{no.conta.nome}</span>
+          <span className="mono">{no.valor < 0 ? `(${numero(-no.valor)})` : numero(no.valor)}</span>
+        </div>
+      )}
+      {no.filhos.map((f) => <NoBalanco key={f.conta.codigo} no={f} nivel={nivel + 1} />)}
+    </>
+  );
+}
+
+function Balanco({ empresa, plano, dados }) {
+  const b = balanco(plano, dados.lancamentos, dados.saldos);
+  const lado = { flex: "1 1 360px", display: "flex", flexDirection: "column", gap: 2 };
+  const total = (rotulo, valor) => (
+    <div style={{ display: "flex", justifyContent: "space-between", borderTop: "2px solid var(--destaque)", paddingTop: 8, marginTop: 8, fontWeight: 700 }}>
+      <span>{rotulo}</span><span className="mono">{numero(valor)}</span>
+    </div>
+  );
+  return (
+    <section className="cartao">
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+        <div>
+          <h2>Balanço Patrimonial</h2>
+          <span className="pequeno suave">{empresa.razaoSocial} · {empresa.cnpj}</span>
+        </div>
+        <span className={`selo ${b.fecha ? "verde" : "ocre"}`}>{b.fecha ? "Ativo = Passivo + Patrimônio Líquido" : "Não fecha — confira os lançamentos"}</span>
+      </div>
+      <div style={{ display: "flex", gap: 28, flexWrap: "wrap", alignItems: "flex-start" }}>
+        <div style={lado}>
+          <h3 style={{ margin: "6px 0", color: "var(--destaque)" }}>ATIVO</h3>
+          <NoBalanco no={b.ativo} />
+          {total("TOTAL DO ATIVO", b.totAtivo)}
+        </div>
+        <div style={lado}>
+          <h3 style={{ margin: "6px 0", color: "var(--destaque)" }}>PASSIVO</h3>
+          <NoBalanco no={b.passivo} />
+          {total("Total do Passivo", b.totPassivo)}
+          <h3 style={{ margin: "14px 0 6px", color: "var(--destaque)" }}>PATRIMÔNIO LÍQUIDO</h3>
+          <NoBalanco no={b.pl} />
+          {Math.abs(b.pendente) >= 0.005 && (
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", fontStyle: "italic" }}>
+              <span>Resultado do período ainda não encerrado</span><span className="mono">{numero(b.pendente)}</span>
+            </div>
+          )}
+          {total("Total do Patrimônio Líquido", b.totPL)}
+          {total("TOTAL DO PASSIVO + PL", arred(b.totPassivo + b.totPL))}
+        </div>
+      </div>
+      {Math.abs(b.pendente) >= 0.005 && <p className="pequeno suave">O exercício ainda não foi encerrado: o resultado aparece separado no PL. Depois do Encerramento (ARE), ele passa para a conta {CONTA_LUCROS} {plano.porCodigo[CONTA_LUCROS]?.nome}.</p>}
+    </section>
+  );
 }
