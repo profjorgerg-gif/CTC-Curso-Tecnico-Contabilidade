@@ -19,10 +19,13 @@ function auditarSeProfessor(sessao, acao, detalhe) {
 
 export async function lerEscrituracao(empresaId) {
   const [s, d] = await Promise.all([getDoc(refSaldos(empresaId)), getDoc(refDiario(empresaId))]);
+  // última gravação nos livros (para o acompanhamento da turma)
+  const quando = [s, d].map((x) => (x.exists() ? x.data().atualizadoEm?.toDate?.() : null)).filter(Boolean);
   return {
     saldos: s.exists() ? s.data().contas || {} : {},
     saldosGravados: s.exists(),
     lancamentos: d.exists() ? d.data().lancamentos || [] : [],
+    atualizadoEm: quando.length ? new Date(Math.max(...quando.map((x) => x.getTime()))) : null,
   };
 }
 

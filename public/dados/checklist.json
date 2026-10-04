@@ -58,6 +58,13 @@
       "feito": true
     },
     {
+      "id": "f2-acompanhamento",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Acompanhamento da turma: quadro visual do progresso de cada aluno (etapas, fatos, listas, balancete, última atividade), com filtros e .csv",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
       "id": "f2-teste",
       "fase": "Fase 2 — Contabilidade Básica",
       "item": "Teste com o aluno de teste e aprovação do professor",

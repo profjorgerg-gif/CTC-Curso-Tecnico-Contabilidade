@@ -9,6 +9,7 @@ import { traduzirErro } from "../lib/sessao";
 import { EmpresasDaTurma } from "./Empresa";
 import { ConfigLancamentosDaTurma, ParametrosDaTurma } from "./Parametrizacao";
 import { NotasDaTurma } from "./Notas";
+import { AcompanhamentoDaTurma } from "./Acompanhamento";
 import { ExerciciosDaTurma } from "./Exercicios";
 
 const semestrePadrao = () => {
@@ -210,6 +211,7 @@ function DetalheTurma({ sessao, turmaId, ir }) {
         </div>
       </section>
 
+      {turma && alunos && <AcompanhamentoDaTurma key={`ac-${turma.id}-${versaoNotas}`} turma={turma} alunos={alunos} ir={ir} />}
       {turma && <ParametrosDaTurma key={turma.id} turma={turma} aoSalvar={recarregarTurmas} />}
       {turma && <ConfigLancamentosDaTurma key={`cfg-${turma.id}`} turma={turma} aoSalvar={recarregarTurmas} />}
       {turma && <ExerciciosDaTurma key={`ex-${turma.id}`} turma={turma} alunos={alunos || []} aoMudarNotas={() => setVersaoNotas((v) => v + 1)} />}

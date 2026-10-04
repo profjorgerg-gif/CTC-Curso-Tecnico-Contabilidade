@@ -36,6 +36,12 @@ export const MANUAL_PROFESSOR = [
     "Marque \"publicar\" nas avaliações que os alunos podem ver e clique em \"Salvar e publicar para os alunos\". Eles veem em \"Minhas notas\".",
     "No fim do semestre, \"Encerrar o semestre\" troca a situação para Aprovado ou Reprovado (média ≥ 6,0 e frequência ≥ 75%). Publique de novo para os alunos verem.",
   ], dica: "Use \"Exportar .csv\" para levar as notas ao diário de classe." },
+  { id: "acompanhamento", titulo: "Acompanhamento da turma", passos: [
+    "Na página da turma, o quadro \"Acompanhamento da turma\" mostra, para cada aluno: cadastro, parametrização, saldos iniciais, fatos orientados, cada lista enviada, balancete, encerramento e a última atividade.",
+    "Cores: verde = feito/confere; ocre = em andamento ou com diferença; cinza = não começou; vermelho = balancete que não fecha ou sem atividade há mais de 7 dias.",
+    "Nas listas, \"3/5 · 2 ✓\" quer dizer 3 de 5 fatos lançados e 2 conferem. Nas avaliativas ainda ocultas, só você vê o acerto.",
+    "Use os filtros \"Só quem está atrasado\" e \"Só quem tem diferenças\" e clique no nome do aluno para abrir a escrituração dele. \"Atualizar\" relê os livros; \"Exportar .csv\" guarda o retrato da turma.",
+  ] },
   { id: "empresas", titulo: "Empresas e escrituração dos alunos", passos: [
     "No quadro \"Empresas dos alunos\" você vê o cadastro e a parametrização de cada um e abre a escrituração dele (\"Escrituração\").",
     "Você pode corrigir lançamentos do aluno; toda correção sua fica registrada na Auditoria.",
