@@ -41,7 +41,7 @@ export const AREAS = [
   },
   {
     id: "fiscal", nome: "Fiscal / Tributário",
-    intro: "Define como a empresa é tributada. A atividade e o regime já valem agora; os demais parâmetros são usados na Contabilidade Tributária e na Unidade II (NF-e).",
+    intro: "Define como a empresa é tributada. A atividade e o regime já valem agora; os demais parâmetros são usados na Contabilidade Tributária.",
     campos: [
       { id: "atividade", rotulo: "Atividade", tipo: "opcoes", opcoes: ATIVIDADES.map((a) => ({ valor: a, rotulo: a })),
         ajuda: "Comércio revende mercadorias; serviços prestam serviços (ISS); indústria transforma matéria-prima (IPI e custo de produção)." },
@@ -54,7 +54,7 @@ export const AREAS = [
       { id: "aliquotaIss", rotulo: "Alíquota de ISS (%)", tipo: "numero", min: 0, max: 5,
         ajuda: "Para quem presta serviços: definida pelo município, entre 2% e 5%." },
       { id: "reformaTributaria", rotulo: "Destacar CBS e IBS (Reforma Tributária)", tipo: "opcoes", opcoes: opcoes(["sim", "Sim"], ["nao", "Não"]),
-        ajuda: "Segue o cronograma de transição do Banco de Dados (IBS/CBS). Usado nas notas fiscais da Unidade II e na Contabilidade Tributária." },
+        ajuda: "Segue o cronograma de transição do Banco de Dados (IBS/CBS). Usado na Contabilidade Tributária." },
     ],
   },
   {
