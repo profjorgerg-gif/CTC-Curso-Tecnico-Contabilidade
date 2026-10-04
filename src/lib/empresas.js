@@ -102,3 +102,8 @@ export async function salvarEmpresa(empresa, dados) {
   }, { merge: true });
   auditar("Alterou cadastro da empresa", `${limpo.razaoSocial} (${empresa.id})`);
 }
+
+// método de avaliação do estoque escolhido para a empresa (PEPS, UEPS ou Média Ponderada)
+export async function salvarMetodoEstoque(empresa, metodo) {
+  await setDoc(doc(db, "empresas", empresa.id), { metodoEstoque: metodo, atualizadaEm: serverTimestamp() }, { merge: true });
+}

@@ -79,11 +79,36 @@ function PlanoDeContas({ sessao, papel, podeEditar }) {
   const [editando, setEditando] = useState(null);
   const [msg, setMsg] = useState({});
 
+  const [novasOficiais, setNovasOficiais] = useState([]);
   const carregar = async () => {
     try {
       const snap = await getDoc(doc(db, "config", "planoContas"));
-      if (snap.exists()) { setContas(snap.data().contas); setNoBanco(true); }
-      else { setContas(await carregarTabela("plano-contas")); setNoBanco(false); }
+      const oficial = await carregarTabela("plano-contas");
+      if (snap.exists()) {
+        const doBanco = snap.data().contas;
+        setContas(doBanco); setNoBanco(true);
+        // contas incluídas no plano oficial depois que ele foi gravado no banco
+        const existentes = new Set(doBanco.map((c) => c.codigo));
+        setNovasOficiais(oficial.filter((c) => !existentes.has(c.codigo)));
+      } else { setContas(oficial); setNoBanco(false); setNovasOficiais([]); }
+    } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
+  };
+
+  // inclui no banco só as contas novas do plano oficial, sem mexer nas que já existem (nem nas correções feitas)
+  const incluirNovas = async () => {
+    try {
+      let incluidas = [];
+      await runTransaction(db, async (t) => {
+        const ref = doc(db, "config", "planoContas");
+        const snap = await t.get(ref);
+        const lista = snap.data().contas;
+        const existentes = new Set(lista.map((c) => c.codigo));
+        incluidas = novasOficiais.filter((c) => !existentes.has(c.codigo));
+        t.update(ref, { contas: [...lista, ...incluidas], atualizadoEm: serverTimestamp() });
+      });
+      await registrar(sessao, "Plano de Contas", incluidas.map((c) => c.codigo).join(", "), null, `Incluída(s) do plano oficial: ${incluidas.map((c) => `${c.codigo} ${c.nome}`).join("; ")}`);
+      setMsg({ texto: `${incluidas.length} conta(s) nova(s) incluída(s) no banco. A alteração ficou no histórico.` });
+      carregar();
     } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
   };
   useEffect(() => { carregar(); }, []);
@@ -138,6 +163,12 @@ function PlanoDeContas({ sessao, papel, podeEditar }) {
           O plano ainda não foi gravado no banco; você está vendo a versão oficial do site.
           {papel === "admin" && <> <button className="botao pequeno" onClick={gravarOficial}>Gravar plano oficial no banco</button></>}
           {papel === "professor" && " Peça ao administrador para gravá-lo antes de editar."}
+        </div>
+      )}
+      {noBanco && novasOficiais.length > 0 && papel !== "aluno" && (
+        <div className="aviso atencao" style={{ margin: 16, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <span>O plano oficial tem {novasOficiais.length} conta(s) nova(s) que ainda não estão no banco: {novasOficiais.map((c) => `${c.codigo} ${c.nome}`).join(" · ")}.</span>
+          {papel === "admin" ? <button className="botao pequeno" onClick={incluirNovas}>Incluir no banco</button> : <span>Peça ao administrador para incluir.</span>}
         </div>
       )}
       {msg.texto && <div className={`aviso ${msg.tipo || ""}`} style={{ margin: 16 }} role="status">{msg.texto}</div>}

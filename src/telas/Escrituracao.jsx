@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useTurmas } from "../lib/useTurmas";
 import { traduzirErro } from "../lib/sessao";
 import { disciplinaPorId } from "../dados/disciplinas";
-import { garantirEmpresa, lerEmpresa } from "../lib/empresas";
+import { garantirEmpresa, lerEmpresa, salvarMetodoEstoque } from "../lib/empresas";
+import { custoDaSaida, kardex, METODO_PADRAO, METODOS, movimentosDeEstoque } from "../lib/estoque";
 import { semAcento } from "../lib/arquivos";
 import {
   arred, balancete, CONTAS_ABERTURA, CONTAS_ESTOQUE, conferirLancamento, dataBR, dinheiro,
@@ -14,7 +15,7 @@ import {
   alterarLancamento, excluirLancamento, incluirLancamento, lerEscrituracao, salvarSaldos,
 } from "../lib/escrituracao";
 
-const ABAS = [["saldos", "Saldos iniciais"], ["lancamentos", "Lançamentos"], ["razao", "Razão por conta"], ["balancete", "Balancete"]];
+const ABAS = [["saldos", "Saldos iniciais"], ["lancamentos", "Lançamentos"], ["razao", "Razão por conta"], ["estoque", "Controle de estoque"], ["balancete", "Balancete"]];
 
 export default function Escrituracao({ sessao, papel, ir, rota }) {
   return papel === "aluno"
@@ -97,13 +98,15 @@ function Livros({ sessao, empresa, donoAluno }) {
   const [dados, setDados] = useState(null);
   const [erro, setErro] = useState("");
   const [aba, setAba] = useState("lancamentos");
+  const [metodo, setMetodo] = useState(empresa.metodoEstoque || METODO_PADRAO);
+  const mudarMetodo = async (m) => { setMetodo(m); await salvarMetodoEstoque(empresa, m).catch((e) => setErro(traduzirErro(e))); };
   const carregar = () => lerEscrituracao(empresa.id).then(setDados).catch((e) => setErro(traduzirErro(e)));
   useEffect(() => { carregar(); }, [empresa.id]);
   useEffect(() => { if (dados && !dados.saldosGravados) setAba("saldos"); }, [!!dados]);
 
   if (erroPlano || erro) return <div className="aviso erro">{erroPlano || erro}</div>;
   if (!plano || !dados) return <p className="suave">Carregando os livros…</p>;
-  const props = { sessao, empresa, plano, dados, recarregar: carregar, donoAluno };
+  const props = { sessao, empresa, plano, dados, recarregar: carregar, donoAluno, metodo, mudarMetodo };
 
   return (
     <>
@@ -124,6 +127,7 @@ function Livros({ sessao, empresa, donoAluno }) {
       {aba === "saldos" && <SaldosIniciais {...props} />}
       {aba === "lancamentos" && <Lancamentos {...props} />}
       {aba === "razao" && <Razao {...props} />}
+      {aba === "estoque" && <ControleEstoque {...props} />}
       {aba === "balancete" && <Balancete {...props} />}
     </>
   );
@@ -261,7 +265,7 @@ const formVazio = (empresa) => ({
   historico: "", documento: "", contaDebito: "", contaCredito: "", valor: "", quantidade: "", valorUnitario: "",
 });
 
-function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno }) {
+function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, metodo }) {
   const lista = dados.lancamentos;
   const [form, setForm] = useState(() => formVazio(empresa));
   const [editando, setEditando] = useState(null);
@@ -363,7 +367,7 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno }) {
             <input id="l-doc" value={form.documento} onChange={muda("documento")} maxLength={40} />
           </div>
         </div>
-        <div className="linha-form">
+        <div className="linha-form" style={{ alignItems: "flex-start" }}>
           <CampoConta id="l-deb" rotulo="Conta a DÉBITO" valor={form.contaDebito} aoMudar={(c) => setForm((f) => ({ ...f, contaDebito: c }))} plano={plano} />
           <CampoConta id="l-cred" rotulo="Conta a CRÉDITO" valor={form.contaCredito} aoMudar={(c) => setForm((f) => ({ ...f, contaCredito: c }))} plano={plano} />
         </div>
@@ -389,7 +393,21 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno }) {
             <button className="botao" disabled={salvando}>{salvando ? "Salvando…" : editando ? "Salvar correção" : "Lançar"}</button>
           </div>
         </div>
-        {baixaEstoque && <p className="pequeno suave">Baixa de estoque: informe a quantidade que saiu e o custo total (o método de custeio é estudado no Controle de Estoque).</p>}
+        {baixaEstoque && Number(form.quantidade) > 0 && (() => {
+          const c = custoDaSaida(lista, metodo, form.quantidade, form.data, editando);
+          return (
+            <div className={`aviso ${c.insuficiente ? "erro" : ""}`} style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+              {c.insuficiente
+                ? <span>Estoque insuficiente: até esta data há {c.disponivel} unidade(s) disponível(is).</span>
+                : <span>Custo de {form.quantidade} un. pelo método da empresa ({METODOS[metodo].nome}): <strong className="mono">{dinheiro(c.custo)}</strong>
+                    {Number(form.valor) > 0 && Math.abs(Number(form.valor) - c.custo) > 0.005 && <> — o valor digitado ({dinheiro(form.valor)}) está diferente.</>}
+                  </span>}
+              {!c.insuficiente && Math.abs(Number(form.valor) - c.custo) > 0.005 && (
+                <button type="button" className="botao secundario pequeno" onClick={() => setForm((f) => ({ ...f, valor: String(c.custo) }))}>Usar este custo</button>
+              )}
+            </div>
+          );
+        })()}
         {erros.length > 0 && <div className="aviso atencao pequeno">{erros.map((e) => <div key={e}>{e}</div>)}</div>}
         {msg.texto && <div className={`aviso ${msg.tipo || ""}`} role="status">{msg.texto}</div>}
       </form>
@@ -563,4 +581,137 @@ function Balancete({ empresa, plano, dados }) {
       </p>
     </section>
   );
+}
+
+// ---------------- controle de estoque (kardex) ----------------
+function ControleEstoque({ dados, plano, metodo, mudarMetodo }) {
+  const movs = movimentosDeEstoque(dados.lancamentos);
+  const fichas = Object.fromEntries(Object.keys(METODOS).map((m) => [m, kardex(movs, m)]));
+  const [ver, setVer] = useState(metodo);
+  const conta = plano.porCodigo["1.1.3.01"];
+  const saldoConta = (() => {
+    const ini = dados.saldos["1.1.3.01"] || {};
+    let v = Number(ini.devedor || 0) - Number(ini.credor || 0);
+    for (const l of dados.lancamentos) { if (l.contaDebito === "1.1.3.01") v += Number(l.valor); if (l.contaCredito === "1.1.3.01") v -= Number(l.valor); }
+    return arred(v);
+  })();
+  const daEmpresa = fichas[metodo];
+  const saidas = daEmpresa.linhas.filter((x) => x.tipo === "Saída");
+  const divergentes = saidas.filter((x) => Math.abs(x.valorLancado - x.custoSaida) > 0.005);
+
+  return (
+    <>
+      <section className="cartao">
+        <h2>Método de avaliação do estoque da empresa</h2>
+        <div className="abas" role="radiogroup" aria-label="Método de avaliação" style={{ margin: 0 }}>
+          {Object.entries(METODOS).map(([id, m]) => (
+            <button key={id} role="radio" aria-checked={metodo === id} className={metodo === id ? "ativo" : ""} onClick={() => mudarMetodo(id)}>{m.nome}</button>
+          ))}
+        </div>
+        <div className="grade" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
+          <div className="pequeno"><strong>PEPS</strong> — as saídas são baixadas pelo custo dos lotes mais antigos.</div>
+          <div className="pequeno"><strong>UEPS</strong> — as saídas são baixadas pelo custo dos lotes mais recentes. <span style={{ color: "var(--ocre)" }}>Não é aceito pela legislação fiscal brasileira nem pelo CPC 16 — aqui só para comparação.</span></div>
+          <div className="pequeno"><strong>Média Ponderada Móvel</strong> — a cada entrada, recalcula o custo médio; as saídas usam esse custo médio.</div>
+        </div>
+        <p className="pequeno suave">O método escolhido é usado para conferir o CMV nos lançamentos de baixa de estoque. A ficha é montada sozinha a partir dos lançamentos na conta {conta ? `${conta.codigo} ${conta.nome}` : "de estoque"}.</p>
+      </section>
+
+      {movs.length === 0 ? (
+        <div className="aviso atencao">Nenhuma movimentação de estoque ainda. Lance compras (débito em Mercadorias para Revenda) e baixas de CMV (crédito em Mercadorias) com a quantidade.</div>
+      ) : (
+        <>
+          <div className="grade" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}>
+            {Object.entries(METODOS).map(([id, m]) => (
+              <div key={id} className="cartao" style={{ gap: 4, borderColor: id === metodo ? "var(--destaque)" : undefined }}>
+                <span className="pequeno suave">{m.nome}{id === metodo ? " · método da empresa" : ""}</span>
+                <span>CMV <strong className="mono">{dinheiro(fichas[id].cmv)}</strong></span>
+                <span>Estoque final <strong className="mono">{fichas[id].finalQtd} un. · {dinheiro(fichas[id].finalValor)}</strong></span>
+              </div>
+            ))}
+          </div>
+
+          <section className="cartao">
+            <h2>Conferência com a escrituração ({METODOS[metodo].nome})</h2>
+            <div className="aviso" style={{ background: Math.abs(saldoConta - daEmpresa.finalValor) < 0.005 ? undefined : "var(--ocre-claro)", color: Math.abs(saldoConta - daEmpresa.finalValor) < 0.005 ? undefined : "var(--ocre)" }}>
+              Saldo da conta Mercadorias no razão: <strong className="mono">{dinheiro(saldoConta)}</strong> · pela ficha: <strong className="mono">{dinheiro(daEmpresa.finalValor)}</strong>
+              {Math.abs(saldoConta - daEmpresa.finalValor) < 0.005 ? " — conferem." : " — não conferem: confira o custo lançado nas baixas abaixo."}
+            </div>
+            {saidas.length > 0 && (
+              <div className="tabela-caixa">
+                <table>
+                  <thead><tr><th>Data</th><th>Baixa</th><th style={{ textAlign: "right" }}>Qtd</th><th style={{ textAlign: "right" }}>Custo lançado</th><th style={{ textAlign: "right" }}>Custo pelo método</th><th></th></tr></thead>
+                  <tbody>
+                    {saidas.map((x) => {
+                      const ok = Math.abs(x.valorLancado - x.custoSaida) < 0.005;
+                      return (
+                        <tr key={x.id}>
+                          <td className="mono pequeno">{dataBR(x.data)}</td>
+                          <td>{x.fato ? `Fato ${x.fato} — ` : ""}{x.historico}</td>
+                          <td className="mono" style={{ textAlign: "right" }}>{x.quantidade}</td>
+                          <td className="mono" style={{ textAlign: "right" }}>{numero(x.valorLancado)}</td>
+                          <td className="mono" style={{ textAlign: "right" }}>{numero(x.custoSaida)}</td>
+                          <td>{x.insuficiente ? <span className="selo ocre">Estoque insuficiente</span> : ok ? <span className="selo verde">Confere</span> : <span className="selo ocre">Diferente</span>}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {divergentes.length > 0 && <p className="pequeno suave">Para acertar, abra a aba Lançamentos e use "Corrigir" na baixa indicada.</p>}
+          </section>
+
+          <section className="cartao sem-padding">
+            <div className="cartao-topo">
+              <h2>Ficha de controle de estoque (kardex)</h2>
+              <div className="abas" role="tablist" style={{ margin: 0 }}>
+                {Object.entries(METODOS).map(([id, m]) => (
+                  <button key={id} role="tab" aria-selected={ver === id} className={ver === id ? "ativo" : ""} onClick={() => setVer(id)}>{m.nome}</button>
+                ))}
+              </div>
+            </div>
+            <div className="tabela-caixa">
+              <table>
+                <thead>
+                  <tr>
+                    <th rowSpan={2}>Data</th><th rowSpan={2}>Histórico</th>
+                    <th colSpan={3} style={{ textAlign: "center" }}>Entradas</th>
+                    <th colSpan={3} style={{ textAlign: "center" }}>Saídas</th>
+                    <th colSpan={2} style={{ textAlign: "center" }}>Saldo</th>
+                  </tr>
+                  <tr>
+                    <th style={{ textAlign: "right" }}>Qtd</th><th style={{ textAlign: "right" }}>Unit.</th><th style={{ textAlign: "right" }}>Total</th>
+                    <th style={{ textAlign: "right" }}>Qtd</th><th style={{ textAlign: "right" }}>Unit.</th><th style={{ textAlign: "right" }}>Total</th>
+                    <th style={{ textAlign: "right" }}>Qtd</th><th style={{ textAlign: "right" }}>Valor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fichas[ver].linhas.map((x) => (
+                    <tr key={x.id}>
+                      <td className="mono pequeno">{dataBR(x.data)}</td>
+                      <td className="pequeno">{x.fato ? `Fato ${x.fato} — ` : ""}{x.historico}{x.insuficiente && <span className="selo ocre" style={{ marginLeft: 6 }}>insuficiente</span>}
+                        {x.lotes && x.lotes.length > 0 && <span className="suave" style={{ display: "block" }}>lotes: {x.lotes.map((l) => `${l.qtd} × ${numero(l.unit)}`).join(" · ")}</span>}
+                        {ver === "media" && x.saldoQtd > 0 && <span className="suave" style={{ display: "block" }}>custo médio: {numero(x.medio)}</span>}
+                      </td>
+                      {x.tipo === "Entrada"
+                        ? <><Num v={x.quantidade} int /><Num v={x.valorUnit} /><Num v={x.quantidade * x.valorUnit} /><td /><td /><td /></>
+                        : <><td /><td /><td /><Num v={x.quantidade} int /><Num v={x.quantidade ? x.custoSaida / x.quantidade : 0} /><Num v={x.custoSaida} /></>}
+                      <Num v={x.saldoQtd} int /><Num v={x.saldoValor} />
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr><td colSpan={2}><strong>CMV pelo {METODOS[ver].nome}</strong></td><td colSpan={3} /><td colSpan={2} /><td className="mono" style={{ textAlign: "right" }}><strong>{numero(fichas[ver].cmv)}</strong></td><td colSpan={2} /></tr>
+                </tfoot>
+              </table>
+            </div>
+          </section>
+        </>
+      )}
+    </>
+  );
+}
+
+function Num({ v, int }) {
+  return <td className="mono" style={{ textAlign: "right", whiteSpace: "nowrap" }}>{int ? Number(v).toLocaleString("pt-BR") : numero(v)}</td>;
 }

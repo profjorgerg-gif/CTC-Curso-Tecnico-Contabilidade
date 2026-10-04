@@ -8,6 +8,7 @@ const extras = [
   { ...irmao('1.2.3.56'), codigo: '1.2.3.57', nome: '(-) Depreciação Acumulada Equipamentos de Informática' },
   { ...irmao('4.2.05'), codigo: '4.2.06', nome: '(-) Devoluções de Vendas' },
   { ...irmao('5.1.12'), codigo: '5.1.13', nome: 'Despesa com PECLD (Perdas Estimadas em Créditos de Liquidação Duvidosa)' },
+  { ...irmao('5.1.12'), codigo: '5.1.14', nome: 'Aluguéis' }, // fato 9 da CB (aprovado em 03/10/2026)
 ];
 const nomes = {
   '3.3.01': 'Ajustes de Avaliação — Ativos',
