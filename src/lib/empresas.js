@@ -82,14 +82,13 @@ export async function empresasDaTurma(turmaId, alunos) {
   return Object.fromEntries(alunos.map((a, i) => [a.matricula, lista[i]]));
 }
 
-const CAMPOS = ["razaoSocial", "nomeFantasia", "cnpj", "atividade", "ramo", "regime", "municipio", "uf", "inicioExercicio", "capitalSocial"];
+const CAMPOS = ["razaoSocial", "nomeFantasia", "cnpj", "ramo", "municipio", "uf", "capitalSocial"];
 
 export function conferirCadastro(e) {
   const erros = [];
   if (!e.razaoSocial?.trim()) erros.push("Informe a razão social.");
   if (!cnpjValido(e.cnpj)) erros.push("O CNPJ não é válido — use o botão Gerar CNPJ fictício.");
   if (!e.ramo?.trim()) erros.push("Informe o ramo de atividade (ex.: loja de roupas).");
-  if (!e.inicioExercicio) erros.push("Informe a data de início do exercício.");
   if (!(Number(e.capitalSocial) > 0)) erros.push("Informe o capital social (maior que zero).");
   return erros;
 }

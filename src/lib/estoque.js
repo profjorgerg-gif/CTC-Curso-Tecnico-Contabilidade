@@ -96,3 +96,40 @@ export function custoDaSaida(lancamentos, metodo, quantidade, data, ignorarId = 
   const ultima = k.linhas[k.linhas.length - 1];
   return { custo: ultima?.custoSaida || 0, insuficiente: !!ultima?.insuficiente, disponivel: anteriores.length ? k.linhas[k.linhas.length - 2]?.saldoQtd || 0 : 0 };
 }
+
+// ---------- inventário periódico: CMV = Estoque Inicial + Compras − Estoque Final ----------
+// O estoque final é a contagem física informada pelo aluno, avaliada pelo método:
+// PEPS → as unidades que sobram são as das compras mais recentes;
+// Média Ponderada (fixa do período) → custo médio de tudo o que esteve disponível.
+export function apuracaoPeriodica(lancamentos, saldos, metodo, qtdInicial, qtdFinal) {
+  const ei = Number(saldos?.["1.1.3.01"]?.devedor || 0) - Number(saldos?.["1.1.3.01"]?.credor || 0);
+  const compras = (lancamentos || [])
+    .filter((l) => CONTAS_ESTOQUE.includes(l.contaDebito) && !l.apuracaoCMV)
+    .sort((a, b) => (a.data || "").localeCompare(b.data || "") || (a.criadoEm || "").localeCompare(b.criadoEm || ""))
+    .map((l) => ({ id: l.id, data: l.data, historico: l.historico, quantidade: Number(l.quantidade) || 0, valor: Number(l.valor), unit: Number(l.valorUnitario) || (Number(l.quantidade) ? Number(l.valor) / Number(l.quantidade) : 0) }));
+  const qEI = Number(qtdInicial) || 0;
+  const qC = compras.reduce((s, c) => s + c.quantidade, 0);
+  const vC = arred(compras.reduce((s, c) => s + c.valor, 0));
+  const disponivelQ = qEI + qC;
+  const qEF = Math.max(0, Number(qtdFinal) || 0);
+  let ef = 0;
+  if (metodo === "media") {
+    ef = disponivelQ > 0 ? ((ei + vC) / disponivelQ) * qEF : 0;
+  } else {
+    // PEPS: o que sobra são as últimas compras (e, se faltar, o estoque inicial)
+    let falta = qEF;
+    for (const c of [...compras].reverse()) {
+      if (falta <= 0) break;
+      const usa = Math.min(falta, c.quantidade);
+      ef += usa * c.unit; falta -= usa;
+    }
+    if (falta > 0 && qEI > 0) ef += falta * (ei / qEI);
+  }
+  ef = arred(ef);
+  return {
+    ei: arred(ei), qEI, compras, qC, vC, qEF, ef,
+    cmv: arred(ei + vC - ef), qVendida: Math.max(0, disponivelQ - qEF),
+    excede: qEF > disponivelQ,
+    jaApurado: (lancamentos || []).some((l) => l.apuracaoCMV),
+  };
+}

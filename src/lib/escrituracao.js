@@ -58,8 +58,8 @@ function dadosDoForm(f) {
   return d;
 }
 
-export async function incluirLancamento(sessao, empresaId, f, fatoOrientado) {
-  const novo = { id: novoId(), ...dadosDoForm(f), criadoEm: new Date().toISOString(), criadoPor: autor(sessao) };
+export async function incluirLancamento(sessao, empresaId, f, fatoOrientado, extras = {}) {
+  const novo = { id: novoId(), ...dadosDoForm(f), ...extras, criadoEm: new Date().toISOString(), criadoPor: autor(sessao) };
   if (fatoOrientado) novo.fatoOrientado = fatoOrientado;
   await alterarDiario(empresaId, (lista) => [...lista, novo]);
   auditarSeProfessor(sessao, "Incluiu lançamento", `${empresaId}: ${novo.historico}`);

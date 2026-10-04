@@ -1,10 +1,11 @@
 // Empresa individual do aluno (uma por turma)
 import { useEffect, useState } from "react";
 import { useTurmas } from "../lib/useTurmas";
+import { destravarParametros } from "../lib/parametros";
 import { traduzirErro } from "../lib/sessao";
 import { disciplinaPorId } from "../dados/disciplinas";
 import {
-  ATIVIDADES, REGIMES, conferirCadastro, criarEmpresasQueFaltam, empresasDaTurma,
+  conferirCadastro, criarEmpresasQueFaltam, empresasDaTurma,
   garantirEmpresa, gerarCnpjFicticio, lerEmpresa, salvarEmpresa,
 } from "../lib/empresas";
 
@@ -35,7 +36,7 @@ export default function MinhaEmpresa({ sessao }) {
         <h1>Minha empresa</h1>
         <p className="suave" style={{ maxWidth: 760 }}>
           Em cada turma você tem a sua própria empresa. É nela que você vai registrar os saldos iniciais, os lançamentos,
-          o estoque e montar as demonstrações. Complete o cadastro antes de começar as atividades.
+          o estoque e montar as demonstrações. Complete o cadastro e depois faça a Parametrização.
         </p>
       </div>
       {erro && <div className="aviso erro">{erro}</div>}
@@ -120,20 +121,12 @@ export function FormEmpresa({ empresa, outras = [], aoSalvar, compacto }) {
             <button type="button" className="botao secundario pequeno" style={{ minHeight: 44 }} onClick={() => setF({ ...f, cnpj: gerarCnpjFicticio() })}>Gerar</button>
           </div>
         </div>
-        <div className="campo" style={{ flex: "1 1 200px" }}>
-          <label htmlFor={`at-${empresa.id}`}>Atividade</label>
-          <select id={`at-${empresa.id}`} value={f.atividade} onChange={muda("atividade")}>{ATIVIDADES.map((a) => <option key={a}>{a}</option>)}</select>
-        </div>
         <div className="campo" style={{ flex: "2 1 240px" }}>
           <label htmlFor={`ramo-${empresa.id}`}>Ramo (o que a empresa vende ou faz)</label>
           <input id={`ramo-${empresa.id}`} value={f.ramo} onChange={muda("ramo")} placeholder="Ex.: loja de roupas" maxLength={80} />
         </div>
       </div>
       <div className="linha-form">
-        <div className="campo" style={{ flex: "1 1 200px" }}>
-          <label htmlFor={`reg-${empresa.id}`}>Regime tributário</label>
-          <select id={`reg-${empresa.id}`} value={f.regime} onChange={muda("regime")}>{REGIMES.map((r) => <option key={r}>{r}</option>)}</select>
-        </div>
         <div className="campo" style={{ flex: "2 1 200px" }}>
           <label htmlFor={`mun-${empresa.id}`}>Município</label>
           <input id={`mun-${empresa.id}`} value={f.municipio} onChange={muda("municipio")} maxLength={60} />
@@ -142,16 +135,13 @@ export function FormEmpresa({ empresa, outras = [], aoSalvar, compacto }) {
           <label htmlFor={`uf-${empresa.id}`}>UF</label>
           <input id={`uf-${empresa.id}`} value={f.uf} onChange={muda("uf")} maxLength={2} style={{ textTransform: "uppercase", width: "100%" }} />
         </div>
-        <div className="campo" style={{ flex: "1 1 170px" }}>
-          <label htmlFor={`ini-${empresa.id}`}>Início do exercício</label>
-          <input id={`ini-${empresa.id}`} type="date" value={f.inicioExercicio} onChange={muda("inicioExercicio")} />
-        </div>
         <div className="campo" style={{ flex: "0 1 220px" }}>
           <label htmlFor={`cap-${empresa.id}`}>Capital social (R$)</label>
           <input id={`cap-${empresa.id}`} type="number" min="0" step="0.01" className="mono" value={f.capitalSocial} onChange={muda("capitalSocial")} />
         </div>
       </div>
       {Number(f.capitalSocial) > 0 && <p className="pequeno suave">Capital social: {dinheiro(f.capitalSocial)} — ele será a base dos saldos iniciais.</p>}
+      <p className="pequeno suave">Atividade, regime tributário, exercício social e os demais parâmetros ficam no menu Parametrização.</p>
       {erros.length > 0 && <div className="aviso atencao pequeno">{erros.map((e) => <div key={e}>{e}</div>)}</div>}
       <div><button className="botao" disabled={salvando}>{salvando ? "Salvando…" : "Salvar cadastro"}</button></div>
       {msg.texto && <div className={`aviso ${msg.tipo || ""}`} role="status">{msg.texto}</div>}
@@ -196,9 +186,9 @@ export function EmpresasDaTurma({ turma, alunos, ir }) {
       {msg.texto && <div className={`aviso ${msg.tipo || ""}`} style={{ margin: "10px 18px 0" }}>{msg.texto}</div>}
       <div className="tabela-caixa" style={{ marginTop: 10 }}>
         <table>
-          <thead><tr><th>Aluno</th><th>Empresa</th><th>CNPJ</th><th>Regime</th><th>Cadastro</th><th></th></tr></thead>
+          <thead><tr><th>Aluno</th><th>Empresa</th><th>CNPJ</th><th>Regime</th><th>Cadastro</th><th>Parametrização</th><th></th></tr></thead>
           <tbody>
-            {(!alunos || !empresas) && <tr><td colSpan={6} className="suave">Carregando…</td></tr>}
+            {(!alunos || !empresas) && <tr><td colSpan={7} className="suave">Carregando…</td></tr>}
             {alunos && empresas && alunos.map((a) => {
               const e = empresas[a.matricula];
               return (
@@ -208,9 +198,17 @@ export function EmpresasDaTurma({ turma, alunos, ir }) {
                   <td className="mono pequeno">{e?.cnpj || "—"}</td>
                   <td className="pequeno">{e?.regime || "—"}</td>
                   <td>{!e ? <span className="selo cinza">Não criada</span> : e.cadastroCompleto ? <span className="selo verde">Completo</span> : <span className="selo ocre">Incompleto</span>}</td>
+                  <td>{e && (e.parametrosConfirmados?.contabil ? <span className="selo verde">Contábil ✓</span> : <span className="selo ocre">Pendente</span>)}
+                    {e?.parametrosDestravados && <span className="selo cinza" style={{ marginLeft: 4 }}>destravada</span>}</td>
                   <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
                     {e && <button className="botao secundario pequeno" onClick={() => setAberta(aberta === a.matricula ? "" : a.matricula)}>{aberta === a.matricula ? "Fechar" : "Cadastro"}</button>}{" "}
-                    {e && ir && <button className="botao pequeno" onClick={() => ir("escrituracao", turma.id, a.matricula)}>Escrituração</button>}
+                    {e && ir && <button className="botao pequeno" onClick={() => ir("escrituracao", turma.id, a.matricula)}>Escrituração</button>}{" "}
+                    {e?.parametrosConfirmados?.contabil && !e.parametrosDestravados && (
+                      <button className="botao secundario pequeno" title="Permite ao aluno alterar a parametrização mesmo com lançamentos"
+                        onClick={async () => { try { await destravarParametros(e); setMsg({ texto: `Parametrização de ${a.nome} destravada.` }); await carregar(); } catch (err) { setMsg({ tipo: "erro", texto: traduzirErro(err) }); } }}>
+                        Destravar parâmetros
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

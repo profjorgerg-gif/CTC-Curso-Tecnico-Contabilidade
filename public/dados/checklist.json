@@ -9,6 +9,13 @@
       "feito": true
     },
     {
+      "id": "f2-parametrizacao",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Parametrização da empresa (Contábil, Fiscal/Tributário e Folha) antes da escrituração",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
       "id": "f2-ciclo",
       "fase": "Fase 2 — Contabilidade Básica",
       "item": "Saldos iniciais, 10 lançamentos orientados, razão, balancete",

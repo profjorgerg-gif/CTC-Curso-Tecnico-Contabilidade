@@ -4,9 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useTurmas } from "../lib/useTurmas";
 import { traduzirErro } from "../lib/sessao";
 import { disciplinaPorId } from "../dados/disciplinas";
-import { garantirEmpresa, lerEmpresa, salvarMetodoEstoque } from "../lib/empresas";
+import { garantirEmpresa, lerEmpresa } from "../lib/empresas";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
+import { AREAS, areaConfirmada, fimDePeriodoValido, parametrosEfetivos } from "../lib/parametros";
 import { balanco, CONTA_LUCROS, dlpa, dre, jaEncerrado, propostaEncerramento } from "../lib/demonstracoes";
-import { custoDaSaida, kardex, METODO_PADRAO, METODOS, movimentosDeEstoque } from "../lib/estoque";
+import { apuracaoPeriodica, custoDaSaida, kardex, METODOS, movimentosDeEstoque } from "../lib/estoque";
 import { semAcento } from "../lib/arquivos";
 import {
   arred, balancete, CONTAS_ABERTURA, CONTAS_ESTOQUE, conferirLancamento, dataBR, dinheiro,
@@ -65,7 +68,13 @@ function EscrituracaoDoAluno({ sessao, ir }) {
           <button className="botao pequeno" onClick={() => ir("empresa")}>Completar cadastro</button>
         </div>
       )}
-      {empresa?.cadastroCompleto && <Livros key={empresa.id} sessao={sessao} empresa={empresa} donoAluno />}
+      {empresa?.cadastroCompleto && !areaConfirmada(empresa, "contabil") && (
+        <div className="aviso atencao" style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <span>Antes de escriturar, faça a parametrização contábil da empresa (exercício, inventário, método de estoque…).</span>
+          <button className="botao pequeno" onClick={() => ir("parametrizacao")}>Fazer a parametrização</button>
+        </div>
+      )}
+      {empresa?.cadastroCompleto && areaConfirmada(empresa, "contabil") && <Livros key={empresa.id} sessao={sessao} empresa={empresa} turma={turma} donoAluno />}
     </>
   );
 }
@@ -73,10 +82,12 @@ function EscrituracaoDoAluno({ sessao, ir }) {
 // ---------------- professor: escrituração de um aluno ----------------
 function EscrituracaoPeloProfessor({ sessao, ir, turmaId, matricula }) {
   const [empresa, setEmpresa] = useState(undefined);
+  const [turma, setTurma] = useState(null);
   const [msg, setMsg] = useState("");
   useEffect(() => {
     if (!turmaId || !matricula) return;
     lerEmpresa(turmaId, matricula).then(setEmpresa).catch((e) => setMsg(traduzirErro(e)));
+    getDoc(doc(db, "turmas", turmaId)).then((t) => setTurma(t.exists() ? { id: t.id, ...t.data() } : null)).catch(() => {});
   }, [turmaId, matricula]);
   return (
     <>
@@ -88,26 +99,32 @@ function EscrituracaoPeloProfessor({ sessao, ir, turmaId, matricula }) {
       {(!turmaId || !matricula) && <div className="aviso atencao">Abra a escrituração a partir da turma (quadro "Empresas dos alunos").</div>}
       {msg && <div className="aviso erro">{msg}</div>}
       {empresa === null && <div className="aviso atencao">Este aluno ainda não tem empresa nesta turma.</div>}
-      {empresa && <Livros key={empresa.id} sessao={sessao} empresa={empresa} />}
+      {empresa && !areaConfirmada(empresa, "contabil") && <div className="aviso atencao">O aluno ainda não confirmou a parametrização contábil — os livros abaixo usam os valores padrão.</div>}
+      {empresa && <Livros key={empresa.id} sessao={sessao} empresa={empresa} turma={turma} />}
     </>
   );
 }
 
 // ---------------- os livros da empresa ----------------
-function Livros({ sessao, empresa, donoAluno }) {
+function Livros({ sessao, empresa, turma, donoAluno }) {
   const { plano, erro: erroPlano } = usePlano();
   const [dados, setDados] = useState(null);
   const [erro, setErro] = useState("");
   const [aba, setAba] = useState("lancamentos");
-  const [metodo, setMetodo] = useState(empresa.metodoEstoque || METODO_PADRAO);
-  const mudarMetodo = async (m) => { setMetodo(m); await salvarMetodoEstoque(empresa, m).catch((e) => setErro(traduzirErro(e))); };
+  const params = parametrosEfetivos(empresa, turma);
+  const pc = params.contabil;
+  const metodo = pc.metodoEstoque || "peps";
+  const periodico = pc.inventario === "periodico";
+  const fatosNaoAplicaveis = periodico ? [4, 6] : [];
   const carregar = () => lerEscrituracao(empresa.id).then(setDados).catch((e) => setErro(traduzirErro(e)));
   useEffect(() => { carregar(); }, [empresa.id]);
   useEffect(() => { if (dados && !dados.saldosGravados) setAba("saldos"); }, [!!dados]);
 
   if (erroPlano || erro) return <div className="aviso erro">{erroPlano || erro}</div>;
   if (!plano || !dados) return <p className="suave">Carregando os livros…</p>;
-  const props = { sessao, empresa, plano, dados, recarregar: carregar, donoAluno, metodo, mudarMetodo };
+  const props = { sessao, empresa, plano, dados, recarregar: carregar, donoAluno, metodo, params, periodico, fatosNaoAplicaveis };
+  const rotulo = (area, campo) => AREAS.find((a) => a.id === area).campos.find((c) => c.id === campo).opcoes?.find((o) => o.valor === params[area][campo])?.rotulo || params[area][campo];
+  const totalFatos = FATOS_ORIENTADOS.length - fatosNaoAplicaveis.length;
 
   return (
     <>
@@ -115,11 +132,15 @@ function Livros({ sessao, empresa, donoAluno }) {
         <div style={{ flex: "1 1 280px" }}>
           <h2>{empresa.razaoSocial}</h2>
           <span className="pequeno suave mono">{empresa.cnpj}</span>
-          <span className="pequeno suave"> · {empresa.atividade} · {empresa.regime} · exercício a partir de {dataBR(empresa.inicioExercicio)}</span>
+          <span className="pequeno suave"> · {params.fiscal.atividade} · {params.fiscal.regimeTributario}</span>
+          <span className="pequeno suave" style={{ display: "block" }}>
+            Exercício {dataBR(pc.exercicioInicio)} a {dataBR(pc.exercicioFim)} · inventário {rotulo("contabil", "inventario").toLowerCase()} · {METODOS[metodo]?.nome} · apuração {rotulo("contabil", "apuracao").toLowerCase()} · regime de {rotulo("contabil", "regimeReconhecimento").toLowerCase()}
+          </span>
         </div>
         <Indicador rotulo="Lançamentos" valor={dados.lancamentos.length} />
-        <Indicador rotulo="Fatos orientados" valor={`${Math.min(dados.lancamentos.filter((l) => l.fatoOrientado).length, FATOS_ORIENTADOS.length)}/${FATOS_ORIENTADOS.length}`} />
+        <Indicador rotulo="Fatos orientados" valor={`${Math.min(dados.lancamentos.filter((l) => l.fatoOrientado && !fatosNaoAplicaveis.includes(l.fatoOrientado)).length, totalFatos)}/${totalFatos}`} />
       </section>
+      {pc.regimeReconhecimento === "caixa" && <div className="aviso atencao pequeno">Parâmetro escolhido: regime de caixa. Lembre-se: a escrituração contábil segue a competência; o regime de caixa vale só para a apuração de tributos em casos permitidos.</div>}
       <div className="abas" role="tablist">
         {ABAS.map(([id, rotulo]) => (
           <button key={id} role="tab" aria-selected={aba === id} className={aba === id ? "ativo" : ""} onClick={() => setAba(id)}>{rotulo}</button>
@@ -270,7 +291,7 @@ const formVazio = (empresa) => ({
   historico: "", documento: "", contaDebito: "", contaCredito: "", valor: "", quantidade: "", valorUnitario: "",
 });
 
-function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, metodo }) {
+function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, metodo, params, periodico, fatosNaoAplicaveis }) {
   const lista = dados.lancamentos;
   const [form, setForm] = useState(() => formVazio(empresa));
   const [editando, setEditando] = useState(null);
@@ -280,7 +301,7 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
   const [busca, setBusca] = useState("");
   const [vendoFato, setVendoFato] = useState(null);
 
-  const feitos = new Set(lista.filter((l) => l.fatoOrientado).map((l) => l.fatoOrientado));
+  const feitos = new Set([...lista.filter((l) => l.fatoOrientado).map((l) => l.fatoOrientado), ...fatosNaoAplicaveis]);
   const proximoFato = FATOS_ORIENTADOS.findIndex((_, i) => !feitos.has(i + 1)) + 1; // 0 = todos feitos
   const etapaGuiada = donoAluno && proximoFato > 0 && !editando;
   const fatoNaTela = vendoFato || proximoFato;
@@ -300,6 +321,9 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
   const salvar = async (e) => {
     e.preventDefault();
     const problemas = conferirLancamento(form, plano);
+    const pc = params.contabil;
+    if (form.data && (form.data < pc.exercicioInicio || form.data > pc.exercicioFim)) problemas.push(`A data precisa estar dentro do exercício (${dataBR(pc.exercicioInicio)} a ${dataBR(pc.exercicioFim)}).`);
+    if (periodico && baixaEstoque) problemas.push("No inventário periódico não se baixa o CMV a cada venda: o CMV é apurado no fim do período, na aba Controle de estoque.");
     setErros(problemas); setMsg({});
     if (problemas.length) return;
     setSalvando(true);
@@ -348,6 +372,7 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
             </div>
           </div>
           <p style={{ fontSize: 16 }}>{FATOS_ORIENTADOS[fatoNaTela - 1]}</p>
+          {fatosNaoAplicaveis.length > 0 && <p className="pequeno suave">Inventário periódico: os fatos {fatosNaoAplicaveis.join(" e ")} (baixa do CMV a cada venda) não se aplicam — o CMV será apurado no fim do período.</p>}
           {fatoNaTela !== proximoFato && <p className="pequeno suave">Você está relendo um fato. O formulário continua registrando o fato {proximoFato}.</p>}
         </section>
       )}
@@ -398,7 +423,8 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
             <button className="botao" disabled={salvando}>{salvando ? "Salvando…" : editando ? "Salvar correção" : "Lançar"}</button>
           </div>
         </div>
-        {baixaEstoque && Number(form.quantidade) > 0 && (() => {
+        {baixaEstoque && periodico && <div className="aviso atencao pequeno">Inventário periódico: a baixa do CMV é feita só no fim do período (aba Controle de estoque → Apuração do CMV).</div>}
+        {baixaEstoque && !periodico && Number(form.quantidade) > 0 && (() => {
           const c = custoDaSaida(lista, metodo, form.quantidade, form.data, editando);
           return (
             <div className={`aviso ${c.insuficiente ? "erro" : ""}`} style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
@@ -590,8 +616,8 @@ function Balancete({ empresa, plano, dados }) {
 }
 
 // ---------------- controle de estoque (kardex) ----------------
-function ControleEstoque({ dados, plano, metodo, mudarMetodo }) {
-  const movs = movimentosDeEstoque(dados.lancamentos);
+function ControleEstoque({ sessao, empresa, dados, plano, metodo, periodico, params, recarregar }) {
+  const movs = movimentosDeEstoque(dados.lancamentos.filter((l) => !l.apuracaoCMV));
   const fichas = Object.fromEntries(Object.keys(METODOS).map((m) => [m, kardex(movs, m)]));
   const [ver, setVer] = useState(metodo);
   const conta = plano.porCodigo["1.1.3.01"];
@@ -608,21 +634,21 @@ function ControleEstoque({ dados, plano, metodo, mudarMetodo }) {
   return (
     <>
       <section className="cartao">
-        <h2>Método de avaliação do estoque da empresa</h2>
-        <div className="abas" role="radiogroup" aria-label="Método de avaliação" style={{ margin: 0 }}>
-          {Object.entries(METODOS).map(([id, m]) => (
-            <button key={id} role="radio" aria-checked={metodo === id} className={metodo === id ? "ativo" : ""} onClick={() => mudarMetodo(id)}>{m.nome}</button>
-          ))}
-        </div>
-        <div className="grade" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
-          <div className="pequeno"><strong>PEPS</strong> — as saídas são baixadas pelo custo dos lotes mais antigos.</div>
-          <div className="pequeno"><strong>UEPS</strong> — as saídas são baixadas pelo custo dos lotes mais recentes. <span style={{ color: "var(--ocre)" }}>Não é aceito pela legislação fiscal brasileira nem pelo CPC 16 — aqui só para comparação.</span></div>
-          <div className="pequeno"><strong>Média Ponderada Móvel</strong> — a cada entrada, recalcula o custo médio; as saídas usam esse custo médio.</div>
-        </div>
-        <p className="pequeno suave">O método escolhido é usado para conferir o CMV nos lançamentos de baixa de estoque. A ficha é montada sozinha a partir dos lançamentos na conta {conta ? `${conta.codigo} ${conta.nome}` : "de estoque"}.</p>
+        <h2>Controle de estoque</h2>
+        <p>
+          Parametrização da empresa: inventário <strong>{periodico ? "periódico" : "permanente"}</strong>, avaliado pelo <strong>{METODOS[metodo]?.longo}</strong>.
+        </p>
+        <p className="pequeno suave">
+          {periodico
+            ? "No inventário periódico, as compras entram no estoque e o CMV é apurado de uma vez no fim do período: CMV = Estoque Inicial + Compras − Estoque Final (contagem física)."
+            : `No inventário permanente, cada venda tem a baixa do CMV pelo custo do método da empresa. A ficha é montada sozinha a partir dos lançamentos na conta ${conta ? `${conta.codigo} ${conta.nome}` : "de estoque"}.`}
+          {" "}Para mudar estes parâmetros, use o menu Parametrização.
+        </p>
       </section>
 
-      {movs.length === 0 ? (
+      {periodico && <ApuracaoPeriodica sessao={sessao} empresa={empresa} dados={dados} metodo={metodo} params={params} recarregar={recarregar} />}
+
+      {periodico ? null : movs.length === 0 ? (
         <div className="aviso atencao">Nenhuma movimentação de estoque ainda. Lance compras (débito em Mercadorias para Revenda) e baixas de CMV (crédito em Mercadorias) com a quantidade.</div>
       ) : (
         <>
@@ -718,6 +744,85 @@ function ControleEstoque({ dados, plano, metodo, mudarMetodo }) {
   );
 }
 
+// ---------------- apuração do CMV no inventário periódico ----------------
+function ApuracaoPeriodica({ sessao, empresa, dados, metodo, params, recarregar }) {
+  const [qEI, setQEI] = useState(0);
+  const [qEF, setQEF] = useState("");
+  const [data, setData] = useState(params.contabil.exercicioFim);
+  const [msg, setMsg] = useState({});
+  const [ocupado, setOcupado] = useState(false);
+  const r = apuracaoPeriodica(dados.lancamentos, dados.saldos, metodo, qEI, qEF);
+  const pronto = qEF !== "" && !r.excede && r.cmv > 0 && !r.jaApurado;
+
+  const lancar = async () => {
+    setOcupado(true); setMsg({});
+    try {
+      await incluirLancamento(sessao, empresa.id, {
+        data, historico: `Apuração do CMV — inventário periódico (${METODOS[metodo].nome}): EI ${numero(r.ei)} + Compras ${numero(r.vC)} − EF ${numero(r.ef)}`,
+        contaDebito: "6.2.01", contaCredito: "1.1.3.01", valor: r.cmv, quantidade: r.qVendida, documento: "",
+      }, null, { apuracaoCMV: true });
+      await recarregar();
+      setMsg({ texto: "Apuração do CMV lançada no Livro Diário." });
+    } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
+    setOcupado(false);
+  };
+
+  return (
+    <section className="cartao">
+      <h2>Apuração do CMV — inventário periódico</h2>
+      <div className="linha-form">
+        <div className="campo" style={{ flex: "0 1 220px" }}>
+          <label htmlFor="ap-ei">Estoque inicial (unidades)</label>
+          <input id="ap-ei" type="number" min="0" className="mono" value={qEI} onChange={(e) => setQEI(e.target.value)} />
+        </div>
+        <div className="campo" style={{ flex: "0 1 260px" }}>
+          <label htmlFor="ap-ef">Estoque final contado (unidades)</label>
+          <input id="ap-ef" type="number" min="0" className="mono" value={qEF} onChange={(e) => setQEF(e.target.value)} placeholder="contagem física" />
+        </div>
+        <div className="campo" style={{ flex: "0 1 200px" }}>
+          <label htmlFor="ap-data">Data da apuração</label>
+          <input id="ap-data" type="date" value={data} onChange={(e) => setData(e.target.value)} />
+        </div>
+      </div>
+      <div className="tabela-caixa">
+        <table>
+          <tbody>
+            <tr><td>Estoque Inicial (EI)</td><td className="mono" style={{ textAlign: "right" }}>{r.qEI} un.</td><td className="mono" style={{ textAlign: "right" }}>{numero(r.ei)}</td></tr>
+            <tr><td>(+) Compras do período ({r.compras.length} lançamento(s))</td><td className="mono" style={{ textAlign: "right" }}>{r.qC} un.</td><td className="mono" style={{ textAlign: "right" }}>{numero(r.vC)}</td></tr>
+            <tr><td>(=) Mercadorias disponíveis para venda</td><td className="mono" style={{ textAlign: "right" }}>{r.qEI + r.qC} un.</td><td className="mono" style={{ textAlign: "right" }}>{numero(r.ei + r.vC)}</td></tr>
+            <tr><td>(−) Estoque Final (EF) pelo {METODOS[metodo].nome}</td><td className="mono" style={{ textAlign: "right" }}>{r.qEF} un.</td><td className="mono" style={{ textAlign: "right" }}>{numero(r.ef)}</td></tr>
+            <tr><td><strong>(=) Custo das Mercadorias Vendidas (CMV)</strong></td><td className="mono" style={{ textAlign: "right" }}>{r.qVendida} un.</td><td className="mono" style={{ textAlign: "right" }}><strong>{numero(r.cmv)}</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      {r.excede && <div className="aviso erro">O estoque final contado é maior que as unidades disponíveis.</div>}
+      {r.jaApurado
+        ? <div className="aviso">O CMV deste período já foi apurado e lançado. Para refazer, exclua o lançamento "Apuração do CMV" na aba Lançamentos.</div>
+        : <div><button className="botao" disabled={!pronto || ocupado} onClick={lancar}>{ocupado ? "Lançando…" : `Lançar a apuração do CMV (D 6.2.01 / C 1.1.3.01 ${dinheiro(r.cmv)})`}</button></div>}
+      {msg.texto && <div className={`aviso ${msg.tipo || ""}`} role="status">{msg.texto}</div>}
+    </section>
+  );
+}
+
+// assinaturas das demonstrações (responsável técnico da parametrização)
+function Assinaturas({ empresa, params }) {
+  const pc = params.contabil;
+  const local = `${empresa.municipio || ""}${empresa.uf ? `/${empresa.uf}` : ""}`;
+  return (
+    <div style={{ display: "flex", gap: 40, flexWrap: "wrap", marginTop: 18, paddingTop: 12, borderTop: "1px dashed var(--linha)" }}>
+      <span className="pequeno suave" style={{ flexBasis: "100%" }}>{local}{local ? ", " : ""}{dataBR(pc.exercicioFim)}.</span>
+      <div className="pequeno" style={{ minWidth: 220 }}>
+        <div style={{ borderTop: "1px solid var(--tinta-suave)", paddingTop: 4 }}>{empresa.alunoNome}</div>
+        <div className="suave">Sócio administrador</div>
+      </div>
+      <div className="pequeno" style={{ minWidth: 220 }}>
+        <div style={{ borderTop: "1px solid var(--tinta-suave)", paddingTop: 4 }}>{pc.contadorNome || "—"}</div>
+        <div className="suave">Contador · CRC {pc.contadorCrc || "—"}</div>
+      </div>
+    </div>
+  );
+}
+
 function Num({ v, int }) {
   return <td className="mono" style={{ textAlign: "right", whiteSpace: "nowrap" }}>{int ? Number(v).toLocaleString("pt-BR") : numero(v)}</td>;
 }
@@ -737,7 +842,7 @@ function LinhaValor({ rotulo, valor, tipo, recuo }) {
   );
 }
 
-function Dre({ empresa, plano, dados }) {
+function Dre({ empresa, plano, dados, params }) {
   const d = dre(plano, dados.lancamentos, dados.saldos);
   const [detalhe, setDetalhe] = useState(true);
   return (
@@ -761,16 +866,29 @@ function Dre({ empresa, plano, dados }) {
       </div>
       <span className={`selo ${d.resultado >= 0 ? "verde" : "ocre"}`} style={{ alignSelf: "flex-start" }}>{d.resultado >= 0 ? "Lucro" : "Prejuízo"} de {dinheiro(Math.abs(d.resultado))}</span>
       {jaEncerrado(dados.lancamentos) && <p className="pequeno suave">O exercício já foi encerrado: a DRE ignora os lançamentos de encerramento e continua mostrando o resultado do período.</p>}
+      <Assinaturas empresa={empresa} params={params} />
     </section>
   );
 }
 
 // ---------------- Encerramento (ARE) ----------------
-function Encerramento({ sessao, empresa, plano, dados, recarregar }) {
+function Encerramento({ sessao, empresa, plano, dados, recarregar, params, periodico }) {
   const encerrado = jaEncerrado(dados.lancamentos);
   const p = propostaEncerramento(plano, dados.lancamentos, dados.saldos);
   const ultimaData = dados.lancamentos.reduce((m, l) => (l.data > m ? l.data : m), empresa.inicioExercicio || "");
-  const [data, setData] = useState(ultimaData);
+  const pc = params.contabil;
+  // fim do período que contém o último lançamento (mês, trimestre ou exercício)
+  const sugestao = (() => {
+    if (pc.apuracao === "anual" || !ultimaData) return pc.exercicioFim;
+    const d = new Date(`${ultimaData}T12:00:00`);
+    const mesFim = pc.apuracao === "trimestral" ? Math.floor(d.getMonth() / 3) * 3 + 2 : d.getMonth();
+    const fim = new Date(d.getFullYear(), mesFim + 1, 0, 12);
+    const iso = fim.toISOString().slice(0, 10);
+    return iso > pc.exercicioFim ? pc.exercicioFim : iso;
+  })();
+  const [data, setData] = useState(sugestao);
+  const dataOk = fimDePeriodoValido(data, pc.apuracao, pc.exercicioFim) && data >= ultimaData;
+  const faltaApurarCMV = periodico && dados.lancamentos.some((l) => l.contaDebito === "1.1.3.01" && !l.apuracaoCMV) && !dados.lancamentos.some((l) => l.apuracaoCMV);
   const [msg, setMsg] = useState({});
   const [ocupado, setOcupado] = useState(false);
   const nome = (c) => `${c} ${plano.porCodigo[c]?.nome || ""}`;
@@ -821,11 +939,15 @@ function Encerramento({ sessao, empresa, plano, dados, recarregar }) {
               <label htmlFor="are-data">Data do encerramento</label>
               <input id="are-data" type="date" value={data} onChange={(e) => setData(e.target.value)} />
             </div>
-            <button className="botao" disabled={ocupado || !p.propostos.length || !data}
+            <button className="botao" disabled={ocupado || !p.propostos.length || !dataOk || faltaApurarCMV}
               onClick={() => fazer(() => gravarEncerramento(sessao, empresa.id, p.propostos, data), "Exercício encerrado. Confira a DLPA e o Balanço Patrimonial.")}>
               {ocupado ? "Gravando…" : "Gravar os lançamentos de encerramento"}
             </button>
           </div>
+          {!dataOk && data && <div className="aviso atencao" style={{ margin: "0 18px 16px" }}>
+            Apuração {pc.apuracao}: a data do encerramento precisa ser {pc.apuracao === "anual" ? `o fim do exercício (${dataBR(pc.exercicioFim)})` : pc.apuracao === "mensal" ? "o último dia de um mês" : "o último dia de um trimestre (31/03, 30/06, 30/09 ou 31/12)"}, e não pode ser anterior ao último lançamento ({dataBR(ultimaData)}).
+          </div>}
+          {faltaApurarCMV && <div className="aviso atencao" style={{ margin: "0 18px 16px" }}>Inventário periódico: apure o CMV na aba Controle de estoque antes de encerrar.</div>}
         </section>
       )}
 
@@ -862,7 +984,7 @@ function Encerramento({ sessao, empresa, plano, dados, recarregar }) {
 }
 
 // ---------------- DLPA ----------------
-function Dlpa({ empresa, plano, dados }) {
+function Dlpa({ empresa, plano, dados, params }) {
   const d = dlpa(plano, dados.lancamentos, dados.saldos);
   const capital = Number(empresa.capitalSocial) || 0;
   const reservaLegalAtual = (() => {
@@ -885,6 +1007,7 @@ function Dlpa({ empresa, plano, dados }) {
           {d.destinacoes.map((x) => <LinhaValor key={x.l.id} rotulo={`(-) ${x.conta?.nome || x.l.contaCredito}`} valor={-x.valor} />)}
           <LinhaValor rotulo="(=) Saldo final de lucros ou prejuízos acumulados" valor={d.saldoFinal} tipo="final" />
         </div>
+        <Assinaturas empresa={empresa} params={params} />
       </section>
       <section className="cartao">
         <h2>Como destinar o lucro</h2>
@@ -896,7 +1019,8 @@ function Dlpa({ empresa, plano, dados }) {
           <li><span className="mono">3.4.01</span> Reserva Legal — 5% do lucro líquido, até atingir 20% do capital social (Lei 6.404/76, art. 193).
             {sugestaoRL > 0 && <strong> Sugestão para esta empresa: {dinheiro(sugestaoRL)}.</strong>}</li>
           <li><span className="mono">3.4.02 a 3.4.05</span> outras reservas de lucros (estatutária, para expansão etc.).</li>
-          <li><span className="mono">2.1.7.01</span> Dividendos a Pagar — a parte distribuída aos sócios.</li>
+          <li><span className="mono">2.1.7.01</span> Dividendos a Pagar — a parte distribuída aos sócios. Parametrização: {Number(params.contabil.dividendosPct)}% do lucro depois da Reserva Legal.
+            {d.resultado > 0 && <strong> Sugestão: {dinheiro(arred((d.resultado - sugestaoRL) * Number(params.contabil.dividendosPct) / 100))}.</strong>}</li>
         </ul>
         {!encerrado && <div className="aviso atencao">O exercício ainda não foi encerrado. Faça primeiro o Encerramento (ARE).</div>}
       </section>
@@ -920,7 +1044,7 @@ function NoBalanco({ no, nivel = 0 }) {
   );
 }
 
-function Balanco({ empresa, plano, dados }) {
+function Balanco({ empresa, plano, dados, params }) {
   const b = balanco(plano, dados.lancamentos, dados.saldos);
   const lado = { flex: "1 1 360px", display: "flex", flexDirection: "column", gap: 2 };
   const total = (rotulo, valor) => (
@@ -958,6 +1082,7 @@ function Balanco({ empresa, plano, dados }) {
           {total("TOTAL DO PASSIVO + PL", arred(b.totPassivo + b.totPL))}
         </div>
       </div>
+      <Assinaturas empresa={empresa} params={params} />
       {Math.abs(b.pendente) >= 0.005 && <p className="pequeno suave">O exercício ainda não foi encerrado: o resultado aparece separado no PL. Depois do Encerramento (ARE), ele passa para a conta {CONTA_LUCROS} {plano.porCodigo[CONTA_LUCROS]?.nome}.</p>}
     </section>
   );

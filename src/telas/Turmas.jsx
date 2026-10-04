@@ -7,6 +7,7 @@ import {
 } from "../lib/turmas";
 import { traduzirErro } from "../lib/sessao";
 import { EmpresasDaTurma } from "./Empresa";
+import { ParametrosDaTurma } from "./Parametrizacao";
 
 const semestrePadrao = () => {
   const d = new Date();
@@ -145,7 +146,7 @@ function TurmasDoProfessor({ sessao, papel, ir }) {
 
 // ---------------- detalhe da turma ----------------
 function DetalheTurma({ sessao, turmaId, ir }) {
-  const { turmas } = useTurmas(sessao);
+  const { turmas, recarregar: recarregarTurmas } = useTurmas(sessao);
   const turma = turmas.find((t) => t.id === turmaId);
   const [alunos, setAlunos] = useState(null);
   const [lista, setLista] = useState("");
@@ -206,6 +207,7 @@ function DetalheTurma({ sessao, turmaId, ir }) {
         </div>
       </section>
 
+      {turma && <ParametrosDaTurma key={turma.id} turma={turma} aoSalvar={recarregarTurmas} />}
       {turma && alunos && <EmpresasDaTurma turma={turma} alunos={alunos} ir={ir} />}
 
       <section className="cartao">
