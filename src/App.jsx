@@ -16,6 +16,7 @@ import Escrituracao from "./telas/Escrituracao";
 import Parametrizacao from "./telas/Parametrizacao";
 import MinhasNotas from "./telas/Notas";
 import Guia from "./telas/Guia";
+import Ajuda from "./telas/Manuais";
 import { definirSessaoAuditoria, registrarAcesso } from "./lib/auditoria";
 import { confirmadoNesteNavegador, useSaidaPorInatividade } from "./lib/seguranca";
 import { ConfirmarAluno, ConfirmarProfessor } from "./telas/Confirmacao";
@@ -23,7 +24,7 @@ import Rodape from "./componentes/Rodape";
 
 // Itens do menu por perfil
 const MENUS = {
-  aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["empresa", "Minha empresa"], ["parametrizacao", "Parametrização"], ["escrituracao", "Escrituração"], ["notas", "Minhas notas"], ["turmas", "Minhas turmas"], ["banco", "Consultas"], ["suporte", "Suporte"]],
+  aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["empresa", "Minha empresa"], ["parametrizacao", "Parametrização"], ["escrituracao", "Escrituração"], ["notas", "Minhas notas"], ["turmas", "Minhas turmas"], ["banco", "Consultas"], ["ajuda", "Ajuda"], ["suporte", "Suporte"]],
   professor: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["guia", "Guia Pedagógico"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"]],
   admin: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["guia", "Guia Pedagógico"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"], ["auditoria", "Auditoria"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
 };
@@ -119,6 +120,7 @@ export default function App() {
           {pagina === "parametrizacao" && <Parametrizacao {...props} />}
           {pagina === "notas" && <MinhasNotas {...props} />}
           {pagina === "guia" && <Guia {...props} />}
+          {pagina === "ajuda" && <Ajuda {...props} />}
           {pagina === "escrituracao" && <Escrituracao key={resto.join("/")} {...props} />}
         </main>
       </div>
