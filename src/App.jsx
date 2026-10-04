@@ -9,13 +9,16 @@ import BancoDados from "./telas/BancoDados";
 import Autorizados from "./telas/Autorizados";
 import Checklist from "./telas/Checklist";
 import Backup from "./telas/Backup";
+import Suporte from "./telas/Suporte";
+import Auditoria from "./telas/Auditoria";
+import { definirSessaoAuditoria, registrarAcesso } from "./lib/auditoria";
 import Rodape from "./componentes/Rodape";
 
 // Itens do menu por perfil
 const MENUS = {
-  aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["turmas", "Minhas turmas"], ["banco", "Consultas"]],
-  professor: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"]],
-  admin: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
+  aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["turmas", "Minhas turmas"], ["banco", "Consultas"], ["suporte", "Suporte"]],
+  professor: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"]],
+  admin: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"], ["auditoria", "Auditoria"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
 };
 
 // A página atual fica no endereço (#turmas, #banco...) para sobreviver ao F5
@@ -35,6 +38,12 @@ export default function App() {
   }, []);
 
   const ir = (...partes) => { window.location.hash = partes.join("/"); };
+
+  // auditoria: guarda quem está usando e registra a entrada (uma vez por sessão)
+  useEffect(() => {
+    definirSessaoAuditoria(sessao);
+    if (sessao.usuario && sessao.papel && !sessao.carregando) registrarAcesso(sessao);
+  }, [sessao.usuario?.uid, sessao.papel, sessao.perfil?.nome, sessao.carregando]);
 
   if (sessao.carregando) return comRodape(<div className="tela-login"><p className="suave">Carregando…</p></div>);
   if (!sessao.usuario) return comRodape(<Login />);
@@ -84,6 +93,8 @@ export default function App() {
           {pagina === "autorizados" && <Autorizados {...props} />}
           {pagina === "checklist" && <Checklist {...props} />}
           {pagina === "backup" && <Backup {...props} />}
+          {pagina === "suporte" && <Suporte {...props} />}
+          {pagina === "auditoria" && <Auditoria {...props} />}
         </main>
       </div>
     </>

@@ -1,5 +1,6 @@
 // Lista de e-mails Google autorizados como professor ou administrador (decisão 6)
 import { useEffect, useState } from "react";
+import { auditar } from "../lib/auditoria";
 import { collection, deleteDoc, doc, getDocs, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { traduzirErro } from "../lib/sessao";
@@ -28,6 +29,7 @@ export default function Autorizados({ sessao }) {
       await setDoc(doc(db, "autorizados", email), {
         papel: form.papel, nome: form.nome.trim(), autorizadoPor: meuEmail, autorizadoEm: serverTimestamp(),
       });
+      auditar("Autorizou acesso", `${email} como ${form.papel}`);
       setForm({ email: "", nome: "", papel: "professor" });
       setMsg({ texto: `${email} autorizado. Ao entrar com essa conta Google, a pessoa já terá o perfil.` });
       carregar();
@@ -35,7 +37,7 @@ export default function Autorizados({ sessao }) {
   };
 
   const remover = async (email) => {
-    try { await deleteDoc(doc(db, "autorizados", email)); setMsg({ texto: `${email} removido. No próximo acesso, entrará como aluno.` }); carregar(); }
+    try { await deleteDoc(doc(db, "autorizados", email)); auditar("Removeu acesso", email); setMsg({ texto: `${email} removido. No próximo acesso, entrará como aluno.` }); carregar(); }
     catch (err) { setMsg({ tipo: "erro", texto: traduzirErro(err) }); }
   };
 

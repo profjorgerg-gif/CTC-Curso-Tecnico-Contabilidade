@@ -140,6 +140,13 @@ tbody tr:hover td { background: rgba(255, 255, 255, 0.02); }
 }
 .caixa-login .logo { font-family: var(--mono); font-weight: 600; font-size: 40px; color: var(--destaque); line-height: 1; }
 
+/* lista de chamados do suporte */
+.linha-chamado {
+  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 12px 18px;
+  background: transparent; color: var(--tinta); border: 0; border-top: 1px solid var(--linha-suave); font: inherit; cursor: pointer;
+}
+.linha-chamado:hover { background: var(--linha-suave); }
+
 /* rodapé de direitos autorais (todas as telas) */
 .rodape {
   display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 8px; text-align: center;

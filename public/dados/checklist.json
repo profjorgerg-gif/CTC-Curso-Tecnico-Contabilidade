@@ -209,7 +209,7 @@
       "fase": "Fase 9 — Área do professor e fechamento",
       "item": "Suporte por chamados",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "f9-backup",
@@ -223,7 +223,7 @@
       "fase": "Fase 9 — Área do professor e fechamento",
       "item": "Auditoria completa (quem acessou e o que fez)",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "f9-manuais",

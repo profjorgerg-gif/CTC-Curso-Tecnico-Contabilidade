@@ -4,6 +4,7 @@ import {
   orderBy, query, serverTimestamp, where, writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { auditar } from "./auditoria";
 
 // Lê a lista colada pelo professor: uma linha por aluno, "Nome completo, matrícula"
 // Aceita vírgula, ponto e vírgula ou tabulação (colado do Excel)
@@ -73,6 +74,7 @@ export async function criarTurma({ nome, disciplina, semestre, alunos, professor
   });
   incluirNoLote(lote, ref.id, alunos);
   await lote.commit();
+  auditar("Criou turma", `${nome} (${disciplina}, ${semestre}) com ${alunos.length} aluno(s)`);
   return ref.id;
 }
 
@@ -80,6 +82,7 @@ export async function incluirAlunos(turmaId, alunos) {
   const lote = writeBatch(db);
   incluirNoLote(lote, turmaId, alunos);
   await lote.commit();
+  auditar("Incluiu alunos", `${alunos.length} aluno(s) na turma ${turmaId}: ${alunos.map((a) => a.matricula).join(", ")}`);
 }
 
 function incluirNoLote(lote, turmaId, alunos) {
@@ -95,6 +98,7 @@ export async function removerAluno(turmaId, matricula) {
   lote.delete(doc(db, "turmas", turmaId, "alunos", matricula));
   lote.update(doc(db, "matriculas", matricula), { turmas: arrayRemove(turmaId) });
   await lote.commit();
+  auditar("Retirou aluno da turma", `matrícula ${matricula}, turma ${turmaId}`);
 }
 
 // Libera a matrícula para ser vinculada a outra conta Google
@@ -102,6 +106,7 @@ export async function desvincularMatricula(matricula) {
   const lote = writeBatch(db);
   lote.update(doc(db, "matriculas", matricula), { uid: null, vinculadoEm: null });
   await lote.commit();
+  auditar("Desvinculou matrícula", `matrícula ${matricula} liberada para outra conta Google`);
 }
 
 export async function excluirTurma(turmaId) {
@@ -113,4 +118,5 @@ export async function excluirTurma(turmaId) {
   });
   lote.delete(doc(db, "turmas", turmaId));
   await lote.commit();
+  auditar("Excluiu turma", `turma ${turmaId} com ${alunos.size} aluno(s)`);
 }

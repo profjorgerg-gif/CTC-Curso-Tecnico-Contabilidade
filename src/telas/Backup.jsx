@@ -51,7 +51,7 @@ function BackupCompleto({ sessao }) {
       <h2>Backup completo</h2>
       <p className="suave pequeno">
         Um único arquivo com tudo: professores e administradores autorizados, perfis dos alunos, matrículas,
-        turmas com as listas de alunos, Plano de Contas e demais tabelas editadas, e o histórico de alterações.
+        turmas com as listas de alunos, Plano de Contas e demais tabelas editadas, chamados do suporte, histórico de alterações e auditoria.
       </p>
       <UltimoBackup ultimo={ultimo} />
       <div><button className="botao" onClick={gerar} disabled={gerando}>{gerando ? "Gerando backup…" : "Baixar backup completo"}</button></div>
@@ -161,8 +161,8 @@ function Restaurar({ sessao }) {
       <h2>Restaurar backup</h2>
       <p className="suave pequeno">
         Use só em emergência. O CTC recoloca o que está no arquivo (turmas, listas, matrículas, perfis,
-        professores e tabelas). <strong>Nada que foi criado depois do backup é apagado.</strong> Registros que existem
-        nos dois lugares voltam a ficar como estavam no arquivo. O histórico não é regravado — ele nunca é apagado.
+        professores, tabelas e chamados). <strong>Nada que foi criado depois do backup é apagado.</strong> Registros que existem
+        nos dois lugares voltam a ficar como estavam no arquivo. O histórico e a auditoria não são regravados — eles nunca são apagados.
       </p>
       <div>
         <button className="botao secundario" onClick={() => entrada.current?.click()} disabled={!!progresso}>Escolher arquivo de backup…</button>

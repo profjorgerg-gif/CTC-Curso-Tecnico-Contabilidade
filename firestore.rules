@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // ============================================================================
-// CTC — Regras de segurança do Firestore (Fase 1 + Backup, 03/10/2026)
+// CTC — Regras de segurança do Firestore (Fase 1 + Backup + Suporte + Auditoria, 03/10/2026)
 // Cole este arquivo inteiro em: Console Firebase > Firestore > Regras > Publicar
 //
 // Quem é quem:
@@ -115,6 +115,26 @@ service cloud.firestore {
     match /historico/{id} {
       allow read: if souProfessor();
       allow create: if souProfessor() && request.resource.data.porUid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // ---------- suporte por chamados ----------
+    match /chamados/{id} {
+      // quem abriu vê os próprios chamados; o administrador vê todos
+      allow read: if souAdmin() || (logado() && resource.data.autorUid == request.auth.uid);
+      allow create: if souAdmin() || (logado() && request.resource.data.autorUid == request.auth.uid &&
+        request.resource.data.status == 'aberto');
+      // o administrador responde; quem abriu responde de volta, encerra ou reabre
+      allow update: if souAdmin() || (logado() && resource.data.autorUid == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['respostas', 'status', 'atualizadoEm']) &&
+        request.resource.data.status in ['aberto', 'encerrado']);
+      allow delete: if souAdmin();
+    }
+
+    // ---------- auditoria: entradas e ações importantes ----------
+    match /auditoria/{id} {
+      allow read: if souAdmin();
+      allow create: if logado() && request.resource.data.uid == request.auth.uid;
       allow update, delete: if false;
     }
 

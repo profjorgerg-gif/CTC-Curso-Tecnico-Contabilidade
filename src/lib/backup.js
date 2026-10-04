@@ -8,11 +8,12 @@
 //
 // Restauração: recoloca os documentos que estão no arquivo, SEM apagar o que
 // foi criado depois do backup. O histórico vai no arquivo para arquivo, mas não
-// é regravado (ele nunca é apagado — ver firestore.rules).
+// é regravado (ele nunca é apagado — ver firestore.rules). O mesmo vale para a auditoria.
 import {
   addDoc, collection, doc, getDoc, getDocs, serverTimestamp, setDoc, Timestamp, writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { auditar } from "./auditoria";
 
 export const VERSAO_BACKUP = 1;
 const SISTEMA = "CTC — Curso Técnico em Contabilidade";
@@ -68,9 +69,10 @@ async function registrar(sessao, item, depois) {
 
 // ---------- administrador: backup completo ----------
 export async function backupCompleto(sessao) {
-  const [autorizados, usuarios, matriculas, turmasBase, config, historico] = await Promise.all([
+  const [autorizados, usuarios, matriculas, turmasBase, config, historico, chamados, auditoria] = await Promise.all([
     lerColecao("autorizados"), lerColecao("usuarios"), lerColecao("matriculas"),
     lerColecao("turmas"), lerColecao("config"), lerColecao("historico"),
+    lerColecao("chamados"), lerColecao("auditoria"),
   ]);
   const turmas = await Promise.all(turmasBase.map(async (t) => ({ ...t, alunos: await lerColecao("turmas", t.id, "alunos") })));
   const contagem = {
@@ -81,19 +83,22 @@ export async function backupCompleto(sessao) {
     alunosNasTurmas: turmas.reduce((s, t) => s + t.alunos.length, 0),
     config: config.length,
     historico: historico.length,
+    chamados: chamados.length,
+    auditoria: auditoria.length,
   };
   const agora = new Date();
   const arquivo = `Backup-CTC-${carimbo(agora)}.json`;
   baixarJson(arquivo, {
     sistema: SISTEMA, tipo: "backup-completo", versao: VERSAO_BACKUP,
     geradoEm: agora.toISOString(), geradoPor: quem(sessao), contagem,
-    colecoes: { autorizados, usuarios, matriculas, turmas, config, historico },
+    colecoes: { autorizados, usuarios, matriculas, turmas, config, historico, chamados, auditoria },
   });
   // guarda a data do último backup completo (aviso no Início do administrador)
   await setDoc(doc(db, "config", "backup"), {
     ultimoCompleto: serverTimestamp(), arquivo, porNome: quem(sessao).nome, contagem,
   });
   await registrar(sessao, "backup completo", `${arquivo} — ${resumo(contagem)}`);
+  auditar("Backup completo", arquivo);
   return { arquivo, contagem };
 }
 
@@ -121,13 +126,15 @@ export async function backupDaTurma(sessao, turma) {
     alunos,
   });
   await registrar(sessao, `turma ${turma.nome}`, `${arquivo} — ${alunos.length} aluno(s)`);
+  auditar("Backup da turma", arquivo);
   return { arquivo, alunos: alunos.length };
 }
 
 // ---------- administrador: restauração ----------
 export function resumo(c) {
   return `${c.turmas} turma(s), ${c.alunosNasTurmas} aluno(s) nas turmas, ${c.matriculas} matrícula(s), ` +
-    `${c.usuarios} perfil(is), ${c.autorizados} professor(es)/admin(s), ${c.config} tabela(s) de configuração`;
+    `${c.usuarios} perfil(is), ${c.autorizados} professor(es)/admin(s), ${c.config} tabela(s) de configuração` +
+    (c.chamados != null ? `, ${c.chamados} chamado(s)` : "");
 }
 
 // confere o arquivo antes de qualquer gravação
@@ -157,6 +164,7 @@ export async function restaurarBackup(sessao, d, aoAvancar = () => {}) {
     por(["turmas", t.id, "alunos"], t.alunos || []);
   });
   por(["usuarios"], c.usuarios);
+  por(["chamados"], c.chamados || []); // backups anteriores ao Suporte não têm chamados
 
   // grava em lotes (o Firestore aceita até 500 por lote)
   const TAM = 200;
@@ -166,6 +174,7 @@ export async function restaurarBackup(sessao, d, aoAvancar = () => {}) {
     await lote.commit();
     aoAvancar(Math.min(i + TAM, gravacoes.length), gravacoes.length);
   }
+  auditar("Restaurou backup", `gerado em ${d.geradoEm} — ${gravacoes.length} registro(s)`);
   await registrar(sessao, "restauração", `Backup de ${new Date(d.geradoEm).toLocaleString("pt-BR")} — ${resumo(d.contagem)}`);
   return gravacoes.length;
 }

@@ -1,5 +1,6 @@
 // Primeiro acesso do aluno: vincula a matrícula (da lista do professor) à conta Google
 import { useState } from "react";
+import { auditar } from "../lib/auditoria";
 import { doc, getDoc, serverTimestamp, writeBatch } from "firebase/firestore";
 import { db } from "../firebase";
 import { sair, traduzirErro } from "../lib/sessao";
@@ -41,6 +42,7 @@ export default function PrimeiroAcesso({ usuario, aoConcluir }) {
         criadoEm: serverTimestamp(),
       });
       await lote.commit();
+      await auditar("Vinculou matrícula", `matrícula ${encontrada.matricula}`);
       await aoConcluir();
     } catch (err) {
       setMsg({ tipo: "erro", texto: traduzirErro(err) });
