@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // ============================================================================
-// CTC — Regras de segurança do Firestore (Fase 1)
+// CTC — Regras de segurança do Firestore (Fase 1 + Backup, 03/10/2026)
 // Cole este arquivo inteiro em: Console Firebase > Firestore > Regras > Publicar
 //
 // Quem é quem:
@@ -60,6 +60,8 @@ service cloud.firestore {
       allow read: if logado() && (request.auth.uid == uid || souProfessor());
       // o próprio aluno cria/atualiza o perfil; a matrícula só pode ser gravada
       // se, ao final da mesma operação, a matrícula estiver vinculada a ele
+      // o administrador regrava perfis ao restaurar um backup
+      allow write: if souAdmin();
       allow create, update: if logado() && request.auth.uid == uid &&
         (request.resource.data.get('matricula', '') == '' ||
          getAfter(/databases/$(database)/documents/matriculas/$(request.resource.data.matricula)).data.get('uid', null) == request.auth.uid);
@@ -85,7 +87,8 @@ service cloud.firestore {
     // ---------- turmas ----------
     match /turmas/{turmaId} {
       allow read: if souProfessor() || souAlunoDaTurma(turmaId);
-      allow create: if souProfessor() && request.resource.data.professorUid == request.auth.uid;
+      // professor cria a própria turma; o administrador também recria turmas ao restaurar um backup
+      allow create: if souAdmin() || (souProfessor() && request.resource.data.professorUid == request.auth.uid);
       allow update, delete: if souProfessorDaTurma(turmaId);
 
       match /alunos/{matricula} {

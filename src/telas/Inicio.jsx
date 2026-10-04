@@ -1,5 +1,8 @@
 import { DISCIPLINAS } from "../dados/disciplinas";
+import { useEffect, useState } from "react";
 import { useTurmas } from "../lib/useTurmas";
+import { lerUltimoBackup } from "../lib/backup";
+import { UltimoBackup } from "./Backup";
 
 const INTRO = {
   aluno: "Aqui ficam as suas disciplinas, as turmas em que você está matriculado e as consultas ao Banco de Dados do curso.",
@@ -18,6 +21,8 @@ export default function Inicio({ sessao, papel, ir }) {
         <h1>Olá, {primeiroNome}</h1>
         <p className="suave" style={{ maxWidth: 680 }}>{INTRO[papel]}</p>
       </div>
+
+      {papel === "admin" && <AvisoBackup ir={ir} />}
 
       <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <h2>Trilha do curso</h2>
@@ -45,5 +50,17 @@ export default function Inicio({ sessao, papel, ir }) {
         </div>
       </section>
     </>
+  );
+}
+
+// Administrador: lembrete do último backup completo (alerta depois de 30 dias)
+function AvisoBackup({ ir }) {
+  const [ultimo, setUltimo] = useState(undefined);
+  useEffect(() => { lerUltimoBackup().then(setUltimo).catch(() => setUltimo(null)); }, []);
+  return (
+    <section style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+      <div style={{ flex: "1 1 420px" }}><UltimoBackup ultimo={ultimo} /></div>
+      <button className="botao secundario pequeno" onClick={() => ir("backup")}>Ir para Backup</button>
+    </section>
   );
 }

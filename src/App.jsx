@@ -8,13 +8,14 @@ import Turmas from "./telas/Turmas";
 import BancoDados from "./telas/BancoDados";
 import Autorizados from "./telas/Autorizados";
 import Checklist from "./telas/Checklist";
+import Backup from "./telas/Backup";
 import Rodape from "./componentes/Rodape";
 
 // Itens do menu por perfil
 const MENUS = {
   aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["turmas", "Minhas turmas"], ["banco", "Consultas"]],
-  professor: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"]],
-  admin: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
+  professor: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"]],
+  admin: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
 };
 
 // A página atual fica no endereço (#turmas, #banco...) para sobreviver ao F5
@@ -82,6 +83,7 @@ export default function App() {
           {pagina === "banco" && <BancoDados {...props} />}
           {pagina === "autorizados" && <Autorizados {...props} />}
           {pagina === "checklist" && <Checklist {...props} />}
+          {pagina === "backup" && <Backup {...props} />}
         </main>
       </div>
     </>

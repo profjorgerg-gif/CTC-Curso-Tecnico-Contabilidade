@@ -214,7 +214,14 @@
     {
       "id": "f9-backup",
       "fase": "Fase 9 — Área do professor e fechamento",
-      "item": "Backup completo e auditoria",
+      "item": "Backup completo, backup da turma e restauração",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f9-auditoria",
+      "fase": "Fase 9 — Área do professor e fechamento",
+      "item": "Auditoria completa (quem acessou e o que fez)",
       "quem": "Claude",
       "feito": false
     },
