@@ -6,6 +6,7 @@ import {
   incluirAlunos, lerListaDeAlunos, removerAluno,
 } from "../lib/turmas";
 import { traduzirErro } from "../lib/sessao";
+import { EmpresasDaTurma } from "./Empresa";
 
 const semestrePadrao = () => {
   const d = new Date();
@@ -205,6 +206,8 @@ function DetalheTurma({ sessao, turmaId, ir }) {
         </div>
       </section>
 
+      {turma && alunos && <EmpresasDaTurma turma={turma} alunos={alunos} />}
+
       <section className="cartao">
         <h2>Incluir mais alunos</h2>
         <textarea aria-label="Novos alunos: Nome completo, matrícula" value={lista} onChange={(e) => setLista(e.target.value)} placeholder={"Nome completo, matrícula"} />
@@ -217,7 +220,7 @@ function DetalheTurma({ sessao, turmaId, ir }) {
 
       <section className="cartao">
         <h2>Excluir turma</h2>
-        <p className="suave pequeno">Retira todos os alunos desta turma. As matrículas continuam valendo nas outras turmas.</p>
+        <p className="suave pequeno">Retira todos os alunos desta turma e apaga as empresas deles nesta turma. As matrículas continuam valendo nas outras turmas.</p>
         {!confirmarExclusao
           ? <button className="botao perigo" style={{ alignSelf: "flex-start" }} onClick={() => setConfirmarExclusao(true)}>Excluir turma</button>
           : (

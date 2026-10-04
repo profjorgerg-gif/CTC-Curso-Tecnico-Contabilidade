@@ -11,12 +11,13 @@ import Checklist from "./telas/Checklist";
 import Backup from "./telas/Backup";
 import Suporte from "./telas/Suporte";
 import Auditoria from "./telas/Auditoria";
+import MinhaEmpresa from "./telas/Empresa";
 import { definirSessaoAuditoria, registrarAcesso } from "./lib/auditoria";
 import Rodape from "./componentes/Rodape";
 
 // Itens do menu por perfil
 const MENUS = {
-  aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["turmas", "Minhas turmas"], ["banco", "Consultas"], ["suporte", "Suporte"]],
+  aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["empresa", "Minha empresa"], ["turmas", "Minhas turmas"], ["banco", "Consultas"], ["suporte", "Suporte"]],
   professor: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"]],
   admin: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"], ["auditoria", "Auditoria"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
 };
@@ -95,6 +96,7 @@ export default function App() {
           {pagina === "backup" && <Backup {...props} />}
           {pagina === "suporte" && <Suporte {...props} />}
           {pagina === "auditoria" && <Auditoria {...props} />}
+          {pagina === "empresa" && <MinhaEmpresa {...props} />}
         </main>
       </div>
     </>

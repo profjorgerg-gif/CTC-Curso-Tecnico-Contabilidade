@@ -74,6 +74,7 @@ export async function backupCompleto(sessao) {
     lerColecao("turmas"), lerColecao("config"), lerColecao("historico"),
     lerColecao("chamados"), lerColecao("auditoria"),
   ]);
+  const empresas = await lerColecao("empresas");
   const turmas = await Promise.all(turmasBase.map(async (t) => ({ ...t, alunos: await lerColecao("turmas", t.id, "alunos") })));
   const contagem = {
     autorizados: autorizados.length,
@@ -83,6 +84,7 @@ export async function backupCompleto(sessao) {
     alunosNasTurmas: turmas.reduce((s, t) => s + t.alunos.length, 0),
     config: config.length,
     historico: historico.length,
+    empresas: empresas.length,
     chamados: chamados.length,
     auditoria: auditoria.length,
   };
@@ -91,7 +93,7 @@ export async function backupCompleto(sessao) {
   baixarJson(arquivo, {
     sistema: SISTEMA, tipo: "backup-completo", versao: VERSAO_BACKUP,
     geradoEm: agora.toISOString(), geradoPor: quem(sessao), contagem,
-    colecoes: { autorizados, usuarios, matriculas, turmas, config, historico, chamados, auditoria },
+    colecoes: { autorizados, usuarios, matriculas, turmas, empresas, config, historico, chamados, auditoria },
   });
   // guarda a data do último backup completo (aviso no Início do administrador)
   await setDoc(doc(db, "config", "backup"), {
@@ -114,6 +116,9 @@ export async function backupDaTurma(sessao, turma) {
   await Promise.all(alunos.map(async (a) => {
     const m = await getDoc(doc(db, "matriculas", a.id));
     a.matricula = m.exists() ? paraJson(m.data()) : null;
+    // empresa do aluno nesta turma (os lançamentos entram junto quando existirem)
+    const e = await getDoc(doc(db, "empresas", `${turma.id}_${a.id}`)).catch(() => null);
+    a.empresa = e?.exists() ? paraJson(e.data()) : null;
   }));
   const { id, alunos: _ignorar, ...dadosTurma } = turma;
   const agora = new Date();
@@ -134,6 +139,7 @@ export async function backupDaTurma(sessao, turma) {
 export function resumo(c) {
   return `${c.turmas} turma(s), ${c.alunosNasTurmas} aluno(s) nas turmas, ${c.matriculas} matrícula(s), ` +
     `${c.usuarios} perfil(is), ${c.autorizados} professor(es)/admin(s), ${c.config} tabela(s) de configuração` +
+    (c.empresas != null ? `, ${c.empresas} empresa(s)` : "") +
     (c.chamados != null ? `, ${c.chamados} chamado(s)` : "");
 }
 
@@ -164,6 +170,7 @@ export async function restaurarBackup(sessao, d, aoAvancar = () => {}) {
     por(["turmas", t.id, "alunos"], t.alunos || []);
   });
   por(["usuarios"], c.usuarios);
+  por(["empresas"], c.empresas || []); // backups anteriores às empresas não têm esta parte
   por(["chamados"], c.chamados || []); // backups anteriores ao Suporte não têm chamados
 
   // grava em lotes (o Firestore aceita até 500 por lote)

@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // ============================================================================
-// CTC — Regras de segurança do Firestore (Fase 1 + Backup + Suporte + Auditoria, 03/10/2026)
+// CTC — Regras de segurança do Firestore (Fase 1 + Backup + Suporte + Auditoria + Empresas, 03/10/2026)
 // Cole este arquivo inteiro em: Console Firebase > Firestore > Regras > Publicar
 //
 // Quem é quem:
@@ -116,6 +116,22 @@ service cloud.firestore {
       allow read: if souProfessor();
       allow create: if souProfessor() && request.resource.data.porUid == request.auth.uid;
       allow update, delete: if false;
+    }
+
+    // ---------- empresa individual do aluno (uma por turma) ----------
+    // o código do documento é {turmaId}_{matricula}
+    match /empresas/{id} {
+      function turmaDaEmpresa() { return id.split('_')[0]; }
+      function matriculaDaEmpresa() { return id.split('_')[1]; }
+      function minhaEmpresa() {
+        return souAlunoDaTurma(turmaDaEmpresa()) && matriculaDaEmpresa() == minhaMatricula();
+      }
+      allow get: if souProfessorDaTurma(turmaDaEmpresa()) || minhaEmpresa();
+      allow list: if souAdmin();
+      allow create, update: if (souProfessorDaTurma(turmaDaEmpresa()) || minhaEmpresa()) &&
+        request.resource.data.turmaId == turmaDaEmpresa() &&
+        request.resource.data.matricula == matriculaDaEmpresa();
+      allow delete: if souProfessorDaTurma(turmaDaEmpresa());
     }
 
     // ---------- suporte por chamados ----------

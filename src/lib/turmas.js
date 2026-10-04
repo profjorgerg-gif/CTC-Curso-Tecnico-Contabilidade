@@ -115,6 +115,7 @@ export async function excluirTurma(turmaId) {
   alunos.docs.forEach((a) => {
     lote.delete(a.ref);
     lote.update(doc(db, "matriculas", a.id), { turmas: arrayRemove(turmaId) });
+    lote.delete(doc(db, "empresas", `${turmaId}_${a.id}`)); // empresa do aluno nesta turma
   });
   lote.delete(doc(db, "turmas", turmaId));
   await lote.commit();
