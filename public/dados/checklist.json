@@ -37,6 +37,13 @@
       "feito": true
     },
     {
+      "id": "f2-listas",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Listas de exercícios geradas pelo professor, com gabarito e correção automática (Confere/Diferente)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
       "id": "f2-avaliacao",
       "fase": "Fase 2 — Contabilidade Básica",
       "item": "Motor de avaliação: exercícios, recuperação paralela, prazos e notas",

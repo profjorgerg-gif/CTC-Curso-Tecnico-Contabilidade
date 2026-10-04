@@ -77,7 +77,9 @@ export async function backupCompleto(sessao) {
   const empresasBase = await lerColecao("empresas");
   // cada empresa leva junto os livros (saldos iniciais e Livro Diário)
   const empresas = await Promise.all(empresasBase.map(async (e) => ({ ...e, livros: await lerColecao("empresas", e.id, "livros") })));
-  const turmas = await Promise.all(turmasBase.map(async (t) => ({ ...t, alunos: await lerColecao("turmas", t.id, "alunos") })));
+  const turmas = await Promise.all(turmasBase.map(async (t) => ({
+    ...t, alunos: await lerColecao("turmas", t.id, "alunos"), listas: await lerColecao("turmas", t.id, "listas"),
+  })));
   const contagem = {
     autorizados: autorizados.length,
     usuarios: usuarios.length,
@@ -171,6 +173,7 @@ export async function restaurarBackup(sessao, d, aoAvancar = () => {}) {
   c.turmas.forEach((t) => {
     gravacoes.push([["turmas", t.id], doJson(t.dados)]);
     por(["turmas", t.id, "alunos"], t.alunos || []);
+    por(["turmas", t.id, "listas"], t.listas || []);
   });
   por(["usuarios"], c.usuarios);
   (c.empresas || []).forEach((e) => { // backups anteriores às empresas não têm esta parte

@@ -8,6 +8,7 @@ import {
 import { traduzirErro } from "../lib/sessao";
 import { EmpresasDaTurma } from "./Empresa";
 import { ParametrosDaTurma } from "./Parametrizacao";
+import { ExerciciosDaTurma } from "./Exercicios";
 
 const semestrePadrao = () => {
   const d = new Date();
@@ -208,6 +209,7 @@ function DetalheTurma({ sessao, turmaId, ir }) {
       </section>
 
       {turma && <ParametrosDaTurma key={turma.id} turma={turma} aoSalvar={recarregarTurmas} />}
+      {turma && <ExerciciosDaTurma key={`ex-${turma.id}`} turma={turma} />}
       {turma && alunos && <EmpresasDaTurma turma={turma} alunos={alunos} ir={ir} />}
 
       <section className="cartao">

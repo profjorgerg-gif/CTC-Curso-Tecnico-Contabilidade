@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // ============================================================================
-// CTC — Regras de segurança do Firestore (Fase 1 + Backup + Suporte + Auditoria + Empresas + Confirmação de acesso + Escrituração + Parametrização, 04/10/2026)
+// CTC — Regras de segurança do Firestore (Fase 1 + Backup + Suporte + Auditoria + Empresas + Confirmação de acesso + Escrituração + Parametrização + Listas de exercícios, 04/10/2026)
 // Cole este arquivo inteiro em: Console Firebase > Firestore > Regras > Publicar
 //
 // Quem é quem:
@@ -122,6 +122,13 @@ service cloud.firestore {
            get(/databases/$(database)/documents/turmas/$(turmaId)).data.professorUid == request.auth.uid) ||
           (existsAfter(/databases/$(database)/documents/turmas/$(turmaId)) &&
            getAfter(/databases/$(database)/documents/turmas/$(turmaId)).data.professorUid == request.auth.uid)));
+      }
+
+      // listas de exercícios: o professor monta; o aluno da turma vê só as enviadas
+      match /listas/{listaId} {
+        allow read: if souProfessorDaTurma(turmaId) ||
+          (souAlunoDaTurma(turmaId) && resource.data.enviada == true);
+        allow create, update, delete: if souProfessorDaTurma(turmaId);
       }
     }
 

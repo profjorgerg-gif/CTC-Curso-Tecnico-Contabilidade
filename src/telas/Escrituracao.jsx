@@ -8,6 +8,7 @@ import { garantirEmpresa, lerEmpresa } from "../lib/empresas";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { AREAS, areaConfirmada, fimDePeriodoValido, parametrosEfetivos } from "../lib/parametros";
+import { corrigir, GABARITO_ORIENTADOS, listasDaTurma } from "../lib/exercicios";
 import { balanco, CONTA_LUCROS, dlpa, dre, jaEncerrado, propostaEncerramento } from "../lib/demonstracoes";
 import { apuracaoPeriodica, custoDaSaida, kardex, METODOS, movimentosDeEstoque } from "../lib/estoque";
 import { semAcento } from "../lib/arquivos";
@@ -118,11 +119,13 @@ function Livros({ sessao, empresa, turma, donoAluno }) {
   const fatosNaoAplicaveis = periodico ? [4, 6] : [];
   const carregar = () => lerEscrituracao(empresa.id).then(setDados).catch((e) => setErro(traduzirErro(e)));
   useEffect(() => { carregar(); }, [empresa.id]);
+  const [listas, setListas] = useState([]);
+  useEffect(() => { if (turma?.id) listasDaTurma(turma.id, true).then(setListas).catch(() => setListas([])); }, [turma?.id]);
   useEffect(() => { if (dados && !dados.saldosGravados) setAba("saldos"); }, [!!dados]);
 
   if (erroPlano || erro) return <div className="aviso erro">{erroPlano || erro}</div>;
   if (!plano || !dados) return <p className="suave">Carregando os livros…</p>;
-  const props = { sessao, empresa, plano, dados, recarregar: carregar, donoAluno, metodo, params, periodico, fatosNaoAplicaveis };
+  const props = { sessao, empresa, plano, dados, recarregar: carregar, donoAluno, metodo, params, periodico, fatosNaoAplicaveis, listas };
   const rotulo = (area, campo) => AREAS.find((a) => a.id === area).campos.find((c) => c.id === campo).opcoes?.find((o) => o.valor === params[area][campo])?.rotulo || params[area][campo];
   const totalFatos = FATOS_ORIENTADOS.length - fatosNaoAplicaveis.length;
 
@@ -166,6 +169,12 @@ function Indicador({ rotulo, valor }) {
       <span className="pequeno suave">{rotulo}</span>
     </div>
   );
+}
+
+// a qual fato de um roteiro o lançamento pertence
+function numeroNoRoteiro(l, roteiroId) {
+  if (roteiroId === "orientados") return l.fatoOrientado || null;
+  return l.lista?.id === roteiroId ? l.lista.n : null;
 }
 
 // ---------------- escolha de conta (busca por código ou nome) ----------------
@@ -291,7 +300,7 @@ const formVazio = (empresa) => ({
   historico: "", documento: "", contaDebito: "", contaCredito: "", valor: "", quantidade: "", valorUnitario: "",
 });
 
-function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, metodo, params, periodico, fatosNaoAplicaveis }) {
+function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, metodo, params, periodico, listas = [] }) {
   const lista = dados.lancamentos;
   const [form, setForm] = useState(() => formVazio(empresa));
   const [editando, setEditando] = useState(null);
@@ -301,10 +310,39 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
   const [busca, setBusca] = useState("");
   const [vendoFato, setVendoFato] = useState(null);
 
-  const feitos = new Set([...lista.filter((l) => l.fatoOrientado).map((l) => l.fatoOrientado), ...fatosNaoAplicaveis]);
-  const proximoFato = FATOS_ORIENTADOS.findIndex((_, i) => !feitos.has(i + 1)) + 1; // 0 = todos feitos
+  // roteiros guiados: os 10 fatos orientados + as listas enviadas pelo professor
+  const roteiros = useMemo(() => [
+    { id: "orientados", titulo: "Fatos orientados", fatos: FATOS_ORIENTADOS.map((texto, i) => ({ n: i + 1, texto, gabarito: GABARITO_ORIENTADOS[i], soPermanente: i === 3 || i === 5 })) },
+    ...listas.map((l) => ({ id: l.id, titulo: l.titulo, prazo: l.prazo, fatos: l.fatos })),
+  ], [listas]);
+  const estadoDo = (r) => {
+    const lanc = {};
+    lista.forEach((l) => { const n = numeroNoRoteiro(l, r.id); if (n) lanc[n] = l; });
+    const naoSeAplica = new Set(periodico ? r.fatos.filter((f) => f.soPermanente).map((f) => f.n) : []);
+    const proximo = r.fatos.find((f) => !lanc[f.n] && !naoSeAplica.has(f.n))?.n || 0;
+    const corrigidos = r.fatos.filter((f) => lanc[f.n]).map((f) => resultado(lanc[f.n], f));
+    return { lanc, naoSeAplica, proximo, acertos: corrigidos.filter((c) => c?.ok).length, lancados: corrigidos.length, aplicaveis: r.fatos.length - naoSeAplica.size };
+  };
+  // resultado da correção (para a baixa do CMV, o custo vem do estoque e do método do próprio aluno)
+  const resultado = (l, fato) => {
+    if (!l || !fato) return null;
+    const esperadoCMV = fato.gabarito?.valor == null && !periodico ? custoDaSaida(lista, metodo, l.quantidade, l.data, l.id).custo : null;
+    return corrigir(l, fato, esperadoCMV);
+  };
+  const [roteiroId, setRoteiroId] = useState(null);
+  const roteiro = roteiros.find((r) => r.id === roteiroId) || roteiros.find((r) => estadoDo(r).proximo) || roteiros[0];
+  const est = estadoDo(roteiro);
+  const proximoFato = est.proximo; // 0 = roteiro concluído
   const etapaGuiada = donoAluno && proximoFato > 0 && !editando;
   const fatoNaTela = vendoFato || proximoFato;
+  const fatoDaTela = roteiro.fatos.find((f) => f.n === fatoNaTela);
+  // nas listas, a data do fato já vem preenchida no formulário
+  const dataDoProximo = roteiro.fatos.find((f) => f.n === proximoFato)?.data;
+  useEffect(() => { if (etapaGuiada && dataDoProximo) setForm((f) => ({ ...f, data: dataDoProximo })); }, [roteiro.id, proximoFato]);
+  const fatoDoLancamento = (l) => {
+    for (const r of roteiros) { const n = numeroNoRoteiro(l, r.id); if (n) return { r, fato: r.fatos.find((f) => f.n === n) }; }
+    return null;
+  };
 
   const compraEstoque = CONTAS_ESTOQUE.includes(form.contaDebito);
   const baixaEstoque = CONTAS_ESTOQUE.includes(form.contaCredito);
@@ -329,7 +367,9 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
     setSalvando(true);
     try {
       if (editando) await alterarLancamento(sessao, empresa.id, editando, form);
-      else await incluirLancamento(sessao, empresa.id, form, etapaGuiada ? proximoFato : null);
+      else if (etapaGuiada && roteiro.id === "orientados") await incluirLancamento(sessao, empresa.id, form, proximoFato);
+      else if (etapaGuiada) await incluirLancamento(sessao, empresa.id, form, null, { lista: { id: roteiro.id, n: proximoFato } });
+      else await incluirLancamento(sessao, empresa.id, form, null);
       setMsg({ texto: editando ? "Lançamento corrigido." : etapaGuiada ? `Fato ${proximoFato} lançado.` : "Lançamento incluído." });
       setVendoFato(null);
       cancelar();
@@ -359,25 +399,49 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
 
   return (
     <>
-      {etapaGuiada && (
+      {donoAluno && roteiros.length > 1 && !editando && (
+        <div className="abas" role="tablist" aria-label="Roteiro de fatos">
+          {roteiros.map((r) => {
+            const e = estadoDo(r);
+            return (
+              <button key={r.id} role="tab" aria-selected={roteiro.id === r.id} className={roteiro.id === r.id ? "ativo" : ""} onClick={() => { setRoteiroId(r.id); setVendoFato(null); }}>
+                {r.titulo} · {e.lancados}/{e.aplicaveis}{e.proximo === 0 ? " ✓" : ""}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {etapaGuiada && fatoDaTela && (
         <section className="cartao" style={{ borderColor: "var(--destaque)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <span className="mono pequeno" style={{ color: "var(--destaque)", fontWeight: 600 }}>
-              FATO CONTÁBIL {String(fatoNaTela).padStart(2, "0")} DE {FATOS_ORIENTADOS.length}
+              {roteiro.id === "orientados" ? "FATO CONTÁBIL" : roteiro.titulo.toUpperCase()} · {String(fatoNaTela).padStart(2, "0")} DE {roteiro.fatos.length}
+              {roteiro.prazo ? ` · prazo ${dataBR(roteiro.prazo)}` : ""}
             </span>
-            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-              {feitos.has(fatoNaTela) ? <span className="selo verde">Já lançado</span> : <span className="selo ocre">Pendente — lance no formulário abaixo</span>}
+            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+              {(() => {
+                const l = est.lanc[fatoNaTela];
+                if (est.naoSeAplica.has(fatoNaTela)) return <span className="selo cinza">Não se aplica (inventário periódico)</span>;
+                if (!l) return <span className="selo ocre">Pendente — lance no formulário abaixo</span>;
+                const c = resultado(l, fatoDaTela);
+                return c?.ok ? <span className="selo verde">Lançado · confere</span> : <span className="selo ocre">Lançado · diferente: {c?.erros.join(", ")}</span>;
+              })()}
               <button className="botao secundario pequeno" aria-label="Fato anterior" disabled={fatoNaTela <= 1} onClick={() => setVendoFato(fatoNaTela - 1)}>◀</button>
               <button className="botao secundario pequeno" aria-label="Próximo fato" disabled={fatoNaTela >= proximoFato} onClick={() => setVendoFato(fatoNaTela + 1 >= proximoFato ? null : fatoNaTela + 1)}>▶</button>
             </div>
           </div>
-          <p style={{ fontSize: 16 }}>{FATOS_ORIENTADOS[fatoNaTela - 1]}</p>
-          {fatosNaoAplicaveis.length > 0 && <p className="pequeno suave">Inventário periódico: os fatos {fatosNaoAplicaveis.join(" e ")} (baixa do CMV a cada venda) não se aplicam — o CMV será apurado no fim do período.</p>}
+          <p style={{ fontSize: 16 }}>{fatoDaTela.texto}</p>
+          {est.naoSeAplica.size > 0 && <p className="pequeno suave">Inventário periódico: os fatos {[...est.naoSeAplica].join(", ")} (baixa do CMV a cada venda) não se aplicam — o CMV será apurado no fim do período.</p>}
           {fatoNaTela !== proximoFato && <p className="pequeno suave">Você está relendo um fato. O formulário continua registrando o fato {proximoFato}.</p>}
+          <span className="pequeno suave">Acertos até agora: {est.acertos} de {est.lancados} lançado(s).</span>
         </section>
       )}
       {donoAluno && proximoFato === 0 && !editando && (
-        <div className="aviso">Você concluiu os {FATOS_ORIENTADOS.length} fatos orientados. Agora registre as operações que o professor indicar em sala.</div>
+        <div className="aviso">
+          Você concluiu "{roteiro.titulo}": {est.acertos} de {est.lancados} lançamento(s) conferem.
+          {est.acertos < est.lancados ? " Use \"Corrigir\" no Livro Diário para acertar os que estão diferentes." : ""}
+          {roteiros.some((r) => estadoDo(r).proximo) ? " Há outro roteiro com fatos pendentes nas abas acima." : " Agora registre as operações que o professor indicar em sala."}
+        </div>
       )}
 
       <form className="cartao" onSubmit={salvar}>
@@ -457,7 +521,17 @@ function Lancamentos({ sessao, empresa, plano, dados, recarregar, donoAluno, met
                 <tr key={l.id}>
                   <td className="mono pequeno" style={{ whiteSpace: "nowrap" }}>{dataBR(l.data)}</td>
                   <td>
-                    {l.fatoOrientado && <span className="selo cheio" style={{ marginRight: 6 }}>Fato {l.fatoOrientado}</span>}
+                    {(() => {
+                      const ref = fatoDoLancamento(l);
+                      if (!ref) return null;
+                      const c = resultado(l, ref.fato);
+                      return (
+                        <>
+                          <span className="selo cheio" style={{ marginRight: 6 }}>{ref.r.id === "orientados" ? "Fato" : `${ref.r.titulo} ·`} {ref.fato?.n}</span>
+                          {c && <span className={`selo ${c.ok ? "verde" : "ocre"}`} style={{ marginRight: 6 }} title={c.ok ? "" : `Confira: ${c.erros.join(", ")}`}>{c.ok ? "Confere" : `Diferente: ${c.erros.join(", ")}`}</span>}
+                        </>
+                      );
+                    })()}
                     {l.encerramento && <span className="selo cinza" style={{ marginRight: 6 }}>Encerramento</span>}
                     {l.historico}
                     {(l.quantidade || l.documento || l.alteradoPor) && (
