@@ -1,10 +1,17 @@
 import { useState } from "react";
 import { entrarComGoogle, traduzirErro } from "../lib/sessao";
 import { DISCIPLINAS } from "../dados/disciplinas";
+import { CHAVE_SAIU_INATIVO, INATIVIDADE_MIN } from "../lib/seguranca";
+
+// aviso quando a pessoa saiu sozinha por ficar parada
+function saiuPorInatividade() {
+  try { const v = sessionStorage.getItem(CHAVE_SAIU_INATIVO); sessionStorage.removeItem(CHAVE_SAIU_INATIVO); return !!v; } catch { return false; }
+}
 
 // Tela de entrada (opção 7 — Monograma + Trilha): apresentação à esquerda, login à direita
 export default function Login() {
   const [erro, setErro] = useState("");
+  const [inativo] = useState(saiuPorInatividade);
   const [aguarde, setAguarde] = useState(false);
 
   const entrar = async () => {
@@ -56,6 +63,7 @@ export default function Login() {
             <h2>Entrar no CTC</h2>
           </div>
           <p className="login-texto">Entre com sua conta Google para acessar a plataforma.</p>
+          {inativo && <div className="aviso atencao" role="status">Você saiu automaticamente depois de {INATIVIDADE_MIN} minutos sem usar o CTC.</div>}
           <button className="botao login-botao" onClick={entrar} disabled={aguarde}>
             <span className="login-g" aria-hidden="true">G</span>
             {aguarde ? "Abrindo o Google…" : "Continuar com o Google"}
@@ -63,8 +71,8 @@ export default function Login() {
           {erro && <div className="aviso erro" role="alert">{erro}</div>}
           <div className="login-divisor" />
           <div className="login-avisos">
-            <p><strong>Alunos:</strong> no primeiro acesso, informe a matrícula que está na lista do seu professor.</p>
-            <p><strong>Professores:</strong> o acesso é liberado pelo administrador a partir do seu e-mail Google.</p>
+            <p><strong>Alunos:</strong> depois do Google, confirme a sua matrícula (a que está na lista do seu professor).</p>
+            <p><strong>Professores:</strong> depois do Google, digite a sua senha do CTC. O acesso é liberado pelo administrador a partir do seu e-mail Google.</p>
           </div>
         </div>
       </main>

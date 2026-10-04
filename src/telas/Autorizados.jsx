@@ -1,6 +1,7 @@
 // Lista de e-mails Google autorizados como professor ou administrador (decisão 6)
 import { useEffect, useState } from "react";
 import { auditar } from "../lib/auditoria";
+import { redefinirSenha } from "../lib/seguranca";
 import { collection, deleteDoc, doc, getDocs, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { traduzirErro } from "../lib/sessao";
@@ -36,6 +37,13 @@ export default function Autorizados({ sessao }) {
     } catch (err) { setMsg({ tipo: "erro", texto: traduzirErro(err) }); }
   };
 
+  const redefinir = async (email) => {
+    try {
+      await redefinirSenha(email);
+      setMsg({ texto: `Senha de ${email} apagada. No próximo acesso, a pessoa cria uma senha nova.` });
+    } catch (err) { setMsg({ tipo: "erro", texto: traduzirErro(err) }); }
+  };
+
   const remover = async (email) => {
     try { await deleteDoc(doc(db, "autorizados", email)); auditar("Removeu acesso", email); setMsg({ texto: `${email} removido. No próximo acesso, entrará como aluno.` }); carregar(); }
     catch (err) { setMsg({ tipo: "erro", texto: traduzirErro(err) }); }
@@ -45,7 +53,7 @@ export default function Autorizados({ sessao }) {
     <>
       <div>
         <h1>Professores e administradores</h1>
-        <p className="suave">Alunos entram pelas listas das turmas. Professores e administradores são definidos por esta lista de e-mails Google — não existe código de acesso.</p>
+        <p className="suave">Alunos entram pelas listas das turmas. Professores e administradores são definidos por esta lista de e-mails Google. A cada entrada, eles também digitam a própria senha do CTC; se alguém esquecer, use "Redefinir senha".</p>
       </div>
       <form className="cartao" onSubmit={autorizar}>
         <h2>Autorizar e-mail</h2>
@@ -81,6 +89,8 @@ export default function Autorizados({ sessao }) {
                   <td>{a.nome || "—"}</td>
                   <td><span className={`selo ${a.papel === "admin" ? "cheio" : "verde"}`}>{a.papel === "admin" ? "Administrador" : "Professor"}</span></td>
                   <td style={{ textAlign: "right" }}>
+                    <button className="botao secundario pequeno" title="Apaga a senha do CTC; a pessoa cria outra no próximo acesso"
+                      onClick={() => redefinir(a.email)}>Redefinir senha</button>{" "}
                     {a.email === meuEmail
                       ? <span className="pequeno suave">você</span>
                       : <button className="botao perigo pequeno" onClick={() => remover(a.email)}>Remover</button>}

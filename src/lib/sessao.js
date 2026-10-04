@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db, googleProvider } from "../firebase";
+import { encerrarConfirmacao } from "./seguranca";
 
 export function useSessao() {
   const [estado, setEstado] = useState({ carregando: true, usuario: null, papel: null, perfil: null, erro: "" });
@@ -41,6 +42,7 @@ export async function entrarComGoogle() {
 }
 
 export async function sair() {
+  await encerrarConfirmacao(); // a próxima entrada pede senha/matrícula de novo
   await signOut(auth);
 }
 

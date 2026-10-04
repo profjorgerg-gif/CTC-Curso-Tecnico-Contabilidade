@@ -13,6 +13,8 @@ import Suporte from "./telas/Suporte";
 import Auditoria from "./telas/Auditoria";
 import MinhaEmpresa from "./telas/Empresa";
 import { definirSessaoAuditoria, registrarAcesso } from "./lib/auditoria";
+import { confirmadoNesteNavegador, useSaidaPorInatividade } from "./lib/seguranca";
+import { ConfirmarAluno, ConfirmarProfessor } from "./telas/Confirmacao";
 import Rodape from "./componentes/Rodape";
 
 // Itens do menu por perfil
@@ -40,11 +42,16 @@ export default function App() {
 
   const ir = (...partes) => { window.location.hash = partes.join("/"); };
 
-  // auditoria: guarda quem está usando e registra a entrada (uma vez por sessão)
+  // confirmação a cada entrada (senha do professor / matrícula do aluno)
+  const [, atualizar] = useState(0);
+  const confirmado = !!sessao.usuario && confirmadoNesteNavegador(sessao.usuario.uid);
+  useSaidaPorInatividade(confirmado ? sessao.usuario.uid : null, sair);
+
+  // auditoria: guarda quem está usando e registra a entrada (uma vez por sessão, depois de confirmar)
   useEffect(() => {
     definirSessaoAuditoria(sessao);
-    if (sessao.usuario && sessao.papel && !sessao.carregando) registrarAcesso(sessao);
-  }, [sessao.usuario?.uid, sessao.papel, sessao.perfil?.nome, sessao.carregando]);
+    if (confirmado && sessao.papel && !sessao.carregando) registrarAcesso(sessao);
+  }, [sessao.usuario?.uid, sessao.papel, sessao.perfil?.nome, sessao.carregando, confirmado]);
 
   if (sessao.carregando) return comRodape(<div className="tela-login"><p className="suave">Carregando…</p></div>);
   if (!sessao.usuario) return comRodape(<Login />);
@@ -60,6 +67,12 @@ export default function App() {
   }
   if (sessao.papel === "aluno" && !sessao.perfil?.matricula) {
     return comRodape(<PrimeiroAcesso usuario={sessao.usuario} aoConcluir={sessao.recarregar} />);
+  }
+  if (!confirmado) {
+    const aoConfirmar = () => atualizar((n) => n + 1);
+    return comRodape(sessao.papel === "aluno"
+      ? <ConfirmarAluno sessao={sessao} aoConfirmar={aoConfirmar} />
+      : <ConfirmarProfessor sessao={sessao} aoConfirmar={aoConfirmar} />);
   }
 
   const papel = sessao.papel;

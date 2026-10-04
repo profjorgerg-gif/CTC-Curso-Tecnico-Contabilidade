@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // ============================================================================
-// CTC — Regras de segurança do Firestore (Fase 1 + Backup + Suporte + Auditoria + Empresas, 03/10/2026)
+// CTC — Regras de segurança do Firestore (Fase 1 + Backup + Suporte + Auditoria + Empresas + Confirmação de acesso, 03/10/2026)
 // Cole este arquivo inteiro em: Console Firebase > Firestore > Regras > Publicar
 //
 // Quem é quem:
@@ -26,12 +26,21 @@ service cloud.firestore {
     function papel() {
       return get(/databases/$(database)/documents/autorizados/$(meuEmail())).data.papel;
     }
+    // confirmação a cada entrada: senha (professor/admin) ou matrícula (aluno),
+    // gravada em sessoes/{uid} e válida por no máximo 12 horas
+    function sessaoValida(tipo) {
+      let caminho = /databases/$(database)/documents/sessoes/$(request.auth.uid);
+      return exists(caminho) && get(caminho).data.tipo == tipo && get(caminho).data.validoAte > request.time;
+    }
+    function confirmado() {
+      return logado() && (sessaoValida('professor') || sessaoValida('aluno'));
+    }
     function souAdmin() {
-      return autorizado() && papel() == 'admin';
+      return autorizado() && papel() == 'admin' && sessaoValida('professor');
     }
     function souProfessor() {
       // administrador também pode tudo o que o professor pode
-      return autorizado() && papel() in ['professor', 'admin'];
+      return autorizado() && papel() in ['professor', 'admin'] && sessaoValida('professor');
     }
     function minhaMatricula() {
       return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.get('matricula', '');
@@ -42,8 +51,20 @@ service cloud.firestore {
     }
     function souAlunoDaTurma(turmaId) {
       let m = minhaMatricula();
-      return logado() && m != '' &&
+      return logado() && m != '' && sessaoValida('aluno') &&
         exists(/databases/$(database)/documents/turmas/$(turmaId)/alunos/$(m)) &&
+        get(/databases/$(database)/documents/matriculas/$(m)).data.get('uid', null) == request.auth.uid;
+    }
+
+    function sessaoProfessorConfere() {
+      let segredo = /databases/$(database)/documents/segredos/$(meuEmail());
+      return request.resource.data.tipo == 'professor' && autorizado() && exists(segredo) &&
+        request.resource.data.prova == get(segredo).data.senhaHash;
+    }
+    function sessaoAlunoConfere() {
+      let m = minhaMatricula();
+      return request.resource.data.tipo == 'aluno' && m != '' &&
+        request.resource.data.matricula == m &&
         get(/databases/$(database)/documents/matriculas/$(m)).data.get('uid', null) == request.auth.uid;
     }
 
@@ -107,7 +128,7 @@ service cloud.firestore {
     // ---------- Banco de Dados comum ----------
     // plano de contas, cronograma IBS/CBS e outras tabelas de referência
     match /config/{docId} {
-      allow read: if logado();
+      allow read: if confirmado();
       allow write: if souProfessor() && (docId == 'planoContas' || souAdmin());
     }
 
@@ -137,11 +158,11 @@ service cloud.firestore {
     // ---------- suporte por chamados ----------
     match /chamados/{id} {
       // quem abriu vê os próprios chamados; o administrador vê todos
-      allow read: if souAdmin() || (logado() && resource.data.autorUid == request.auth.uid);
-      allow create: if souAdmin() || (logado() && request.resource.data.autorUid == request.auth.uid &&
+      allow read: if souAdmin() || (confirmado() && resource.data.autorUid == request.auth.uid);
+      allow create: if souAdmin() || (confirmado() && request.resource.data.autorUid == request.auth.uid &&
         request.resource.data.status == 'aberto');
       // o administrador responde; quem abriu responde de volta, encerra ou reabre
-      allow update: if souAdmin() || (logado() && resource.data.autorUid == request.auth.uid &&
+      allow update: if souAdmin() || (confirmado() && resource.data.autorUid == request.auth.uid &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['respostas', 'status', 'atualizadoEm']) &&
         request.resource.data.status in ['aberto', 'encerrado']);
       allow delete: if souAdmin();
@@ -154,6 +175,32 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ---------- senha do CTC (professor e administrador) ----------
+    // senhas/{email}: só diz se a senha existe e guarda o "sal" (não é segredo)
+    match /senhas/{email} {
+      allow get: if logado() && ((autorizado() && email == meuEmail()) || souAdmin());
+      allow list: if souAdmin();
+      allow create: if autorizado() && email == meuEmail();
+      allow update: if false;
+      allow delete: if souAdmin();
+    }
+    // segredos/{email}: o hash da senha — ninguém lê, nem o próprio professor
+    match /segredos/{email} {
+      allow read, update: if false;
+      allow create: if autorizado() && email == meuEmail() &&
+        request.resource.data.keys().hasOnly(['senhaHash']);
+      allow delete: if souAdmin();
+    }
+
+    // ---------- confirmação da entrada ----------
+    match /sessoes/{uid} {
+      allow read: if false;
+      allow delete: if logado() && request.auth.uid == uid;
+      allow create, update: if logado() && request.auth.uid == uid &&
+        request.resource.data.validoAte is timestamp &&
+        request.resource.data.validoAte <= request.time + duration.value(12, 'h') &&
+        (sessaoProfessorConfere() || sessaoAlunoConfere());
+    }
     // qualquer outra coleção fica fechada
     match /{document=**} {
       allow read, write: if false;
