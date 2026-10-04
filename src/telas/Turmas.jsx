@@ -206,7 +206,7 @@ function DetalheTurma({ sessao, turmaId, ir }) {
         </div>
       </section>
 
-      {turma && alunos && <EmpresasDaTurma turma={turma} alunos={alunos} />}
+      {turma && alunos && <EmpresasDaTurma turma={turma} alunos={alunos} ir={ir} />}
 
       <section className="cartao">
         <h2>Incluir mais alunos</h2>

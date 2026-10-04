@@ -41,7 +41,7 @@ export default function MinhaEmpresa({ sessao }) {
       {erro && <div className="aviso erro">{erro}</div>}
       {!carregando && turmas.length === 0 && <div className="aviso atencao">Você ainda não está em nenhuma turma.</div>}
       {turmas.length > 1 && (
-        <div className="campo" style={{ maxWidth: 520 }}>
+        <div className="campo" style={{ maxWidth: 520, flex: "none" }}>
           <label htmlFor="emp-turma">Turma</label>
           <select id="emp-turma" value={turma?.id || ""} onChange={(e) => setTurmaId(e.target.value)}>
             {turmas.map((t) => <option key={t.id} value={t.id}>{t.nome} · {disciplinaPorId(t.disciplina)?.sigla} · {t.semestre}</option>)}
@@ -160,7 +160,7 @@ export function FormEmpresa({ empresa, outras = [], aoSalvar, compacto }) {
 }
 
 // ---------------- professor: empresas da turma ----------------
-export function EmpresasDaTurma({ turma, alunos }) {
+export function EmpresasDaTurma({ turma, alunos, ir }) {
   const [empresas, setEmpresas] = useState(null);
   const [aberta, setAberta] = useState("");
   const [msg, setMsg] = useState({});
@@ -208,7 +208,10 @@ export function EmpresasDaTurma({ turma, alunos }) {
                   <td className="mono pequeno">{e?.cnpj || "—"}</td>
                   <td className="pequeno">{e?.regime || "—"}</td>
                   <td>{!e ? <span className="selo cinza">Não criada</span> : e.cadastroCompleto ? <span className="selo verde">Completo</span> : <span className="selo ocre">Incompleto</span>}</td>
-                  <td style={{ textAlign: "right" }}>{e && <button className="botao secundario pequeno" onClick={() => setAberta(aberta === a.matricula ? "" : a.matricula)}>{aberta === a.matricula ? "Fechar" : "Ver / corrigir"}</button>}</td>
+                  <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                    {e && <button className="botao secundario pequeno" onClick={() => setAberta(aberta === a.matricula ? "" : a.matricula)}>{aberta === a.matricula ? "Fechar" : "Cadastro"}</button>}{" "}
+                    {e && ir && <button className="botao pequeno" onClick={() => ir("escrituracao", turma.id, a.matricula)}>Escrituração</button>}
+                  </td>
                 </tr>
               );
             })}

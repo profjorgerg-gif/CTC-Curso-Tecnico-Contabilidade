@@ -13,7 +13,7 @@
       "fase": "Fase 2 — Contabilidade Básica",
       "item": "Saldos iniciais, 10 lançamentos orientados, razão, balancete",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "f2-estoque",

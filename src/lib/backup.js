@@ -74,7 +74,9 @@ export async function backupCompleto(sessao) {
     lerColecao("turmas"), lerColecao("config"), lerColecao("historico"),
     lerColecao("chamados"), lerColecao("auditoria"),
   ]);
-  const empresas = await lerColecao("empresas");
+  const empresasBase = await lerColecao("empresas");
+  // cada empresa leva junto os livros (saldos iniciais e Livro Diário)
+  const empresas = await Promise.all(empresasBase.map(async (e) => ({ ...e, livros: await lerColecao("empresas", e.id, "livros") })));
   const turmas = await Promise.all(turmasBase.map(async (t) => ({ ...t, alunos: await lerColecao("turmas", t.id, "alunos") })));
   const contagem = {
     autorizados: autorizados.length,
@@ -119,6 +121,7 @@ export async function backupDaTurma(sessao, turma) {
     // empresa do aluno nesta turma (os lançamentos entram junto quando existirem)
     const e = await getDoc(doc(db, "empresas", `${turma.id}_${a.id}`)).catch(() => null);
     a.empresa = e?.exists() ? paraJson(e.data()) : null;
+    if (a.empresa) a.livros = await lerColecao("empresas", `${turma.id}_${a.id}`, "livros").catch(() => []);
   }));
   const { id, alunos: _ignorar, ...dadosTurma } = turma;
   const agora = new Date();
@@ -170,7 +173,10 @@ export async function restaurarBackup(sessao, d, aoAvancar = () => {}) {
     por(["turmas", t.id, "alunos"], t.alunos || []);
   });
   por(["usuarios"], c.usuarios);
-  por(["empresas"], c.empresas || []); // backups anteriores às empresas não têm esta parte
+  (c.empresas || []).forEach((e) => { // backups anteriores às empresas não têm esta parte
+    gravacoes.push([["empresas", e.id], doJson(e.dados)]);
+    por(["empresas", e.id, "livros"], e.livros || []);
+  });
   por(["chamados"], c.chamados || []); // backups anteriores ao Suporte não têm chamados
 
   // grava em lotes (o Firestore aceita até 500 por lote)

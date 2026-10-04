@@ -12,6 +12,7 @@ import Backup from "./telas/Backup";
 import Suporte from "./telas/Suporte";
 import Auditoria from "./telas/Auditoria";
 import MinhaEmpresa from "./telas/Empresa";
+import Escrituracao from "./telas/Escrituracao";
 import { definirSessaoAuditoria, registrarAcesso } from "./lib/auditoria";
 import { confirmadoNesteNavegador, useSaidaPorInatividade } from "./lib/seguranca";
 import { ConfirmarAluno, ConfirmarProfessor } from "./telas/Confirmacao";
@@ -19,7 +20,7 @@ import Rodape from "./componentes/Rodape";
 
 // Itens do menu por perfil
 const MENUS = {
-  aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["empresa", "Minha empresa"], ["turmas", "Minhas turmas"], ["banco", "Consultas"], ["suporte", "Suporte"]],
+  aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["empresa", "Minha empresa"], ["escrituracao", "Escrituração"], ["turmas", "Minhas turmas"], ["banco", "Consultas"], ["suporte", "Suporte"]],
   professor: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"]],
   admin: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"], ["auditoria", "Auditoria"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
 };
@@ -77,7 +78,9 @@ export default function App() {
 
   const papel = sessao.papel;
   const menu = MENUS[papel];
-  const [pagina, ...resto] = menu.some(([id]) => id === rota[0]) ? rota : ["inicio"];
+  // telas abertas por dentro de outras (sem item próprio no menu)
+  const ocultas = papel === "aluno" ? [] : ["escrituracao"];
+  const [pagina, ...resto] = menu.some(([id]) => id === rota[0]) || ocultas.includes(rota[0]) ? rota : ["inicio"];
   const props = { sessao, papel, ir, rota: resto };
 
   return comRodape(
@@ -110,6 +113,7 @@ export default function App() {
           {pagina === "suporte" && <Suporte {...props} />}
           {pagina === "auditoria" && <Auditoria {...props} />}
           {pagina === "empresa" && <MinhaEmpresa {...props} />}
+          {pagina === "escrituracao" && <Escrituracao key={resto.join("/")} {...props} />}
         </main>
       </div>
     </>
