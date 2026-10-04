@@ -14,6 +14,7 @@ import Auditoria from "./telas/Auditoria";
 import MinhaEmpresa from "./telas/Empresa";
 import Escrituracao from "./telas/Escrituracao";
 import Parametrizacao from "./telas/Parametrizacao";
+import MinhasNotas from "./telas/Notas";
 import { definirSessaoAuditoria, registrarAcesso } from "./lib/auditoria";
 import { confirmadoNesteNavegador, useSaidaPorInatividade } from "./lib/seguranca";
 import { ConfirmarAluno, ConfirmarProfessor } from "./telas/Confirmacao";
@@ -21,7 +22,7 @@ import Rodape from "./componentes/Rodape";
 
 // Itens do menu por perfil
 const MENUS = {
-  aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["empresa", "Minha empresa"], ["parametrizacao", "Parametrização"], ["escrituracao", "Escrituração"], ["turmas", "Minhas turmas"], ["banco", "Consultas"], ["suporte", "Suporte"]],
+  aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["empresa", "Minha empresa"], ["parametrizacao", "Parametrização"], ["escrituracao", "Escrituração"], ["notas", "Minhas notas"], ["turmas", "Minhas turmas"], ["banco", "Consultas"], ["suporte", "Suporte"]],
   professor: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"]],
   admin: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"], ["auditoria", "Auditoria"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
 };
@@ -115,6 +116,7 @@ export default function App() {
           {pagina === "auditoria" && <Auditoria {...props} />}
           {pagina === "empresa" && <MinhaEmpresa {...props} />}
           {pagina === "parametrizacao" && <Parametrizacao {...props} />}
+          {pagina === "notas" && <MinhasNotas {...props} />}
           {pagina === "escrituracao" && <Escrituracao key={resto.join("/")} {...props} />}
         </main>
       </div>

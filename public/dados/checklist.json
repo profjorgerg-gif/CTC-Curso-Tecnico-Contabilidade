@@ -53,9 +53,9 @@
     {
       "id": "f2-avaliacao",
       "fase": "Fase 2 — Contabilidade Básica",
-      "item": "Motor de avaliação: exercícios, recuperação paralela, prazos e notas",
+      "item": "Motor de avaliação: exercício de sala × avaliativo, prazos, recuperação paralela, quadro de notas do professor e Minhas notas do aluno",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "f2-teste",

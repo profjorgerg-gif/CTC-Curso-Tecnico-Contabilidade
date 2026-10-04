@@ -8,6 +8,7 @@ import {
 import { traduzirErro } from "../lib/sessao";
 import { EmpresasDaTurma } from "./Empresa";
 import { ConfigLancamentosDaTurma, ParametrosDaTurma } from "./Parametrizacao";
+import { NotasDaTurma } from "./Notas";
 import { ExerciciosDaTurma } from "./Exercicios";
 
 const semestrePadrao = () => {
@@ -153,6 +154,7 @@ function DetalheTurma({ sessao, turmaId, ir }) {
   const [lista, setLista] = useState("");
   const [msg, setMsg] = useState({});
   const [confirmarExclusao, setConfirmarExclusao] = useState(false);
+  const [versaoNotas, setVersaoNotas] = useState(0);
   const leitura = useMemo(() => lerListaDeAlunos(lista), [lista]);
 
   const carregar = async () => {
@@ -210,7 +212,8 @@ function DetalheTurma({ sessao, turmaId, ir }) {
 
       {turma && <ParametrosDaTurma key={turma.id} turma={turma} aoSalvar={recarregarTurmas} />}
       {turma && <ConfigLancamentosDaTurma key={`cfg-${turma.id}`} turma={turma} aoSalvar={recarregarTurmas} />}
-      {turma && <ExerciciosDaTurma key={`ex-${turma.id}`} turma={turma} />}
+      {turma && <ExerciciosDaTurma key={`ex-${turma.id}`} turma={turma} alunos={alunos || []} aoMudarNotas={() => setVersaoNotas((v) => v + 1)} />}
+      {turma && alunos && <NotasDaTurma key={`nt-${turma.id}-${versaoNotas}`} turma={turma} alunos={alunos} aoSalvarTurma={recarregarTurmas} />}
       {turma && alunos && <EmpresasDaTurma turma={turma} alunos={alunos} ir={ir} />}
 
       <section className="cartao">

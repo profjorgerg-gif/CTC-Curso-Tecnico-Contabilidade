@@ -102,6 +102,7 @@ input:focus, select:focus, textarea:focus, button:focus-visible { outline: 2px s
 .selo.ocre { background: var(--ocre-claro); color: var(--ocre); }
 .selo.cinza { background: var(--superficie-2); color: var(--tinta-suave); border: 1px solid var(--linha); }
 .selo.cheio { background: var(--destaque); color: var(--destaque-texto); }
+.selo.vermelho { background: var(--vermelho-claro); color: var(--vermelho); }
 
 .aviso { padding: 10px 14px; border-radius: 8px; font-size: 14px; background: var(--verde-claro); color: var(--verde-texto); }
 .aviso.erro { background: var(--vermelho-claro); color: var(--vermelho); }

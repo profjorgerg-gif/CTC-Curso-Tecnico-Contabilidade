@@ -9,7 +9,8 @@ import { garantirEmpresa, lerEmpresa } from "../lib/empresas";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { AREAS, areaConfirmada, fimDePeriodoValido, parametrosEfetivos } from "../lib/parametros";
-import { corrigir, GABARITO_ORIENTADOS, listasDaTurma } from "../lib/exercicios";
+import { corrigirLancamento, FINALIDADES, finalidadeDe, GABARITO_ORIENTADOS, listasDaTurma, valeNota } from "../lib/exercicios";
+import { lerBoletim } from "../lib/notas";
 import { balanco, CONTA_LUCROS, dlpa, dre, jaEncerrado, propostaEncerramento } from "../lib/demonstracoes";
 import { apuracaoPeriodica, custoDaSaida, kardex, METODOS, movimentosDeEstoque } from "../lib/estoque";
 import { semAcento } from "../lib/arquivos";
@@ -121,7 +122,13 @@ function Livros({ sessao, empresa, turma, donoAluno }) {
   const carregar = () => lerEscrituracao(empresa.id).then(setDados).catch((e) => setErro(traduzirErro(e)));
   useEffect(() => { carregar(); }, [empresa.id]);
   const [listas, setListas] = useState([]);
-  useEffect(() => { if (turma?.id) listasDaTurma(turma.id, true).then(setListas).catch(() => setListas([])); }, [turma?.id]);
+  useEffect(() => {
+    if (!turma?.id) return;
+    // o aluno vê as listas enviadas; as de recuperação, só se o professor o incluiu nelas
+    Promise.all([listasDaTurma(turma.id, true), donoAluno ? lerBoletim(turma.id, empresa.matricula).catch(() => null) : null])
+      .then(([ls, boletim]) => setListas(ls.filter((l) => !donoAluno || finalidadeDe(l) !== "recuperacao" || boletim?.recuperacoes?.includes(l.id))))
+      .catch(() => setListas([]));
+  }, [turma?.id]);
   useEffect(() => { if (dados && !dados.saldosGravados) setAba("saldos"); }, [!!dados]);
 
   if (erroPlano || erro) return <div className="aviso erro">{erroPlano || erro}</div>;
@@ -321,30 +328,35 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
   const [vendoFato, setVendoFato] = useState(null);
 
   // resultado da correção (para a baixa do CMV, o custo vem do estoque e do método do próprio aluno)
-  const resultado = (l, fato) => {
-    if (!l || !fato) return null;
-    const partidas = partidasDe(l);
-    const q = qtdSaida(partidas);
-    const cmv = !periodico && q > 0 ? custoDaSaida(lista, metodo, q, l.data, l.id).custo : null;
-    return corrigir(partidas, fato, { cmv, periodico, tributos: cfg.tributos });
-  };
+  const resultado = (l, fato) => corrigirLancamento(l, fato, lista, { metodo, periodico, tributos: cfg.tributos });
+  // lista avaliativa: a correção fica oculta ao aluno até o professor liberar;
+  // depois do prazo (ou de fechada) a lista não aceita mais lançamentos do aluno
+  const hoje = new Date().toLocaleDateString("sv-SE");
+  const oculta = (r) => donoAluno && valeNota(r) && !r.resultadoLiberado;
+  const encerrado = (r) => valeNota(r) && (r.fechada || (r.prazo && hoje > r.prazo));
   // roteiros guiados: os 8 fatos orientados + as listas enviadas pelo professor
   const roteiros = useMemo(() => [
     { id: "orientados", titulo: "Fatos orientados", fatos: FATOS_ORIENTADOS.map((f, i) => ({ n: i + 1, texto: f.texto, tipo: f.tipo, gabarito: GABARITO_ORIENTADOS[i] })) },
-    ...listas.map((l) => ({ id: l.id, titulo: l.titulo, prazo: l.prazo, fatos: l.fatos })),
+    ...listas.map((l) => ({ id: l.id, titulo: l.titulo, prazo: l.prazo, fatos: l.fatos, finalidade: finalidadeDe(l), resultadoLiberado: !!l.resultadoLiberado, fechada: !!l.fechada })),
   ], [listas]);
   const estadoDo = (r) => {
     const lanc = {};
     lista.forEach((l) => { const n = numeroNoRoteiro(l, r.id); if (n) lanc[n] = l; });
     const proximo = r.fatos.find((f) => !lanc[f.n])?.n || 0;
     const corrigidos = r.fatos.filter((f) => lanc[f.n]).map((f) => resultado(lanc[f.n], f));
-    return { lanc, proximo, acertos: corrigidos.filter((c) => c?.ok).length, lancados: corrigidos.length, aplicaveis: r.fatos.length };
+    return { lanc, proximo, acertos: corrigidos.filter((c) => c?.ok).length, lancados: corrigidos.length, aplicaveis: r.fatos.length, oculta: oculta(r), encerrado: encerrado(r) };
   };
   const [roteiroId, setRoteiroId] = useState(null);
-  const roteiro = roteiros.find((r) => r.id === roteiroId) || roteiros.find((r) => estadoDo(r).proximo) || roteiros[0];
+  const roteiro = roteiros.find((r) => r.id === roteiroId) || roteiros.find((r) => { const e = estadoDo(r); return e.proximo && !e.encerrado; }) || roteiros[0];
   const est = estadoDo(roteiro);
+  function fatoDoLancamentoBase(l) {
+    for (const r of roteiros) { const n = numeroNoRoteiro(l, r.id); if (n) return { r, fato: r.fatos.find((f) => f.n === n) }; }
+    return null;
+  }
   const proximoFato = est.proximo; // 0 = roteiro concluído
-  const etapaGuiada = donoAluno && proximoFato > 0 && !editando;
+  const etapaGuiada = donoAluno && proximoFato > 0 && !editando && !est.encerrado;
+  // o aluno não altera lançamentos de lista avaliativa encerrada
+  const travado = (l) => donoAluno && (() => { const ref = fatoDoLancamentoBase(l); return ref ? encerrado(ref.r) : false; })();
   const fatoNaTela = vendoFato || proximoFato;
   const fatoDaTela = roteiro.fatos.find((f) => f.n === fatoNaTela);
   const fatoDoProximo = roteiro.fatos.find((f) => f.n === proximoFato);
@@ -357,10 +369,7 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
       return { ...f, tipo, data: fatoDoProximo.data || f.data, partidas: modeloDeLancamento(tipo, cfg.ajuda, contexto) };
     });
   }, [roteiro.id, proximoFato, etapaGuiada]);
-  const fatoDoLancamento = (l) => {
-    for (const r of roteiros) { const n = numeroNoRoteiro(l, r.id); if (n) return { r, fato: r.fatos.find((f) => f.n === n) }; }
-    return null;
-  };
+  const fatoDoLancamento = fatoDoLancamentoBase;
 
   const muda = (k) => (e) => setForm({ ...form, [k]: e.target.value });
   const mudarTipo = (tipo) => {
@@ -451,7 +460,7 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
             const e = estadoDo(r);
             return (
               <button key={r.id} role="tab" aria-selected={roteiro.id === r.id} className={roteiro.id === r.id ? "ativo" : ""} onClick={() => { setRoteiroId(r.id); setVendoFato(null); }}>
-                {r.titulo} · {e.lancados}/{e.aplicaveis}{e.proximo === 0 ? " ✓" : ""}
+                {r.titulo}{r.finalidade && r.finalidade !== "sala" ? ` (${FINALIDADES[r.finalidade].curto.toLowerCase()})` : ""} · {e.lancados}/{e.aplicaveis}{e.proximo === 0 ? " ✓" : e.encerrado ? " · encerrada" : ""}
               </button>
             );
           })}
@@ -468,6 +477,7 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
               {(() => {
                 const l = est.lanc[fatoNaTela];
                 if (!l) return <span className="selo ocre">Pendente — lance no formulário abaixo</span>;
+                if (est.oculta) return <span className="selo cinza">Lançado · correção após o resultado</span>;
                 const c = resultado(l, fatoDaTela);
                 return c?.ok ? <span className="selo verde">Lançado · confere</span> : <span className="selo ocre">Lançado · diferente: {c?.erros.join(", ")}</span>;
               })()}
@@ -478,10 +488,20 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
           <p style={{ fontSize: 16 }}>{fatoDaTela.texto}</p>
           {periodico && fatoDaTela.tipo === "venda" && <p className="pequeno suave">Inventário periódico: registre só a venda. A baixa do CMV não é feita a cada venda — ele é apurado no fim do período (aba Controle de estoque).</p>}
           {fatoNaTela !== proximoFato && <p className="pequeno suave">Você está relendo um fato. O formulário continua registrando o fato {proximoFato}.</p>}
-          <span className="pequeno suave">Acertos até agora: {est.acertos} de {est.lancados} lançado(s).</span>
+          {est.oculta
+            ? <span className="pequeno suave">{FINALIDADES[roteiro.finalidade].nome}: a correção aparece quando o professor liberar o resultado.{roteiro.prazo ? ` Lance até ${dataBR(roteiro.prazo)}.` : ""}</span>
+            : <span className="pequeno suave">Acertos até agora: {est.acertos} de {est.lancados} lançado(s).</span>}
         </section>
       )}
-      {donoAluno && proximoFato === 0 && !editando && (
+      {donoAluno && proximoFato > 0 && est.encerrado && !editando && (
+        <div className="aviso atencao">
+          "{roteiro.titulo}" está encerrada{roteiro.prazo ? ` (prazo ${dataBR(roteiro.prazo)})` : ""}: não aceita mais lançamentos. {est.lancados} de {est.aplicaveis} fato(s) foram lançados.
+        </div>
+      )}
+      {donoAluno && proximoFato === 0 && !editando && est.oculta && (
+        <div className="aviso">Você lançou todos os fatos de "{roteiro.titulo}". A correção e a nota aparecem quando o professor liberar o resultado.</div>
+      )}
+      {donoAluno && proximoFato === 0 && !editando && !est.oculta && (
         <div className="aviso">
           Você concluiu "{roteiro.titulo}": {est.acertos} de {est.lancados} lançamento(s) conferem.
           {est.acertos < est.lancados ? " Use \"Corrigir\" no Livro Diário para acertar os que estão diferentes." : ""}
@@ -623,7 +643,7 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
                       {(() => {
                         const ref = fatoDoLancamento(l);
                         if (!ref) return null;
-                        const c = resultado(l, ref.fato);
+                        const c = oculta(ref.r) ? null : resultado(l, ref.fato);
                         return (
                           <>
                             <span className="selo cheio" style={{ marginRight: 6 }}>{ref.r.id === "orientados" ? "Fato" : `${ref.r.titulo} ·`} {ref.fato?.n}</span>
@@ -645,8 +665,12 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
                     <td className="pequeno">{lado("C")}</td>
                     <td className="mono" style={{ textAlign: "right", whiteSpace: "nowrap" }}>{numero(totalDoLancamento(l))}</td>
                     <td style={{ whiteSpace: "nowrap", textAlign: "right" }}>
-                      <button className="botao secundario pequeno" onClick={() => editar(l)}>Corrigir</button>{" "}
-                      <button className="botao perigo pequeno" onClick={() => excluir(l)}>Excluir</button>
+                      {travado(l)
+                        ? <span className="pequeno suave" title="Lista avaliativa encerrada">Encerrada</span>
+                        : <>
+                            <button className="botao secundario pequeno" onClick={() => editar(l)}>Corrigir</button>{" "}
+                            <button className="botao perigo pequeno" onClick={() => excluir(l)}>Excluir</button>
+                          </>}
                     </td>
                   </tr>
                 );

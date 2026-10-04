@@ -7,7 +7,8 @@
 import { addDoc, collection, deleteDoc, doc, getDocs, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { auditar } from "./auditoria";
-import { arred, dinheiro, dataBR } from "./contabil";
+import { arred, CONTAS_ESTOQUE, dinheiro, dataBR, partidasDe } from "./contabil";
+import { custoDaSaida } from "./estoque";
 
 export const TIPOS = [
   { id: "compras", nome: "Compras de mercadorias", desc: "à vista e a prazo" },
@@ -183,12 +184,37 @@ export async function listasDaTurma(turmaId, soEnviadas) {
   return s.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (a.criadaEm?.toMillis?.() || 0) - (b.criadaEm?.toMillis?.() || 0));
 }
 
+// finalidade: "sala" (praticar, correção na hora), "avaliativa" (compõe a nota) ou
+// "recuperacao" (recuperação paralela de uma lista avaliativa — recuperacaoDe = id da original)
+export const FINALIDADES = {
+  sala: { nome: "Exercício de sala", curto: "Sala", selo: "cinza" },
+  avaliativa: { nome: "Exercício avaliativo", curto: "Avaliativo", selo: "ocre" },
+  recuperacao: { nome: "Recuperação paralela", curto: "Recuperação", selo: "ocre" },
+};
+export const finalidadeDe = (l) => l?.finalidade || "sala";
+export const valeNota = (l) => ["avaliativa", "recuperacao"].includes(finalidadeDe(l));
+
 export async function salvarLista(turma, lista, enviar) {
-  const dados = { titulo: lista.titulo, fatos: lista.fatos, prazo: lista.prazo || "", enviada: !!enviar, configuracao: lista.configuracao || {} };
+  const dados = {
+    titulo: lista.titulo, fatos: lista.fatos, prazo: lista.prazo || "", enviada: !!enviar, configuracao: lista.configuracao || {},
+    finalidade: finalidadeDe(lista), peso: Number(lista.peso) || 1, recuperacaoDe: lista.recuperacaoDe || null,
+  };
   if (enviar) dados.enviadaEm = serverTimestamp();
-  if (lista.id) await updateDoc(doc(db, "turmas", turma.id, "listas", lista.id), dados);
-  else await addDoc(collection(db, "turmas", turma.id, "listas"), { ...dados, criadaEm: serverTimestamp() });
-  auditar(enviar ? "Enviou lista de exercícios" : "Salvou lista de exercícios", `${lista.titulo} (${lista.fatos.length} fatos) — ${turma.nome}`);
+  let id = lista.id;
+  if (id) await updateDoc(doc(db, "turmas", turma.id, "listas", id), dados);
+  else id = (await addDoc(collection(db, "turmas", turma.id, "listas"), { ...dados, criadaEm: serverTimestamp() })).id;
+  auditar(enviar ? "Enviou lista de exercícios" : "Salvou lista de exercícios", `${lista.titulo} (${FINALIDADES[dados.finalidade].nome}, ${lista.fatos.length} fatos) — ${turma.nome}`);
+  return id;
+}
+
+// liberar (ou ocultar) para os alunos a correção de uma lista avaliativa
+export async function liberarResultado(turma, lista, liberar) {
+  await updateDoc(doc(db, "turmas", turma.id, "listas", lista.id), { resultadoLiberado: !!liberar });
+  auditar(liberar ? "Liberou o resultado da lista" : "Ocultou o resultado da lista", `${lista.titulo} — ${turma.nome}`);
+}
+
+export async function marcarListaFechada(turma, lista) {
+  await updateDoc(doc(db, "turmas", turma.id, "listas", lista.id), { fechada: true, fechadaEm: serverTimestamp() });
 }
 
 export async function excluirLista(turma, lista) {
@@ -231,6 +257,30 @@ export function corrigir(partidasAluno, fato, ctx = {}) {
     erros.add(p.d === "D" ? "conta a débito a mais" : "conta a crédito a mais");
   });
   return { ok: erros.size === 0, erros: [...erros] };
+}
+
+// correção de um lançamento do aluno: para a baixa do CMV, o custo vem do estoque e do método dele
+export function corrigirLancamento(l, fato, lancamentos, ctx = {}) {
+  if (!l || !fato) return null;
+  const partidas = partidasDe(l);
+  const q = partidas.filter((p) => p.d === "C" && CONTAS_ESTOQUE.includes(p.conta)).reduce((s, p) => s + (Number(p.quantidade) || 0), 0);
+  const cmv = !ctx.periodico && q > 0 ? custoDaSaida(lancamentos, ctx.metodo || "peps", q, l.data, l.id).custo : null;
+  return corrigir(partidas, fato, { cmv, periodico: ctx.periodico, tributos: ctx.tributos });
+}
+
+// nota de 0 a 10 numa lista: acertos ÷ total de fatos × 10 (fato não lançado conta como erro)
+export function notaDaLista(lista, lancamentos, ctx) {
+  const total = lista.fatos?.length || 0;
+  if (!total) return { nota: 0, acertos: 0, total: 0, lancados: 0 };
+  let acertos = 0;
+  let lancados = 0;
+  for (const f of lista.fatos) {
+    const l = (lancamentos || []).find((x) => x.lista?.id === lista.id && x.lista?.n === f.n);
+    if (!l) continue;
+    lancados++;
+    if (corrigirLancamento(l, f, lancamentos, ctx)?.ok) acertos++;
+  }
+  return { nota: Math.round((acertos / total) * 100) / 10, acertos, total, lancados };
 }
 
 // gabarito dos 8 fatos orientados da CB (contas equivalentes também são aceitas)

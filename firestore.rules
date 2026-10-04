@@ -130,6 +130,18 @@ service cloud.firestore {
           (souAlunoDaTurma(turmaId) && resource.data.enviada == true);
         allow create, update, delete: if souProfessorDaTurma(turmaId);
       }
+
+      // notas (quadro do professor): só o professor da turma lê e grava
+      match /avaliacoes/{avaliacaoId} {
+        allow read, write: if souProfessorDaTurma(turmaId);
+      }
+
+      // boletim publicado: o aluno lê só o próprio; só o professor grava
+      match /boletim/{matricula} {
+        allow read: if souProfessorDaTurma(turmaId) ||
+          (souAlunoDaTurma(turmaId) && matricula == minhaMatricula());
+        allow write: if souProfessorDaTurma(turmaId);
+      }
     }
 
     // ---------- Banco de Dados comum ----------

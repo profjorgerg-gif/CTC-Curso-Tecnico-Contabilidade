@@ -117,6 +117,11 @@ export async function excluirTurma(turmaId) {
     lote.update(doc(db, "matriculas", a.id), { turmas: arrayRemove(turmaId) });
     lote.delete(doc(db, "empresas", `${turmaId}_${a.id}`)); // empresa do aluno nesta turma
   });
+  // listas de exercícios, notas e boletins da turma
+  for (const sub of ["listas", "avaliacoes", "boletim"]) {
+    const s = await getDocs(collection(db, "turmas", turmaId, sub)).catch(() => null);
+    s?.docs.forEach((d) => lote.delete(d.ref));
+  }
   lote.delete(doc(db, "turmas", turmaId));
   await lote.commit();
   auditar("Excluiu turma", `turma ${turmaId} com ${alunos.size} aluno(s)`);

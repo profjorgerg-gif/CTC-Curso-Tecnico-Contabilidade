@@ -2,29 +2,59 @@
 import { useEffect, useState } from "react";
 import { traduzirErro } from "../lib/sessao";
 import { dataBR, dinheiro, usePlano } from "../lib/contabil";
-import { emPartidas, excluirLista, gerarLista, listasDaTurma, salvarLista, TIPOS } from "../lib/exercicios";
+import { emPartidas, excluirLista, finalidadeDe, FINALIDADES, gerarLista, liberarResultado, listasDaTurma, salvarLista, TIPOS, valeNota } from "../lib/exercicios";
+import { alunosParaRecuperacao, fecharLista, fmtNota, marcarRecuperacao, MEDIA_MINIMA } from "../lib/notas";
 
 const QUANTIDADES = [5, 10, 15, 20];
 
-export function ExerciciosDaTurma({ turma }) {
+export function ExerciciosDaTurma({ turma, alunos = [], aoMudarNotas }) {
   const [listas, setListas] = useState(null);
   const [editando, setEditando] = useState(null); // lista em edição (nova ou rascunho)
   const [msg, setMsg] = useState({});
+  const [ocupado, setOcupado] = useState("");
   const carregar = () => listasDaTurma(turma.id, false).then(setListas).catch((e) => setMsg({ tipo: "erro", texto: traduzirErro(e) }));
   useEffect(() => { carregar(); }, [turma.id]);
 
   const ano = String(turma.semestre || "").slice(0, 4) || String(new Date().getFullYear());
   const nova = () => setEditando({
-    titulo: `Lista ${(listas?.length || 0) + 1}`, fatos: [], prazo: "",
+    titulo: `Lista ${(listas?.length || 0) + 1}`, fatos: [], prazo: "", finalidade: "sala", peso: 1,
     configuracao: { quantidade: 10, tipos: TIPOS.map((t) => t.id).slice(0, 4), minimo: 200, maximo: 5000, inicio: `${ano}-02-01`, fim: `${ano}-02-28` },
   });
+  const acao = async (id, fn, ok) => {
+    setOcupado(id); setMsg({});
+    try { const r = await fn(); setMsg({ texto: typeof ok === "function" ? ok(r) : ok }); await carregar(); aoMudarNotas?.(); }
+    catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
+    setOcupado("");
+  };
+  const fechar = (l) => {
+    const antesDoPrazo = l.prazo && hojeISO() <= l.prazo;
+    if (!window.confirm(`Fechar "${l.titulo}" e lançar as notas?${antesDoPrazo ? `\n\nAtenção: o prazo (${dataBR(l.prazo)}) ainda não terminou.` : ""}\n\nA nota de cada aluno (acertos ÷ total × 10) fica gravada e a lista não aceita mais lançamentos.`)) return;
+    acao(l.id, () => fecharLista(turma, l, alunos), (notas) => {
+      const v = Object.values(notas);
+      const abaixo = v.filter((x) => x.nota < MEDIA_MINIMA).length;
+      return `Notas lançadas para ${v.length} aluno(s)${abaixo ? ` — ${abaixo} abaixo de ${fmtNota(MEDIA_MINIMA)}` : ""}. Veja o quadro "Notas da turma".`;
+    });
+  };
+  const gerarRecuperacao = async (l) => {
+    setMsg({});
+    try {
+      const alvos = await alunosParaRecuperacao(turma, l.id);
+      if (!alvos.length) return setMsg({ texto: `Nenhum aluno ficou abaixo de ${fmtNota(MEDIA_MINIMA)} em "${l.titulo}".` });
+      setEditando({
+        titulo: `Recuperação — ${l.titulo}`, fatos: [], prazo: "", finalidade: "recuperacao", recuperacaoDe: l.id, peso: l.peso || 1,
+        configuracao: { ...l.configuracao, quantidade: l.fatos.length }, alvos,
+      });
+    } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
+  };
+  const temRecuperacao = (l) => listas?.some((x) => x.recuperacaoDe === l.id);
+  const tituloDe = (id) => listas?.find((x) => x.id === id)?.titulo || "lista excluída";
 
   return (
     <section className="cartao">
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
         <div>
           <h2>Exercícios da turma</h2>
-          <span className="pequeno suave">Além dos 8 fatos orientados, gere listas de fatos com gabarito e envie para todos os alunos.</span>
+          <span className="pequeno suave">Além dos 8 fatos orientados, gere listas de exercícios de sala (para praticar) ou avaliativos (compõem a nota).</span>
         </div>
         {!editando && <button className="botao" onClick={nova}>Gerar exercícios</button>}
       </div>
@@ -32,23 +62,47 @@ export function ExerciciosDaTurma({ turma }) {
       {!editando && listas && listas.length > 0 && (
         <div className="tabela-caixa">
           <table>
-            <thead><tr><th>Lista</th><th>Fatos</th><th>Prazo</th><th>Situação</th><th></th></tr></thead>
+            <thead><tr><th>Lista</th><th>Finalidade</th><th>Fatos</th><th>Prazo</th><th>Situação</th><th></th></tr></thead>
             <tbody>
-              {listas.map((l) => (
-                <tr key={l.id}>
-                  <td>{l.titulo}</td>
-                  <td className="mono">{l.fatos.length}</td>
-                  <td className="mono pequeno">{l.prazo ? dataBR(l.prazo) : "—"}</td>
-                  <td>{l.enviada ? <span className="selo verde">Enviada</span> : <span className="selo ocre">Rascunho</span>}</td>
-                  <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
-                    <button className="botao secundario pequeno" onClick={() => setEditando(l)}>{l.enviada ? "Ver" : "Editar"}</button>{" "}
-                    <button className="botao perigo pequeno" onClick={async () => {
-                      if (!window.confirm(`Excluir "${l.titulo}"? Os lançamentos que os alunos já fizeram continuam no Diário deles, mas sem a correção.`)) return;
-                      try { await excluirLista(turma, l); carregar(); } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
-                    }}>Excluir</button>
-                  </td>
-                </tr>
-              ))}
+              {listas.map((l) => {
+                const fin = finalidadeDe(l);
+                return (
+                  <tr key={l.id}>
+                    <td>{l.titulo}{fin === "recuperacao" && <span className="pequeno suave" style={{ display: "block" }}>de: {tituloDe(l.recuperacaoDe)}</span>}</td>
+                    <td><span className={`selo ${FINALIDADES[fin].selo}`}>{FINALIDADES[fin].curto}</span>{valeNota(l) && fin === "avaliativa" && <span className="pequeno suave"> · peso {l.peso || 1}</span>}</td>
+                    <td className="mono">{l.fatos.length}</td>
+                    <td className="mono pequeno">{l.prazo ? dataBR(l.prazo) : "—"}</td>
+                    <td>
+                      {!l.enviada ? <span className="selo cinza">Rascunho</span>
+                        : l.fechada ? <span className="selo verde">Fechada · notas lançadas</span>
+                          : <span className="selo verde">Enviada</span>}
+                      {valeNota(l) && l.enviada && <span className="pequeno suave" style={{ display: "block" }}>{l.resultadoLiberado ? "Correção visível aos alunos" : "Correção oculta aos alunos"}</span>}
+                    </td>
+                    <td style={{ textAlign: "right" }}>
+                      <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", flexWrap: "wrap" }}>
+                        <button className="botao secundario pequeno" onClick={() => setEditando(l)}>{l.enviada ? "Ver" : "Editar"}</button>
+                        {valeNota(l) && l.enviada && !l.fechada && (
+                          <button className="botao pequeno" disabled={!!ocupado} onClick={() => fechar(l)}>{ocupado === l.id ? "Calculando…" : "Fechar e lançar notas"}</button>
+                        )}
+                        {valeNota(l) && l.enviada && (
+                          <button className="botao secundario pequeno" disabled={!!ocupado}
+                            onClick={() => acao(`lib-${l.id}`, () => liberarResultado(turma, l, !l.resultadoLiberado), l.resultadoLiberado ? "Correção oculta aos alunos." : "Correção liberada: os alunos já veem Confere/Diferente.")}>
+                            {l.resultadoLiberado ? "Ocultar resultado" : "Liberar resultado"}
+                          </button>
+                        )}
+                        {fin === "avaliativa" && l.fechada && !temRecuperacao(l) && (
+                          <button className="botao secundario pequeno" onClick={() => gerarRecuperacao(l)}>Gerar recuperação</button>
+                        )}
+                        <button className="botao perigo pequeno" onClick={async () => {
+                          const aviso = valeNota(l) && l.fechada ? " As notas já lançadas continuam no quadro de notas (você pode excluir a avaliação lá)." : "";
+                          if (!window.confirm(`Excluir "${l.titulo}"? Os lançamentos que os alunos já fizeram continuam no Diário deles, mas sem a correção.${aviso}`)) return;
+                          try { await excluirLista(turma, l); carregar(); } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
+                        }}>Excluir</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -58,6 +112,8 @@ export function ExerciciosDaTurma({ turma }) {
     </section>
   );
 }
+
+const hojeISO = () => new Date().toLocaleDateString("sv-SE");
 
 function EditorLista({ turma, inicial, aoFechar }) {
   const { plano } = usePlano();
@@ -77,11 +133,22 @@ function EditorLista({ turma, inicial, aoFechar }) {
     setLista({ ...lista, fatos, configuracao: cfg });
   };
   const remover = (n) => setLista({ ...lista, fatos: lista.fatos.filter((f) => f.n !== n).map((f, i) => ({ ...f, n: i + 1 })) });
+  const fin = finalidadeDe(lista);
   const salvar = async (enviar) => {
     if (!lista.fatos.length) return setMsg({ tipo: "erro", texto: "Gere os fatos antes de salvar." });
-    if (enviar && !window.confirm(`Enviar "${lista.titulo}" (${lista.fatos.length} fatos) para todos os alunos da turma? Depois de enviada, a lista não pode mais ser alterada.`)) return;
+    if (enviar && valeNota(lista) && !lista.prazo) return setMsg({ tipo: "erro", texto: "Exercício avaliativo e recuperação precisam de prazo: depois dele, a lista não aceita mais lançamentos." });
+    let alvos = lista.alvos;
+    if (enviar && fin === "recuperacao" && !alvos) {
+      try { alvos = await alunosParaRecuperacao(turma, lista.recuperacaoDe); } catch (e) { return setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
+    }
+    const para = fin === "recuperacao" ? `os ${alvos?.length || 0} aluno(s) abaixo da média` : "todos os alunos da turma";
+    if (enviar && !window.confirm(`Enviar "${lista.titulo}" (${lista.fatos.length} fatos) para ${para}? Depois de enviada, a lista não pode mais ser alterada.`)) return;
     setSalvando(true);
-    try { await salvarLista(turma, lista, enviar); aoFechar(); } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); setSalvando(false); }
+    try {
+      const id = await salvarLista(turma, lista, enviar);
+      if (enviar && fin === "recuperacao" && alvos?.length) await marcarRecuperacao(turma, alvos, id);
+      aoFechar();
+    } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); setSalvando(false); }
   };
 
   return (
@@ -91,11 +158,31 @@ function EditorLista({ turma, inicial, aoFechar }) {
           <label htmlFor="ex-tit">Título da lista</label>
           <input id="ex-tit" value={lista.titulo} disabled={somenteLeitura} onChange={(e) => setLista({ ...lista, titulo: e.target.value })} maxLength={60} />
         </div>
+        {fin !== "recuperacao" && (
+          <div className="campo" style={{ flex: "0 1 230px" }}>
+            <label htmlFor="ex-fin">Finalidade</label>
+            <select id="ex-fin" value={fin} disabled={somenteLeitura} onChange={(e) => setLista({ ...lista, finalidade: e.target.value })}>
+              <option value="sala">Exercício de sala (praticar)</option>
+              <option value="avaliativa">Exercício avaliativo (compõe a nota)</option>
+            </select>
+          </div>
+        )}
+        {fin === "avaliativa" && (
+          <div className="campo" style={{ flex: "0 1 110px" }}>
+            <label htmlFor="ex-peso">Peso na média</label>
+            <input id="ex-peso" type="number" min="0.5" max="10" step="0.5" className="mono" value={lista.peso ?? 1} disabled={somenteLeitura} onChange={(e) => setLista({ ...lista, peso: e.target.value })} />
+          </div>
+        )}
         <div className="campo" style={{ flex: "0 1 200px" }}>
-          <label htmlFor="ex-prazo">Prazo (opcional)</label>
+          <label htmlFor="ex-prazo">Prazo{valeNota(lista) ? "" : " (opcional)"}</label>
           <input id="ex-prazo" type="date" value={lista.prazo || ""} disabled={somenteLeitura} onChange={(e) => setLista({ ...lista, prazo: e.target.value })} />
         </div>
       </div>
+      <p className="pequeno suave" style={{ margin: 0 }}>
+        {fin === "sala" && "Exercício de sala: o aluno vê a correção (Confere/Diferente) na hora. Não gera nota."}
+        {fin === "avaliativa" && "Exercício avaliativo: a correção fica oculta até você liberar o resultado; depois do prazo a lista não aceita mais lançamentos. Ao fechar, a nota de cada aluno (acertos ÷ total × 10) vai para o quadro de notas."}
+        {fin === "recuperacao" && `Recuperação paralela (PPC, seção VIII): vai só para ${lista.alvos ? `os ${lista.alvos.length} aluno(s)` : "os alunos"} abaixo de ${fmtNota(MEDIA_MINIMA)}. Ao fechar, a nota entra como recuperação do instrumento; vale a maior entre a original e a da recuperação.`}
+      </p>
 
       {!somenteLeitura && (
         <>
