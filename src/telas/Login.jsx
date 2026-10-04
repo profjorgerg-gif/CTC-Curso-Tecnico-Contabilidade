@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { entrarComGoogle, traduzirErro } from "../lib/sessao";
 import { DISCIPLINAS } from "../dados/disciplinas";
+import Caduceu from "../componentes/Caduceu";
 import { CHAVE_SAIU_INATIVO, INATIVIDADE_MIN } from "../lib/seguranca";
 
 // aviso quando a pessoa saiu sozinha por ficar parada
@@ -8,7 +9,7 @@ function saiuPorInatividade() {
   try { const v = sessionStorage.getItem(CHAVE_SAIU_INATIVO); sessionStorage.removeItem(CHAVE_SAIU_INATIVO); return !!v; } catch { return false; }
 }
 
-// Tela de entrada (opção 7 — Monograma + Trilha): apresentação à esquerda, login à direita
+// Tela de entrada (opção 7 — Monograma + Trilha, com o caduceu ao lado do CTC — aprovado em 04/10/2026)
 export default function Login() {
   const [erro, setErro] = useState("");
   const [inativo] = useState(saiuPorInatividade);
@@ -23,21 +24,13 @@ export default function Login() {
   return (
     <div className="login-dividido">
       <section className="login-apresentacao" aria-label="Sobre o CTC">
-        <div className="login-instituicao">
-          <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
-            <circle cx="22" cy="22" r="21" fill="var(--destaque)" />
-            <path d="M13 30V16h18M13 23h12M31 30H19" stroke="var(--destaque-texto)" strokeWidth="2.6" fill="none" strokeLinecap="round" />
-          </svg>
-          <div>
-            <span className="login-escola">CEDUP HERMANN HERING</span>
-            <span className="login-curso">Curso Técnico em Contabilidade</span>
+        <div className="login-marca">
+          <Caduceu className="login-caduceu" />
+          <div className="login-titulo">
+            <span className="login-monograma">CTC</span>
+            <h1>Curso Técnico em Contabilidade</h1>
+            <p>Plataforma didática do curso: teoria, prática e avaliação na mesma empresa.</p>
           </div>
-        </div>
-
-        <div className="login-titulo">
-          <span className="login-monograma">CTC</span>
-          <h1>Curso Técnico em Contabilidade</h1>
-          <p>Plataforma didática do curso: teoria, prática e avaliação na mesma empresa.</p>
         </div>
 
         <ol className="login-trilha">
