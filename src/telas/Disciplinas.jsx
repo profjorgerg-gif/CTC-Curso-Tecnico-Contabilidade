@@ -48,14 +48,7 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
         <div>
           <span className="mono pequeno suave">ETAPA {atual.etapa} · {atual.sigla}</span>
           <h1>{atual.nome}</h1>
-          <p className="suave pequeno">Base: {atual.origem}</p>
         </div>
-        {atual.usa.length > 0 && (
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-            <span className="pequeno suave">Usa do Banco de Dados:</span>
-            {atual.usa.map((u) => <span key={u} className="selo verde">{u}</span>)}
-          </div>
-        )}
         {EMENTAS[atual.id] && <Ementa e={EMENTAS[atual.id]} />}
         <section className="cartao sem-padding">
           <div className="cartao-topo"><h2>Módulos</h2><span className="pequeno suave">O conteúdo entra nas próximas fases</span></div>
@@ -100,7 +93,6 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
               <span className="mono pequeno suave">ETAPA {d.etapa}</span>
             </div>
             <h2>{d.nome}</h2>
-            <p className="pequeno suave">{d.origem}</p>
             <button className="botao pequeno" style={{ alignSelf: "flex-end", marginTop: "auto" }} onClick={() => ir("disciplinas", d.id)}>Abrir</button>
           </article>
         ))}
