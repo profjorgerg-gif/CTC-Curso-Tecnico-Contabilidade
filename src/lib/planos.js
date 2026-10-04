@@ -160,22 +160,29 @@ export function imprimirPlano(p) {
     : `SD - ${p.componente} - ${dataBR(p.inicio)} a ${dataBR(p.fim)}`;
   const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(nomeArquivo.replace(/\//g, "."))}</title>
 <style>
-  @page { size: A4 landscape; margin: 12mm 14mm; }
+  /* margem zero: o navegador não imprime data, título e "about:blank" no topo e no rodapé;
+     as margens da folha vêm da moldura (página) abaixo, repetida em todas as folhas */
+  @page { size: A4 landscape; margin: 0; }
+  html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  table.moldura { width: 100%; border-collapse: collapse; table-layout: auto; }
+  table.moldura > thead > tr > td, table.moldura > tfoot > tr > td { border: 0; padding: 0; height: 11mm; }
+  table.moldura > tbody > tr > td { border: 0; padding: 0 14mm; }
+  @media screen { body { background: #888; } .folha { background: #fff; width: 297mm; margin: 0 auto; } }
   * { box-sizing: border-box; }
   body { font-family: "Times New Roman", Times, serif; font-size: 11pt; color: #000; margin: 0; }
   .cab { display: grid; grid-template-columns: 34mm 1fr 34mm; align-items: center; text-align: center; font-weight: bold; font-size: 11pt; line-height: 1.25; }
   .cab .esq { display: flex; flex-direction: column; align-items: center; gap: 1mm; }
   .cab .esq img.gov { width: 22mm; } .cab .esq img.band { width: 25mm; } .cab img.cedup { width: 32mm; }
-  .cab p { margin: 0; } .cab .menor { font-size: 10pt; } .cab a { color: #00e; }
+  .cab p { margin: 0; text-align: center; line-height: 1.25; } .cab .menor { font-size: 10pt; } .cab a { color: #00e; }
   h1 { font-size: 11pt; text-align: center; margin: 4mm 0 0; }
   table { width: 100%; border-collapse: collapse; table-layout: fixed; }
   th, td { border: 1px solid #000; padding: 1.6mm 2mm; vertical-align: top; text-align: left; }
-  th { background: #FBD4B4; font-weight: bold; overflow-wrap: break-word; }
+  th { background: #FBD4B4 !important; font-weight: bold; overflow-wrap: break-word; }
   td p { margin: 0 0 1.4mm; text-align: justify; line-height: 1.5; } td p:last-child { margin-bottom: 0; }
   td.datas p { text-align: left; }
   .local { font-family: Arial, sans-serif; font-size: 8pt; font-weight: bold; margin-top: 1mm; }
   .rodape { font-family: "Times New Roman", serif; font-size: 9pt; margin-top: 2mm; }
-</style></head><body>
+</style></head><body><div class="folha"><table class="moldura"><thead><tr><td></td></tr></thead><tfoot><tr><td></td></tr></tfoot><tbody><tr><td>
 <div class="cab">
   <div class="esq">${semestral ? "" : `<img class="gov" src="${raiz}/img/governo-sc.jpg" alt="">`}<img class="band" src="${raiz}/img/bandeira-sc.jpg" alt=""></div>
   <div>${ESCOLA.linhas.map((l) => `<p>${esc(l)}</p>`).join("")}<p class="menor">${esc(ESCOLA.endereco)}</p><p class="menor">Email: <a>${esc(ESCOLA.email)}</a>&nbsp; Fone: ${esc(ESCOLA.fone)}</p></div>
@@ -184,6 +191,7 @@ export function imprimirPlano(p) {
 <h1>${titulo}</h1>
 <table><colgroup><col style="width:20%"><col style="width:46%"><col style="width:12%"><col style="width:22%"></colgroup>${corpo}</table>
 ${semestral ? `<p class="local">${esc(p.local)}, ${esc(dataBR(p.dataDocumento))}.</p>` : `<p class="rodape">${negrito(TEXTOS.rodapeSequencia)}</p>`}
+</td></tr></tbody></table></div>
 <script>window.onload = () => setTimeout(() => window.print(), 400);</script>
 </body></html>`;
   const w = window.open("", "_blank");
