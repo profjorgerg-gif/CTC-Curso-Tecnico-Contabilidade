@@ -83,7 +83,7 @@
       "fase": "Fase 2 — Contabilidade Básica",
       "item": "Exercício interativo de balanços sucessivos (exemplo da Cia. Vamos Ltda., corrigido)",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "f2-teste",

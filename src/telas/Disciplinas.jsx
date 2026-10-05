@@ -3,6 +3,8 @@ import { useTurmas } from "../lib/useTurmas";
 import { EMENTAS, FONTE_EMENTAS } from "../dados/ementas";
 import { teoriaDo } from "../dados/teoria";
 import Teoria from "../componentes/Teoria";
+import { praticasDo } from "../dados/praticas";
+import BalancoSucessivo from "../componentes/BalancoSucessivo";
 
 // Ementa oficial do componente curricular (texto literal do documento da SED/SC)
 function Ementa({ e }) {
@@ -55,6 +57,7 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
           <p className="suave">{teoria.resumo}</p>
         </div>
         <Teoria teoria={teoria} />
+        {praticasDo(atual.id, nModulo).map((ex) => (ex.tipo === "balanco-sucessivo" ? <BalancoSucessivo key={ex.id} ex={ex} /> : null))}
         <div className="aviso pequeno">{papel === "aluno" ? "Pratique com os questionários que o professor enviar (menu Questionários)." : "Gere listas de questões deste módulo em Turmas e matrículas → turma → Exercícios da turma → Lista de questões teóricas."}</div>
       </>
     );
