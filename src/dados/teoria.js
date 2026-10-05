@@ -1,4 +1,4 @@
-// Teoria dos módulos (aprovada pelo professor em 04/10/2026).
+// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulo 02 em 05/10/2026).
 // Chave: "{disciplina}-{nº do módulo com 2 dígitos}" (ex.: "cb-01").
 // Blocos: { t: "p" | "lista" | "tabela" | "destaque" | "exemplo", ... }; **trecho** = negrito.
 // Base: material didático do prof. Jorge Lima Cardoso (CEDUP Hermann Hering), revisado.
@@ -10,6 +10,13 @@ const FONTES_CB01 = [
   "BRASIL. Lei nº 6.404, de 15 de dezembro de 1976. Dispõe sobre as Sociedades por Ações.",
   "CPC – COMITÊ DE PRONUNCIAMENTOS CONTÁBEIS. CPC 00 (R2) – Estrutura Conceitual para Relatório Financeiro. Brasília, 2019.",
   "CFC – CONSELHO FEDERAL DE CONTABILIDADE. ITG 1000 – Modelo contábil para microempresa e empresa de pequeno porte. Brasília, 2012.",
+];
+
+const FONTES_CB02 = [
+  "CARDOSO, J. L. Estrutura e Aplicação da Contabilidade; Classificação de Contas. Material didático. Blumenau: CEDUP Hermann Hering, 2025.",
+  "BRASIL. Lei nº 6.404, de 15 de dezembro de 1976. Dispõe sobre as Sociedades por Ações. Arts. 177 a 182.",
+  "CFC – CONSELHO FEDERAL DE CONTABILIDADE. NBC TG 26 (R5) – Apresentação das Demonstrações Contábeis. Brasília: CFC.",
+  "CFC – CONSELHO FEDERAL DE CONTABILIDADE. ITG 2000 (R1) – Escrituração Contábil. Brasília: CFC.",
 ];
 
 export const TEORIA = {
@@ -146,6 +153,130 @@ export const TEORIA = {
       },
     ],
     fontes: FONTES_CB01,
+  },
+  "cb-02": {
+    titulo: "Plano de Contas",
+    resumo: "Conceito e função, estrutura e codificação, grupos do plano do CTC, classificação das contas e contas redutoras.",
+    secoes: [
+      {
+        titulo: "1. O que é o plano de contas",
+        blocos: [
+          { t: "p", texto: "O **plano de contas** é a lista organizada de todas as contas que a empresa pode usar na escrituração, cada uma com código, nome e função definidos. É o \"mapa\" do patrimônio e do resultado: indica **onde** cada fato deve ser registrado." },
+          { t: "lista", itens: [
+            "**Padronizar** os registros: o mesmo fato é sempre lançado na mesma conta.",
+            "**Organizar** as contas na ordem em que aparecem nas demonstrações (Balanço Patrimonial e DRE).",
+            "**Facilitar** a consulta, a conferência e a auditoria.",
+            "**Atender** à legislação: a Lei nº 6.404/1976 (art. 178) define os grupos do Balanço, que o plano reproduz.",
+          ] },
+          { t: "p", texto: "Cada empresa adapta o plano à sua atividade e porte, sempre dentro da estrutura legal." },
+        ],
+      },
+      {
+        titulo: "2. Estrutura e codificação",
+        blocos: [
+          { t: "p", texto: "As contas são organizadas em **níveis**, do mais geral ao mais detalhado. O código mostra a posição de cada conta:" },
+          { t: "tabela", cab: ["Nível", "Tipo", "Exemplo", "Recebe lançamento?"], linhas: [
+            ["1", "Grupo", "1 ATIVO", "Não"],
+            ["2", "Subgrupo", "1.1 ATIVO CIRCULANTE", "Não"],
+            ["3", "Conta sintética", "1.1.1 Caixa e Equivalentes de Caixa", "Não"],
+            ["4", "Conta analítica", "1.1.1.01 Caixa Geral", "**Sim**"],
+            ["5", "Subconta analítica", "1.1.1.02.01 Banco X", "**Sim**"],
+          ] },
+          { t: "lista", itens: [
+            "**Conta sintética:** agrupa outras contas; seu saldo é a soma das contas abaixo dela.",
+            "**Conta analítica:** conta de último nível, que recebe os lançamentos.",
+          ] },
+          { t: "destaque", texto: "Só recebe lançamento a conta do **último nível** do seu ramo. \"1.1.1.02 Bancos Conta Movimento\" se desdobra em Banco X e Banco Y; por isso o lançamento vai em **1.1.1.02.01 Banco X**, nunca em \"Bancos Conta Movimento\"." },
+        ],
+      },
+      {
+        titulo: "3. Os grupos do plano de contas do CTC",
+        blocos: [
+          { t: "tabela", cab: ["Código", "Grupo", "Natureza do saldo", "Onde aparece"], linhas: [
+            ["1", "Ativo (Circulante e Não Circulante)", "Devedora", "Balanço Patrimonial"],
+            ["2", "Passivo (Circulante e Não Circulante)", "Credora", "Balanço Patrimonial"],
+            ["3", "Patrimônio Líquido", "Credora", "Balanço Patrimonial"],
+            ["4", "Receitas", "Credora", "DRE"],
+            ["5", "Despesas", "Devedora", "DRE"],
+            ["6", "Custos (CMV, CPV, CSV)", "Devedora", "DRE"],
+            ["7", "Resultado (ARE, tributos sobre o lucro, destinação)", "Variável", "Apuração do resultado"],
+            ["8", "Contas de Compensação", "—", "Fora do patrimônio (controle)"],
+          ] },
+          { t: "lista", itens: [
+            "O **Patrimônio Líquido** é o grupo 3, com código próprio — não é um subgrupo do Passivo.",
+            "**Duplicatas a Pagar** (2.1.1.01) é obrigação de curto prazo: fica no **Passivo Circulante**.",
+            "Os **custos** estão no grupo 6; na venda de mercadorias usa-se o **CMV** (6.2.01).",
+          ] },
+          { t: "p", texto: "**Ativo Não Circulante** (art. 178 da Lei 6.404/1976): Realizável a Longo Prazo, Investimentos, Imobilizado e Intangível." },
+          { t: "p", texto: "**Patrimônio Líquido:** Capital Social, Reservas de Capital, Ajustes de Avaliação Patrimonial, Reservas de Lucros, (−) Ações em Tesouraria e (−) Prejuízos Acumulados." },
+        ],
+      },
+      {
+        titulo: "4. Classificação das contas",
+        blocos: [
+          { t: "p", texto: "**a) Quanto ao tipo**" },
+          { t: "lista", itens: [
+            "**Patrimoniais** (grupos 1, 2 e 3): bens, direitos, obrigações e PL. O saldo passa de um exercício para o outro.",
+            "**De resultado** (grupos 4, 5 e 6): receitas, despesas e custos. No fim do exercício são **encerradas** (zeradas) na ARE (7.1.01), e o lucro ou prejuízo vai para o PL.",
+          ] },
+          { t: "p", texto: "**b) Quanto à função**" },
+          { t: "lista", itens: [
+            "**Principais:** registram o valor do elemento (ex.: Veículos, Fornecedores).",
+            "**Redutoras (retificadoras):** diminuem o valor de outra conta; trazem o sinal (−) (ex.: (−) Depreciação Acumulada).",
+            "**De compensação** (grupo 8): controlam atos que ainda não alteram o patrimônio, mas podem vir a alterar (ex.: garantias prestadas, bens de terceiros).",
+          ] },
+          { t: "p", texto: "**c) Quanto à natureza do saldo**" },
+          { t: "lista", itens: [
+            "**Devedora:** aumenta com débito e diminui com crédito — Ativo, Despesas e Custos.",
+            "**Credora:** aumenta com crédito e diminui com débito — Passivo, PL e Receitas.",
+          ] },
+          { t: "p", texto: "**d) Quanto ao prazo (liquidez e exigibilidade)**" },
+          { t: "lista", itens: [
+            "**Circulante:** direitos realizáveis e obrigações vencíveis até o fim do exercício social seguinte (em geral, 12 meses).",
+            "**Não circulante:** prazo maior que esse.",
+            "Se o ciclo operacional da empresa for maior que um ano, vale o ciclo operacional (art. 179, parágrafo único).",
+            "No Ativo, as contas aparecem em ordem decrescente de **liquidez**; no Passivo, em ordem de **exigibilidade**.",
+          ] },
+        ],
+      },
+      {
+        titulo: "5. Contas que fogem à regra do grupo",
+        blocos: [
+          { t: "p", texto: "A conta **redutora** tem natureza **oposta** à do grupo em que está:" },
+          { t: "tabela", cab: ["Grupo", "Conta redutora (exemplo do CTC)", "Natureza"], linhas: [
+            ["Ativo", "1.1.2.99 (−) Provisão para Créditos de Liquidação Duvidosa", "Credora"],
+            ["Ativo", "1.2.3.53 (−) Depreciação Acumulada Veículos", "Credora"],
+            ["Passivo", "2.1.10.99 (−) Encargos (duplicatas descontadas)", "Devedora"],
+            ["PL", "3.1.02 (−) Capital a Integralizar", "Devedora"],
+            ["PL", "3.6 (−) Prejuízos Acumulados", "Devedora"],
+            ["Receitas", "4.2 (−) Deduções da Receita (ICMS sobre vendas, devoluções, abatimentos)", "Devedora"],
+          ] },
+          { t: "destaque", texto: "As **Deduções da Receita** (4.2) ficam no grupo das Receitas, mas têm natureza **devedora**: reduzem a receita bruta para chegar à receita líquida." },
+        ],
+      },
+      {
+        titulo: "6. Exemplo: conta redutora no Balanço",
+        blocos: [
+          { t: "exemplo", titulo: "Veículo de R$ 50.000,00 já depreciado em R$ 10.000,00", tabela: { cab: ["Imobilizado", "R$"], linhas: [
+            ["Veículos", "50.000,00"],
+            ["(−) Depreciação Acumulada Veículos", "(10.000,00)"],
+            ["**Valor contábil líquido**", "**40.000,00**"],
+          ] } },
+          { t: "p", texto: "O valor original do bem continua em \"Veículos\"; a redutora mostra quanto dele já foi consumido pelo uso." },
+        ],
+      },
+      {
+        titulo: "No CTC",
+        blocos: [
+          { t: "lista", itens: [
+            "A empresa de cada aluno usa o **plano de contas padrão do CTC**: 296 contas, das quais 242 aceitam lançamento.",
+            "Na escrituração, o sistema **só deixa escolher contas que aceitam lançamento**; uma conta sintética gera o aviso \"escolha a conta\".",
+            "O balancete, o Balanço e a DRE são montados automaticamente a partir dos grupos e níveis do plano.",
+          ] },
+        ],
+      },
+    ],
+    fontes: FONTES_CB02,
   },
 };
 
