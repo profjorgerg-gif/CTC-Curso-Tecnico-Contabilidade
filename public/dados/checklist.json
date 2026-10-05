@@ -65,6 +65,27 @@
       "feito": true
     },
     {
+      "id": "f2-teoria-questoes",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Teoria por módulo e questões teóricas (múltipla escolha, V/F, afirmações) com banco protegido, listas de sala/avaliativas, correção e notas — CB Módulo 01 pronto",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-teoria-cb",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Teoria e banco de questões dos demais módulos da CB (Módulo 02 Plano de Contas em diante)",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f2-balanco-sucessivo",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Exercício interativo de balanços sucessivos (exemplo da Cia. Vamos Ltda., corrigido)",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
       "id": "f2-teste",
       "fase": "Fase 2 — Contabilidade Básica",
       "item": "Teste com o aluno de teste e aprovação do professor",

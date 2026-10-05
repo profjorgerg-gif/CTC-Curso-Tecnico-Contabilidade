@@ -10,12 +10,16 @@ import { traduzirErro } from "../lib/sessao";
 import { useTurmas } from "../lib/useTurmas";
 import { disciplinaPorId } from "../dados/disciplinas";
 import { CRONOGRAMA_IBS_CBS } from "../dados/ibsCbs";
+import { DISCIPLINAS } from "../dados/disciplinas";
+import { conferirArquivoBanco, excluirModuloBanco, importarBanco, lerBanco } from "../lib/questoes";
+import Questao from "../componentes/Questao";
 
 const ABAS = [
   ["plano", "Plano de Contas", "Plano de Contas"],
   ["cfop", "CFOP", "CFOP"],
   ["ncm", "NCM", "NCM"],
   ["ibs", "IBS/CBS", "IBS/CBS"],
+  ["questoes", "Banco de questões", null],
   ["historico", "Histórico de alterações", null],
 ];
 
@@ -56,6 +60,7 @@ export default function BancoDados({ sessao, papel }) {
       {atual === "cfop" && <Cfop />}
       {atual === "ncm" && <Ncm />}
       {atual === "ibs" && <IbsCbs sessao={sessao} podeEditar={pode.editarIbs} />}
+      {atual === "questoes" && <BancoDeQuestoes papel={papel} />}
       {atual === "historico" && <Historico />}
     </>
   );
@@ -394,6 +399,74 @@ function Historico() {
           </tbody>
         </table>
       </div>
+    </section>
+  );
+}
+
+// ---------------- Banco de questões (só professores; o administrador importa) ----------------
+function BancoDeQuestoes({ papel }) {
+  const [banco, setBanco] = useState(null);
+  const [aberto, setAberto] = useState(null);
+  const [msg, setMsg] = useState({});
+  const carregar = () => lerBanco().then(setBanco).catch((e) => setMsg({ tipo: "erro", texto: traduzirErro(e) }));
+  useEffect(() => { carregar(); }, []);
+  const importar = async (e) => {
+    const arq = e.target.files?.[0];
+    e.target.value = "";
+    if (!arq) return;
+    setMsg({});
+    try {
+      const d = conferirArquivoBanco(await arq.text());
+      const id = `${d.disciplina}-${String(d.modulo).padStart(2, "0")}`;
+      if (banco?.some((m) => m.id === id) && !window.confirm(`O módulo ${id} já está no banco. Substituir pelas ${d.questoes.length} questões do arquivo?`)) return;
+      await importarBanco(d);
+      setMsg({ texto: `Importado: ${id} — ${d.questoes.length} questões.` });
+      carregar();
+    } catch (err) { setMsg({ tipo: "erro", texto: err.message || traduzirErro(err) }); }
+  };
+  const nomeDisc = (id) => DISCIPLINAS.find((d) => d.id === id)?.sigla || id;
+
+  return (
+    <section className="cartao">
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+        <div>
+          <h2>Banco de questões</h2>
+          <span className="pequeno suave">Questões teóricas por módulo, com gabarito e explicação. Só professores veem este banco; os alunos recebem as questões nas listas, sem o gabarito.</span>
+        </div>
+        {papel === "admin" && (
+          <label className="botao" style={{ cursor: "pointer" }}>
+            Importar arquivo (.json)
+            <input type="file" accept=".json,application/json" onChange={importar} style={{ display: "none" }} />
+          </label>
+        )}
+      </div>
+      {msg.texto && <div className={`aviso ${msg.tipo || ""}`} role="status">{msg.texto}</div>}
+      {!banco && !msg.texto && <p className="suave pequeno">Carregando…</p>}
+      {banco?.length === 0 && <div className="aviso atencao">Nenhum módulo no banco ainda. {papel === "admin" ? "Use \"Importar arquivo\" com o arquivo do banco de questões." : "O administrador importa o arquivo do banco."}</div>}
+      {banco?.length > 0 && (
+        <div className="tabela-caixa">
+          <table>
+            <thead><tr><th>Disciplina</th><th>Módulo</th><th>Questões</th><th></th></tr></thead>
+            <tbody>
+              {banco.map((m) => (
+                <tr key={m.id}>
+                  <td className="mono">{nomeDisc(m.disciplina)}</td>
+                  <td>{String(m.modulo).padStart(2, "0")} — {m.titulo}</td>
+                  <td className="pequeno">{m.questoes.length} ({["me", "vf", "af"].map((t) => `${m.questoes.filter((q) => q.tipo === t).length} ${t === "me" ? "múltipla escolha" : t === "vf" ? "V/F" : "afirmações"}`).join(" · ")})</td>
+                  <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                    <button className="botao secundario pequeno" onClick={() => setAberto(aberto === m.id ? null : m.id)}>{aberto === m.id ? "Fechar" : "Ver questões"}</button>{" "}
+                    {papel === "admin" && <button className="botao perigo pequeno" onClick={async () => {
+                      if (!window.confirm(`Excluir o módulo ${m.id} do banco? As listas já enviadas continuam funcionando.`)) return;
+                      try { await excluirModuloBanco(m); carregar(); } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
+                    }}>Excluir</button>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {aberto && banco?.find((m) => m.id === aberto)?.questoes.map((q, i) => <Questao key={q.id} q={q} n={i + 1} modo="gabarito" explicacao={q.explicacao} />)}
     </section>
   );
 }

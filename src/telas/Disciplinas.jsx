@@ -1,6 +1,8 @@
 import { DISCIPLINAS, disciplinaPorId } from "../dados/disciplinas";
 import { useTurmas } from "../lib/useTurmas";
 import { EMENTAS, FONTE_EMENTAS } from "../dados/ementas";
+import { teoriaDo } from "../dados/teoria";
+import Teoria from "../componentes/Teoria";
 
 // Ementa oficial do componente curricular (texto literal do documento da SED/SC)
 function Ementa({ e }) {
@@ -40,6 +42,24 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
   const lista = papel === "aluno" ? DISCIPLINAS.filter((d) => minhas.has(d.id)) : DISCIPLINAS;
   const atual = rota[0] && disciplinaPorId(rota[0]);
 
+  // módulo aberto: teoria (rota disciplinas/{id}/m01)
+  const nModulo = atual && /^m\d+$/.test(rota[1] || "") ? Number(rota[1].slice(1)) : null;
+  const teoria = nModulo ? teoriaDo(atual.id, nModulo) : null;
+  if (atual && teoria && (papel !== "aluno" || minhas.has(atual.id))) {
+    return (
+      <>
+        <button className="botao secundario pequeno" style={{ alignSelf: "flex-start" }} onClick={() => ir("disciplinas", atual.id)}>← {atual.nome}</button>
+        <div>
+          <span className="mono pequeno suave">{atual.sigla} · MÓDULO {String(nModulo).padStart(2, "0")}</span>
+          <h1>{teoria.titulo}</h1>
+          <p className="suave">{teoria.resumo}</p>
+        </div>
+        <Teoria teoria={teoria} />
+        <div className="aviso pequeno">{papel === "aluno" ? "Pratique com os questionários que o professor enviar (menu Questionários)." : "Gere listas de questões deste módulo em Turmas e matrículas → turma → Exercícios da turma → Lista de questões teóricas."}</div>
+      </>
+    );
+  }
+
   if (atual && (papel !== "aluno" || minhas.has(atual.id))) {
     const turmasDaDisc = turmas.filter((t) => t.disciplina === atual.id);
     return (
@@ -51,15 +71,19 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
         </div>
         {EMENTAS[atual.id] && <Ementa e={EMENTAS[atual.id]} />}
         <section className="cartao sem-padding">
-          <div className="cartao-topo"><h2>Módulos</h2><span className="pequeno suave">O conteúdo entra nas próximas fases</span></div>
+          <div className="cartao-topo"><h2>Módulos</h2></div>
           {atual.modulos.length === 0 && <p className="suave" style={{ padding: 18 }}>Módulos ainda não definidos — aguardando a ementa.</p>}
           <ol style={{ listStyle: "none", margin: 0, padding: 0 }}>
-            {atual.modulos.map((m, i) => (
-              <li key={m} style={{ display: "flex", gap: 14, padding: "12px 18px", borderTop: "1px solid var(--linha-suave)" }}>
-                <span className="mono" style={{ color: "var(--destaque)", fontWeight: 600, minWidth: 28 }}>{String(i + 1).padStart(2, "0")}</span>
-                <span>{m}</span>
-              </li>
-            ))}
+            {atual.modulos.map((m, i) => {
+              const tem = !!teoriaDo(atual.id, i + 1);
+              return (
+                <li key={m} style={{ display: "flex", gap: 14, padding: "12px 18px", borderTop: "1px solid var(--linha-suave)", alignItems: "center" }}>
+                  <span className="mono" style={{ color: "var(--destaque)", fontWeight: 600, minWidth: 28 }}>{String(i + 1).padStart(2, "0")}</span>
+                  <span style={{ flex: 1 }}>{m}</span>
+                  {tem ? <button className="botao pequeno" onClick={() => ir("disciplinas", atual.id, `m${String(i + 1).padStart(2, "0")}`)}>Estudar</button> : <span className="selo cinza">Em preparação</span>}
+                </li>
+              );
+            })}
           </ol>
         </section>
         {papel !== "aluno" && (

@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import { traduzirErro } from "../lib/sessao";
 import { usePlano } from "../lib/contabil";
-import { finalidadeDe, FINALIDADES, listasDaTurma, valeNota } from "../lib/exercicios";
+import { ehQuestoes, finalidadeDe, FINALIDADES, listasDaTurma, valeNota } from "../lib/exercicios";
+import { lerGabarito } from "../lib/questoes";
 import { acompanharAluno, atrasado, comDiferencas, DIAS_SEM_ATIVIDADE } from "../lib/acompanhamento";
 
 const COR = { ok: "verde", meio: "ocre", nada: "cinza", ruim: "vermelho" };
@@ -43,8 +44,10 @@ export function AcompanhamentoDaTurma({ turma, alunos, ir }) {
     try {
       const ls = (await listasDaTurma(turma.id, false)).filter((l) => l.enviada);
       setListas(ls);
+      const gabaritos = {};
+      for (const l of ls.filter(ehQuestoes)) gabaritos[l.id] = await lerGabarito(turma.id, l.id).catch(() => ({}));
       const r = [];
-      for (const a of alunos) { r.push(await acompanharAluno(turma, a, ls, plano)); setProgresso(r.length); }
+      for (const a of alunos) { r.push(await acompanharAluno(turma, a, ls, plano, gabaritos)); setProgresso(r.length); }
       setLinhas(r);
     } catch (e) { setErro(traduzirErro(e)); }
   };
@@ -111,7 +114,7 @@ export function AcompanhamentoDaTurma({ turma, alunos, ir }) {
               <thead>
                 <tr>
                   <th>Aluno</th><th>Cadastro</th><th>Parametriz.</th><th>Saldos iniciais</th><th>Fatos orientados</th>
-                  {listas.map((l) => <th key={l.id}>{l.titulo}<span className="pequeno suave" style={{ display: "block", fontWeight: 400 }}>{FINALIDADES[finalidadeDe(l)].curto.toLowerCase()}{valeNota(l) && !l.resultadoLiberado ? " · oculta ao aluno" : ""}</span></th>)}
+                  {listas.map((l) => <th key={l.id}>{l.titulo}<span className="pequeno suave" style={{ display: "block", fontWeight: 400 }}>{ehQuestoes(l) ? "questões · " : ""}{FINALIDADES[finalidadeDe(l)].curto.toLowerCase()}{valeNota(l) && !l.resultadoLiberado ? " · oculta ao aluno" : ""}</span></th>)}
                   <th>Balancete</th><th>Encerramento</th><th>Última atividade</th>
                 </tr>
               </thead>

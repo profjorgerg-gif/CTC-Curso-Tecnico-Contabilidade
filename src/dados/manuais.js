@@ -29,6 +29,12 @@ export const MANUAL_PROFESSOR = [
     "\"Fechar e lançar notas\": o CTC calcula a nota de cada aluno (acertos ÷ total × 10, conferindo pelo estoque e método da empresa dele) e grava no quadro de notas.",
     "\"Gerar recuperação\": monta uma lista parecida, só para os alunos abaixo de 6,0. Ao fechá-la, a nota entra como recuperação do instrumento — vale a maior.",
   ] },
+  { id: "questoes", titulo: "Teoria e questões teóricas", passos: [
+    "Teoria: em Disciplinas, cada módulo com conteúdo tem o botão \"Estudar\". O aluno lê a mesma teoria em \"Minhas disciplinas\".",
+    "Banco de questões: em Banco de Dados → Banco de questões você vê as questões de cada módulo, com gabarito e explicação. Só professores veem o banco; o administrador importa o arquivo do banco.",
+    "Na página da turma, \"Lista de questões teóricas\": escolha a finalidade (sala ou avaliativo), os módulos, a quantidade e os tipos (múltipla escolha, verdadeiro ou falso, afirmações I, II, III) e sorteie. Use \"Trocar\" ou \"Remover\" antes de enviar.",
+    "De sala: o aluno vê a correção e a explicação na hora. Avaliativo: o gabarito fica só com você; \"Fechar e lançar notas\" e \"Liberar resultado\" funcionam como nas listas de escrituração. A recuperação sorteia questões diferentes das da lista original.",
+  ] },
   { id: "notas", titulo: "Notas da turma", passos: [
     "O quadro \"Notas da turma\" reúne as listas avaliativas fechadas e as avaliações manuais (\"+ Avaliação manual\": prova, seminário, trabalho).",
     "Informe as aulas semanais: o CTC confere o número mínimo de instrumentos do PPC (1 aula: 2; 2 aulas: 3; 3 ou mais: 4) e quantos já têm recuperação paralela.",
@@ -96,6 +102,11 @@ export const MANUAL_ALUNO = [
     "Controle de estoque: a ficha (kardex) pelo método da sua empresa e o comparativo entre os métodos. No inventário periódico, faça aqui a apuração do CMV no fim do período.",
     "Balancete: débitos = créditos e saldos devedores = credores.",
     "DRE, Encerramento (ARE), DLPA e Balanço Patrimonial, montados a partir dos seus lançamentos.",
+  ] },
+  { id: "questionarios", titulo: "Teoria e questionários", passos: [
+    "Em \"Minhas disciplinas\", abra a disciplina e clique em \"Estudar\" no módulo para ler a teoria.",
+    "Em \"Questionários\" ficam as listas de questões enviadas pelo professor. Marque as respostas e clique em \"Salvar\" ou \"Enviar\".",
+    "De sala: você vê a correção e a explicação na hora e pode refazer. Avaliativo: você pode mudar as respostas até o prazo; a correção e a nota aparecem quando o professor liberar o resultado.",
   ] },
   { id: "notas", titulo: "Minhas notas", passos: [
     "Mostra as notas que o professor publicou em cada turma, a média e a frequência.",

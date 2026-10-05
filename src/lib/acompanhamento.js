@@ -5,7 +5,8 @@ import { lerEmpresa } from "./empresas";
 import { lerEscrituracao } from "./escrituracao";
 import { parametrosEfetivos, areaConfirmada } from "./parametros";
 import { configLancamentos } from "./modelos";
-import { corrigirLancamento, finalidadeDe, GABARITO_ORIENTADOS } from "./exercicios";
+import { corrigirLancamento, ehQuestoes, finalidadeDe, GABARITO_ORIENTADOS } from "./exercicios";
+import { lerResposta, notaDasQuestoes } from "./questoes";
 import { balancete, FATOS_ORIENTADOS } from "./contabil";
 import { jaEncerrado } from "./demonstracoes";
 import { lerBoletim } from "./notas";
@@ -31,7 +32,7 @@ function situacaoNoRoteiro(fatos, achar, lancamentos, ctx) {
   return { lancados, acertos, total: fatos.length };
 }
 
-export async function acompanharAluno(turma, aluno, listas, plano) {
+export async function acompanharAluno(turma, aluno, listas, plano, gabaritos = {}) {
   const empresa = await lerEmpresa(turma.id, aluno.matricula).catch(() => null);
   const base = { aluno, empresa };
   if (!empresa) return { ...base, semEmpresa: true };
@@ -48,6 +49,11 @@ export async function acompanharAluno(turma, aluno, listas, plano) {
   const porLista = {};
   for (const lista of listas) {
     if (finalidadeDe(lista) === "recuperacao" && !boletim?.recuperacoes?.includes(lista.id)) { porLista[lista.id] = { naoSeAplica: true }; continue; }
+    if (ehQuestoes(lista)) {
+      const r = await lerResposta(turma.id, lista.id, aluno.matricula).catch(() => null);
+      porLista[lista.id] = notaDasQuestoes(lista.questoes || [], r?.respostas || {}, gabaritos[lista.id]);
+      continue;
+    }
     porLista[lista.id] = situacaoNoRoteiro(lista.fatos || [], (f) => lanc.find((l) => l.lista?.id === lista.id && l.lista?.n === f.n), lanc, ctx);
   }
   const temMovimento = esc.saldosGravados || lanc.length > 0;

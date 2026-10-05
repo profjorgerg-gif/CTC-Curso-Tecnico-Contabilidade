@@ -17,7 +17,8 @@ import { lerEmpresa } from "./empresas";
 import { lerEscrituracao } from "./escrituracao";
 import { parametrosEfetivos } from "./parametros";
 import { configLancamentos } from "./modelos";
-import { marcarListaFechada, notaDaLista } from "./exercicios";
+import { ehQuestoes, marcarListaFechada, notaDaLista } from "./exercicios";
+import { lerGabarito, lerResposta, notaDasQuestoes } from "./questoes";
 
 export const MEDIA_MINIMA = 6;
 export const FREQUENCIA_MINIMA = 75;
@@ -135,6 +136,14 @@ function contextoDoAluno(empresa, turma) {
 // calcula a nota de cada aluno na lista; alunos sem empresa ou sem lançamento ficam com 0
 export async function calcularNotasDaLista(turma, lista, alunos) {
   const resultado = {};
+  if (ehQuestoes(lista)) {
+    const gabarito = await lerGabarito(turma.id, lista.id);
+    for (const a of alunos) {
+      const r = await lerResposta(turma.id, lista.id, a.matricula).catch(() => null);
+      resultado[a.matricula] = notaDasQuestoes(lista.questoes || [], r?.respostas || {}, gabarito);
+    }
+    return resultado;
+  }
   for (const a of alunos) {
     const empresa = await lerEmpresa(turma.id, a.matricula).catch(() => null);
     if (!empresa) { resultado[a.matricula] = { nota: 0, acertos: 0, total: lista.fatos.length, lancados: 0 }; continue; }

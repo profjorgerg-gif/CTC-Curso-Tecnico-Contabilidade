@@ -9,6 +9,7 @@ import { db } from "../firebase";
 import { auditar } from "./auditoria";
 import { arred, CONTAS_ESTOQUE, dinheiro, dataBR, partidasDe } from "./contabil";
 import { custoDaSaida } from "./estoque";
+import { liberarGabarito, salvarGabarito, semGabarito } from "./questoes";
 
 export const TIPOS = [
   { id: "compras", nome: "Compras de mercadorias", desc: "à vista e a prazo" },
@@ -194,21 +195,31 @@ export const FINALIDADES = {
 export const finalidadeDe = (l) => l?.finalidade || "sala";
 export const valeNota = (l) => ["avaliativa", "recuperacao"].includes(finalidadeDe(l));
 
+export const tipoListaDe = (l) => l?.tipoLista || "escrituracao";
+export const ehQuestoes = (l) => tipoListaDe(l) === "questoes";
+
 export async function salvarLista(turma, lista, enviar) {
+  const questoes = ehQuestoes(lista);
+  const fin = finalidadeDe(lista);
   const dados = {
-    titulo: lista.titulo, fatos: lista.fatos, prazo: lista.prazo || "", enviada: !!enviar, configuracao: lista.configuracao || {},
-    finalidade: finalidadeDe(lista), peso: Number(lista.peso) || 1, recuperacaoDe: lista.recuperacaoDe || null,
+    titulo: lista.titulo, fatos: questoes ? [] : lista.fatos, prazo: lista.prazo || "", enviada: !!enviar, configuracao: lista.configuracao || {},
+    finalidade: fin, peso: Number(lista.peso) || 1, recuperacaoDe: lista.recuperacaoDe || null, tipoLista: tipoListaDe(lista),
   };
+  // questões: no exercício de sala o gabarito vai junto (correção na hora); no avaliativo, fica num registro só do professor
+  if (questoes) dados.questoes = fin === "sala" ? lista.questoes : lista.questoes.map(semGabarito);
   if (enviar) dados.enviadaEm = serverTimestamp();
   let id = lista.id;
   if (id) await updateDoc(doc(db, "turmas", turma.id, "listas", id), dados);
   else id = (await addDoc(collection(db, "turmas", turma.id, "listas"), { ...dados, criadaEm: serverTimestamp() })).id;
-  auditar(enviar ? "Enviou lista de exercícios" : "Salvou lista de exercícios", `${lista.titulo} (${FINALIDADES[dados.finalidade].nome}, ${lista.fatos.length} fatos) — ${turma.nome}`);
+  if (questoes) await salvarGabarito(turma.id, id, lista.questoes);
+  const qtd = questoes ? `${lista.questoes.length} questões` : `${lista.fatos.length} fatos`;
+  auditar(enviar ? "Enviou lista de exercícios" : "Salvou lista de exercícios", `${lista.titulo} (${FINALIDADES[fin].nome}, ${qtd}) — ${turma.nome}`);
   return id;
 }
 
 // liberar (ou ocultar) para os alunos a correção de uma lista avaliativa
 export async function liberarResultado(turma, lista, liberar) {
+  if (ehQuestoes(lista)) return liberarGabarito(turma, lista, liberar);
   await updateDoc(doc(db, "turmas", turma.id, "listas", lista.id), { resultadoLiberado: !!liberar });
   auditar(liberar ? "Liberou o resultado da lista" : "Ocultou o resultado da lista", `${lista.titulo} — ${turma.nome}`);
 }

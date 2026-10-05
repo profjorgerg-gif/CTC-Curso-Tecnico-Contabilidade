@@ -118,7 +118,7 @@ export async function excluirTurma(turmaId) {
     lote.delete(doc(db, "empresas", `${turmaId}_${a.id}`)); // empresa do aluno nesta turma
   });
   // listas de exercícios, notas e boletins da turma
-  for (const sub of ["listas", "avaliacoes", "boletim", "planos"]) {
+  for (const sub of ["listas", "avaliacoes", "boletim", "planos", "gabaritos", "respostas"]) {
     const s = await getDocs(collection(db, "turmas", turmaId, sub)).catch(() => null);
     s?.docs.forEach((d) => lote.delete(d.ref));
   }

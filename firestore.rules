@@ -136,6 +136,24 @@ service cloud.firestore {
         allow read, write: if souProfessorDaTurma(turmaId);
       }
 
+      // questões teóricas: gabarito das listas, só o professor da turma
+      match /gabaritos/{listaId} {
+        allow read, write: if souProfessorDaTurma(turmaId);
+      }
+
+      // respostas dos questionários: o aluno grava só a própria (id = lista_matrícula),
+      // e só enquanto a lista não foi fechada pelo professor
+      match /respostas/{respostaId} {
+        allow read: if souProfessorDaTurma(turmaId) ||
+          (souAlunoDaTurma(turmaId) && (resource == null || resource.data.matricula == minhaMatricula()));
+        allow create, update: if souAlunoDaTurma(turmaId) &&
+          request.resource.data.matricula == minhaMatricula() &&
+          respostaId == request.resource.data.listaId + '_' + minhaMatricula() &&
+          exists(/databases/$(database)/documents/turmas/$(turmaId)/listas/$(request.resource.data.listaId)) &&
+          get(/databases/$(database)/documents/turmas/$(turmaId)/listas/$(request.resource.data.listaId)).data.get('fechada', false) == false;
+        allow delete: if souProfessorDaTurma(turmaId);
+      }
+
       // Guia Pedagógico: planos semestral e mensais da turma (só o professor)
       match /planos/{planoId} {
         allow read, write: if souProfessorDaTurma(turmaId);
@@ -147,6 +165,12 @@ service cloud.firestore {
           (souAlunoDaTurma(turmaId) && matricula == minhaMatricula());
         allow write: if souProfessorDaTurma(turmaId);
       }
+    }
+
+    // ---------- Banco de questões teóricas: só professores leem (o gabarito não pode chegar ao aluno) ----------
+    match /bancoQuestoes/{moduloId} {
+      allow read: if souProfessor();
+      allow write: if souAdmin();
     }
 
     // ---------- Banco de Dados comum ----------

@@ -9,7 +9,7 @@ import { garantirEmpresa, lerEmpresa } from "../lib/empresas";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { AREAS, areaConfirmada, fimDePeriodoValido, parametrosEfetivos } from "../lib/parametros";
-import { corrigirLancamento, FINALIDADES, finalidadeDe, GABARITO_ORIENTADOS, listasDaTurma, valeNota } from "../lib/exercicios";
+import { corrigirLancamento, ehQuestoes, FINALIDADES, finalidadeDe, GABARITO_ORIENTADOS, listasDaTurma, valeNota } from "../lib/exercicios";
 import { lerBoletim } from "../lib/notas";
 import { balanco, CONTA_LUCROS, dlpa, dre, jaEncerrado, propostaEncerramento } from "../lib/demonstracoes";
 import { apuracaoPeriodica, custoDaSaida, kardex, METODOS, movimentosDeEstoque } from "../lib/estoque";
@@ -126,7 +126,7 @@ function Livros({ sessao, empresa, turma, donoAluno }) {
     if (!turma?.id) return;
     // o aluno vê as listas enviadas; as de recuperação, só se o professor o incluiu nelas
     Promise.all([listasDaTurma(turma.id, true), donoAluno ? lerBoletim(turma.id, empresa.matricula).catch(() => null) : null])
-      .then(([ls, boletim]) => setListas(ls.filter((l) => !donoAluno || finalidadeDe(l) !== "recuperacao" || boletim?.recuperacoes?.includes(l.id))))
+      .then(([ls, boletim]) => setListas(ls.filter((l) => !ehQuestoes(l)).filter((l) => !donoAluno || finalidadeDe(l) !== "recuperacao" || boletim?.recuperacoes?.includes(l.id))))
       .catch(() => setListas([]));
   }, [turma?.id]);
   useEffect(() => { if (dados && !dados.saldosGravados) setAba("saldos"); }, [!!dados]);
