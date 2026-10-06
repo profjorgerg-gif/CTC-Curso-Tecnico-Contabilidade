@@ -1,7 +1,7 @@
 // Slides do Guia Pedagógico (aprovado em 04/10/2026): uma apresentação por módulo.
 // Cada slide: { titulo, pontos?: [], tabela?: { cab: [], linhas: [[]] }, destaque?, notas }.
 // "notas" são as anotações do professor (aparecem só quando ele liga "Notas do professor").
-// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão; Mercadorias e Estoque; Lançamentos e Competência; Balancete; DRE; Encerramento.
+// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão; Mercadorias e Estoque; Lançamentos e Competência; Balancete; DRE; Encerramento; DLPA.
 
 export const SLIDES = {
   cb: [
@@ -1230,6 +1230,101 @@ export const SLIDES = {
             "3. Caixa é encerrado na ARE?",
           ],
           notas: "Respostas: 1) D Receita / C ARE 10.000. 2) Lucro de 2.500: D ARE / C Resultado do Exercício. 3) Não: é conta patrimonial.",
+        },
+      ],
+    },
+    {
+      id: "cb-dlpa",
+      modulo: "DLPA — Demonstração de Lucros ou Prejuízos Acumulados",
+      titulo: "DLPA",
+      subtitulo: "Demonstração de Lucros ou Prejuízos Acumulados",
+      slides: [
+        {
+          titulo: "O que é a DLPA",
+          pontos: [
+            "Mostra de onde veio e para onde foi o resultado",
+            "Saldo anterior + lucro do exercício − destinações",
+            "Lei 6.404/1976, arts. 176 e 186",
+            "Fica dentro da DMPL quando a empresa apresenta a DMPL",
+          ],
+          notas: "Pergunte: o lucro do ano fica todo com a empresa? Parte vira reserva, parte vai para os sócios.",
+        },
+        {
+          titulo: "A estrutura",
+          tabela: {
+            cab: ["Linha"],
+            linhas: [
+              ["Saldo inicial de lucros ou prejuízos acumulados"],
+              ["(±) Ajustes de exercícios anteriores"],
+              ["(+) Lucro líquido do exercício"],
+              ["(=) Resultado à disposição"],
+              ["(−) Reserva Legal · outras reservas · dividendos"],
+              ["(=) Saldo final"],
+            ],
+          },
+          notas: "O lucro vem do encerramento (3.9 Resultado do Exercício).",
+        },
+        {
+          titulo: "Reserva Legal (art. 193)",
+          pontos: [
+            "5% do lucro líquido, antes de qualquer outra destinação",
+            "Até acumular 20% do capital social",
+            "Perto do limite: só o que falta",
+          ],
+          destaque: "Lançamento: D 3.9 Resultado do Exercício / C 3.4.01 Reserva Legal",
+          notas: "Exemplo do limite: capital 100.000, reserva já em 18.000 → a deste ano é no máximo 2.000.",
+        },
+        {
+          titulo: "Dividendos",
+          pontos: [
+            "Parte do lucro distribuída aos sócios",
+            "S.A.: o estatuto fixa; se omisso, metade do lucro ajustado (art. 202, I)",
+            "Ltda.: vale o contrato social",
+            "Declarados: D 3.9 / C 2.1.7.01 Dividendos a Pagar",
+          ],
+          notas: "Os dividendos declarados viram obrigação (Passivo) até o pagamento.",
+        },
+        {
+          titulo: "Exemplo: Prestadora de Serviços",
+          tabela: {
+            cab: ["", "R$"],
+            linhas: [
+              ["Saldo inicial", "0,00"],
+              ["(+) Lucro líquido", "5.720,00"],
+              ["(=) À disposição", "5.720,00"],
+              ["(−) Reserva Legal (5%)", "(286,00)"],
+              ["(−) Dividendos (25% de 5.434)", "(1.358,50)"],
+              ["(=) Saldo final", "4.075,50"],
+            ],
+          },
+          notas: "Faça as contas no quadro com a turma.",
+        },
+        {
+          titulo: "E o prejuízo?",
+          pontos: [
+            "Absorvido por lucros acumulados, reservas de lucros e reserva legal (art. 189)",
+            "O que sobrar: (−) Prejuízos Acumulados",
+            "Sem lucro, sem dividendos",
+          ],
+          notas: "Nas S.A., lucro sem destinação vira dividendo (art. 202, § 6º).",
+        },
+        {
+          titulo: "No CTC",
+          pontos: [
+            "Lançar a Reserva Legal e os Dividendos na aba Lançamentos",
+            "Aba DLPA: o aluno monta a DLPA e o CTC confere",
+            "Exercício \"Monte a DLPA\" no Módulo 11",
+          ],
+          notas: "A aba DLPA mostra as sugestões de Reserva Legal e de dividendos, conforme a Parametrização.",
+        },
+        {
+          titulo: "Para fixar",
+          pontos: [
+            "1. Lucro de 10.000: qual a Reserva Legal (sem limite)?",
+            "2. Capital 50.000; reserva legal já em 9.800. Lucro 20.000: qual a reserva do ano?",
+            "3. Dividendos declarados ficam em qual grupo?",
+          ],
+          notas: "Respostas: 1) R$ 500,00. 2) Limite 10.000 → só 200,00 (5% seria 1.000). 3) Passivo Circulante (2.1.7.01 Dividendos a Pagar).",
         },
       ],
     },

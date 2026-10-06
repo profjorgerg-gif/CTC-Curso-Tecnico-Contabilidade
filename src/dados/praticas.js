@@ -374,6 +374,33 @@ const ENCERRAMENTO_SERVICOS = {
   ],
 };
 
+// Módulo 11 — monte a DLPA (aprovado em 06/10/2026); a Reserva Legal esbarra no limite de 20% do capital
+const DLPA_DELTA = {
+  id: "cb-dlpa-delta",
+  tipo: "montar-linhas",
+  titulo: "Monte a DLPA — Comercial Delta Ltda.",
+  montar: "Monte a DLPA",
+  empresa: "Comercial Delta Ltda.",
+  instrucao: "Use os dados abaixo para calcular a Reserva Legal e os dividendos e montar a DLPA. Atenção ao limite da Reserva Legal.",
+  dica: "Reserva Legal: 5% do lucro líquido, sem passar de 20% do capital social (considerando o que já está acumulado). Dividendos: o percentual sobre o lucro depois da Reserva Legal.",
+  dados: [
+    ["Lucro líquido do exercício (DRE do Módulo 09)", "41.550,00"],
+    ["Saldo inicial de lucros acumulados", "3.000,00"],
+    ["Capital social", "100.000,00"],
+    ["Reserva Legal já acumulada", "18.000,00"],
+    ["Dividendos (Parametrização)", "25% do lucro depois da Reserva Legal"],
+  ],
+  linhas: [
+    { rotulo: "Saldo inicial de lucros ou prejuízos acumulados", valor: 3000, tipo: "item" },
+    { rotulo: "(+) Lucro líquido do exercício", valor: 41550, tipo: "item" },
+    { rotulo: "(=) Resultado à disposição", valor: 44550, tipo: "subtotal" },
+    { rotulo: "(-) Reserva Legal", valor: -2000, tipo: "item" },
+    { rotulo: "(-) Dividendos", valor: -9887.5, tipo: "item" },
+    { rotulo: "(=) Saldo final de lucros ou prejuízos acumulados", valor: 32662.5, tipo: "final" },
+  ],
+  depois: "A Reserva Legal ficou limitada a 2.000,00 (20% × 100.000 = 20.000; já havia 18.000), e não 5% × 41.550 = 2.077,50. Dividendos: 25% × (41.550 − 2.000) = 9.887,50.",
+};
+
 export const PRATICAS = {
   "cb-01": [CIA_VAMOS, ALFA, BETA], // patrimônio e fatos contábeis (movido do Módulo 02 em 05/10/2026)
   "cb-03": [RAZONETES_SERVICOS],
@@ -384,6 +411,7 @@ export const PRATICAS = {
   "cb-08": [BALANCETE_SERVICOS],
   "cb-09": [DRE_DELTA],
   "cb-10": [ENCERRAMENTO_SERVICOS],
+  "cb-11": [DLPA_DELTA],
 };
 
 export const praticasDo = (disciplina, numero) => PRATICAS[`${disciplina}-${String(numero).padStart(2, "0")}`] || [];

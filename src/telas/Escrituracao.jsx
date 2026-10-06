@@ -1225,8 +1225,21 @@ function Encerramento({ sessao, empresa, plano, dados, recarregar, params, perio
 }
 
 // ---------------- DLPA ----------------
-function Dlpa({ empresa, plano, dados, params }) {
+function Dlpa({ empresa, plano, dados, params, donoAluno }) {
   const d = dlpa(plano, dados.lancamentos, dados.saldos);
+  // aluno: "montar e conferir" a DLPA depois do encerramento (aprovado em 06/10/2026)
+  const linhasDlpa = [
+    { rotulo: "Saldo inicial de lucros ou prejuízos acumulados", valor: d.saldoInicial, tipo: "item" },
+    ...d.outras.map((x) => ({ rotulo: `(±) ${x.l.historico}`, valor: x.valor, tipo: "item" })),
+    { rotulo: d.resultado >= 0 ? "(+) Lucro líquido do exercício" : "(-) Prejuízo líquido do exercício", valor: d.resultado, tipo: "item" },
+    { rotulo: "(=) Resultado à disposição", valor: arred(d.saldoInicial + d.totalOutras + d.resultado), tipo: "subtotal" },
+    ...d.destinacoes.map((x) => ({ rotulo: `(-) ${x.conta?.nome || "Destinação"}`, valor: -x.valor, tipo: "item" })),
+    { rotulo: "(=) Saldo final de lucros ou prejuízos acumulados", valor: d.saldoFinal, tipo: "final" },
+  ];
+  const assinaturaDlpa = linhasDlpa.map((x) => `${x.rotulo}:${x.valor.toFixed(2)}`).join("|");
+  const chaveDlpa = `ctc-montar-dlpa-${empresa.id}`;
+  const [montada, setMontada] = useState(() => montagemConcluida(chaveDlpa, assinaturaDlpa));
+  useEffect(() => { setMontada(montagemConcluida(chaveDlpa, assinaturaDlpa)); }, [assinaturaDlpa]);
   const capital = Number(empresa.capitalSocial) || 0;
   const reservaLegalAtual = (() => {
     const { deb, cred } = totaisDaConta(dados.lancamentos, dados.saldos, "3.4.01");
@@ -1234,9 +1247,21 @@ function Dlpa({ empresa, plano, dados, params }) {
   })();
   const sugestaoRL = d.resultado > 0 ? arred(Math.min(d.resultado * 0.05, Math.max(capital * 0.2 - reservaLegalAtual + d.destinacoes.filter((x) => x.conta?.codigo === "3.4.01").reduce((s, x) => s + x.valor, 0), 0))) : 0;
   const encerrado = jaEncerrado(dados.lancamentos);
+  const alunoMonta = donoAluno && encerrado && Math.abs(d.resultado) >= 0.005 && !montada;
   return (
     <>
-      <section className="cartao">
+      {alunoMonta && (
+        <MontarDemonstracao
+          titulo="Monte a DLPA da sua empresa"
+          subtitulo={`${empresa.razaoSocial} · lance antes a Reserva Legal e os dividendos (veja \"Como destinar o lucro\", abaixo)`}
+          linhas={linhasDlpa}
+          chave={chaveDlpa}
+          assinatura={assinaturaDlpa}
+          dica="Preencha cada linha, na ordem. Linhas sem valor não aparecem. Se você lançar uma nova destinação, a montagem recomeça."
+          aoConcluir={() => setMontada(true)}
+        />
+      )}
+      {!alunoMonta && <section className="cartao">
         <h2>Demonstração de Lucros ou Prejuízos Acumulados (DLPA)</h2>
         <span className="pequeno suave">{empresa.razaoSocial} · mostra de onde veio e para onde foi o resultado</span>
         <div style={{ maxWidth: 760 }}>
@@ -1249,7 +1274,7 @@ function Dlpa({ empresa, plano, dados, params }) {
           <LinhaValor rotulo="(=) Saldo final de lucros ou prejuízos acumulados" valor={d.saldoFinal} tipo="final" />
         </div>
         <Assinaturas empresa={empresa} params={params} />
-      </section>
+      </section>}
       <section className="cartao">
         <h2>Como destinar o lucro</h2>
         <p className="pequeno" style={{ maxWidth: 820 }}>

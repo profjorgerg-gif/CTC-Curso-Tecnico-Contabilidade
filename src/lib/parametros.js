@@ -32,7 +32,7 @@ export const AREAS = [
         opcoes: opcoes(["mensal", "Mensal"], ["trimestral", "Trimestral"], ["anual", "Anual"]),
         ajuda: "De quanto em quanto tempo o resultado é apurado (encerramento na ARE). A data do encerramento precisa ser o último dia de um mês, trimestre ou do exercício, conforme a escolha." },
       { id: "dividendosPct", rotulo: "Dividendos a distribuir (% do lucro ajustado)", tipo: "numero", min: 0, max: 100,
-        ajuda: "Parte do lucro (depois da Reserva Legal de 5%) que vai para os sócios. Nas S.A. o mínimo obrigatório é 25% quando o estatuto é omisso (Lei 6.404/76, art. 202); nas LTDA vale o contrato social." },
+        ajuda: "Parte do lucro (depois da Reserva Legal de 5%) que vai para os sócios. Nas S.A., o estatuto fixa o mínimo; se ele for omisso, o mínimo é metade do lucro líquido ajustado (Lei 6.404/76, art. 202, I) — os 25% são o piso para quando o estatuto é alterado para incluir a regra (art. 202, § 2º). Nas LTDA vale o contrato social." },
       { id: "contadorNome", rotulo: "Contador responsável", tipo: "texto",
         ajuda: "Você, no papel de contador da empresa. O nome aparece nas assinaturas das demonstrações." },
       { id: "contadorCrc", rotulo: "CRC (fictício)", tipo: "texto",

@@ -1,4 +1,4 @@
-// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026, Módulos 06 a 10 em 06/10/2026).
+// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026, Módulos 06 a 11 em 06/10/2026).
 // Chave: "{disciplina}-{nº do módulo com 2 dígitos}" (ex.: "cb-01").
 // Blocos: { t: "p" | "lista" | "tabela" | "destaque" | "exemplo", ... }; **trecho** = negrito.
 // Base: material didático do prof. Jorge Lima Cardoso (CEDUP Hermann Hering), revisado.
@@ -74,6 +74,13 @@ const FONTES_CB10 = [
   "IUDÍCIBUS, S. de (coord.). Contabilidade introdutória. 10. ed. São Paulo: Atlas, 2009.",
   "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
   "RIBEIRO, O. M. Contabilidade básica fácil. 28. ed. São Paulo: Saraiva, 2012.",
+];
+
+const FONTES_CB11 = [
+  "BRASIL. Lei nº 6.404, de 15 de dezembro de 1976. Dispõe sobre as Sociedades por Ações. Arts. 176, 186, 189, 193 e 202.",
+  "CFC – CONSELHO FEDERAL DE CONTABILIDADE. NBC TG 26 (R5) – Apresentação das Demonstrações Contábeis. Brasília: CFC.",
+  "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
+  "IUDÍCIBUS, S. de (coord.). Contabilidade introdutória. 10. ed. São Paulo: Atlas, 2009.",
 ];
 
 export const TEORIA = {
@@ -1100,6 +1107,88 @@ export const TEORIA = {
       },
     ],
     fontes: FONTES_CB10,
+  },
+  "cb-11": {
+    titulo: "DLPA — Demonstração de Lucros ou Prejuízos Acumulados",
+    resumo: "O que é a DLPA, a estrutura, as destinações do lucro (Reserva Legal, outras reservas e dividendos), o tratamento do prejuízo e o exemplo da Prestadora de Serviços.",
+    secoes: [
+      {
+        titulo: "1. O que é a DLPA",
+        blocos: [
+          { t: "p", texto: "A **DLPA** mostra **de onde veio e para onde foi** o resultado: o saldo de lucros ou prejuízos que a empresa já tinha, o lucro ou prejuízo do exercício e as **destinações** (reservas e dividendos). Está prevista na Lei 6.404/1976 (arts. 176 e 186); quando a empresa apresenta a **DMPL** (Demonstração das Mutações do Patrimônio Líquido), a DLPA fica incluída nela." },
+        ],
+      },
+      {
+        titulo: "2. A estrutura (a mesma do CTC)",
+        blocos: [
+          { t: "tabela", cab: ["Linha"], linhas: [
+            ["Saldo inicial de lucros ou prejuízos acumulados"],
+            ["(±) Ajustes de exercícios anteriores"],
+            ["(+) Lucro líquido do exercício (ou (−) prejuízo)"],
+            ["**(=) Resultado à disposição**"],
+            ["(−) Reserva Legal"],
+            ["(−) Outras reservas de lucros (estatutária, para expansão…)"],
+            ["(−) Dividendos"],
+            ["**(=) Saldo final de lucros ou prejuízos acumulados**"],
+          ] },
+          { t: "p", texto: "O lucro do exercício é o que o encerramento (Módulo 10) levou para **3.9 Resultado do Exercício**." },
+        ],
+      },
+      {
+        titulo: "3. As destinações do lucro",
+        blocos: [
+          { t: "lista", itens: [
+            "**Reserva Legal** (Lei 6.404/1976, art. 193): **5% do lucro líquido**, antes de qualquer outra destinação, até acumular **20% do capital social** — perto do limite, a parcela do ano fica limitada ao que falta.",
+            "**Outras reservas de lucros:** estatutária, para expansão, de lucros a realizar (3.4.02 a 3.4.05).",
+            "**Dividendos:** a parte do lucro distribuída aos sócios. Nas **S.A.**, o estatuto fixa o mínimo; se for omisso, o mínimo é **metade do lucro líquido ajustado** (art. 202, I). Nas **Ltda.**, vale o contrato social. No CTC, o percentual vem da **Parametrização** da empresa.",
+          ] },
+          { t: "tabela", cab: ["Destinação", "Débito", "Crédito"], linhas: [
+            ["Reserva Legal", "3.9 Resultado do Exercício", "3.4.01 Reserva Legal"],
+            ["Outras reservas", "3.9 Resultado do Exercício", "3.4.02 a 3.4.05"],
+            ["Dividendos", "3.9 Resultado do Exercício", "2.1.7.01 Dividendos a Pagar"],
+            ["Pagamento dos dividendos", "2.1.7.01 Dividendos a Pagar", "Banco"],
+          ] },
+          { t: "destaque", texto: "Os dividendos **declarados** saem do PL e viram **obrigação** (Passivo) até serem pagos." },
+        ],
+      },
+      {
+        titulo: "4. Exemplo: Prestadora de Serviços",
+        blocos: [
+          { t: "p", texto: "Lucro de R$ 5.720,00 (Módulo 10), capital de R$ 20.000,00, dividendos de 25%. **Reserva Legal:** 5% × 5.720 = **286,00** (limite: 20% × 20.000 = 4.000,00 — não atingido). **Dividendos:** 25% × (5.720 − 286) = 25% × 5.434 = **1.358,50**." },
+          { t: "exemplo", titulo: "DLPA da Prestadora de Serviços", tabela: { cab: ["", "R$"], linhas: [
+            ["Saldo inicial de lucros acumulados", "0,00"],
+            ["(+) Lucro líquido do exercício", "5.720,00"],
+            ["**(=) Resultado à disposição**", "**5.720,00**"],
+            ["(−) Reserva Legal", "(286,00)"],
+            ["(−) Dividendos", "(1.358,50)"],
+            ["**(=) Saldo final de lucros acumulados**", "**4.075,50**"],
+          ] } },
+        ],
+      },
+      {
+        titulo: "5. E quando há prejuízo?",
+        blocos: [
+          { t: "p", texto: "O prejuízo do exercício é **absorvido**, nesta ordem, pelos lucros acumulados, pelas reservas de lucros e pela reserva legal (Lei 6.404/1976, art. 189, parágrafo único). O que sobrar fica em **(−) Prejuízos Acumulados**, reduzindo o PL. Com prejuízo, **não há dividendos**." },
+        ],
+      },
+      {
+        titulo: "6. Observação sobre as S.A.",
+        blocos: [
+          { t: "p", texto: "Nas S.A., o lucro que não for destinado a reservas deve ser **distribuído como dividendo** (art. 202, § 6º), e o saldo de lucros acumulados fica zerado. Nas Ltda. — e nos exercícios do CTC — pode sobrar saldo em lucros acumulados." },
+        ],
+      },
+      {
+        titulo: "No CTC",
+        blocos: [
+          { t: "lista", itens: [
+            "Depois do encerramento, lance a **Reserva Legal** e os **Dividendos** na aba **Lançamentos** (a aba DLPA mostra as sugestões de valor).",
+            "Na aba **DLPA**, você **monta a DLPA** linha a linha; o CTC confere antes de mostrar a pronta. Se lançar uma nova destinação, a montagem recomeça.",
+            "Pratique antes com o exercício \"Monte a DLPA\", abaixo.",
+          ] },
+        ],
+      },
+    ],
+    fontes: FONTES_CB11,
   },
 };
 
