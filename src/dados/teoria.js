@@ -1,4 +1,4 @@
-// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 04 em 05/10/2026).
+// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026).
 // Chave: "{disciplina}-{nº do módulo com 2 dígitos}" (ex.: "cb-01").
 // Blocos: { t: "p" | "lista" | "tabela" | "destaque" | "exemplo", ... }; **trecho** = negrito.
 // Base: material didático do prof. Jorge Lima Cardoso (CEDUP Hermann Hering), revisado.
@@ -31,6 +31,15 @@ const FONTES_CB04 = [
   "BRASIL. Lei nº 6.404, de 15 de dezembro de 1976. Dispõe sobre as Sociedades por Ações. Arts. 7º e 182.",
   "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
   "RIBEIRO, O. M. Contabilidade básica fácil. 28. ed. São Paulo: Saraiva, 2012.",
+];
+
+const FONTES_CB05 = [
+  "CARDOSO, J. L. Livro Diário — resumo. Material didático. Blumenau: CEDUP Hermann Hering, 2025.",
+  "BRASIL. Lei nº 10.406, de 10 de janeiro de 2002. Institui o Código Civil. Arts. 1.179 a 1.183.",
+  "BRASIL. Lei nº 8.218, de 29 de agosto de 1991. Art. 14.",
+  "BRASIL. Decreto nº 8.683, de 25 de fevereiro de 2016.",
+  "CFC – CONSELHO FEDERAL DE CONTABILIDADE. ITG 2000 (R1) – Escrituração Contábil. Brasília: CFC.",
+  "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
 ];
 
 export const TEORIA = {
@@ -509,6 +518,100 @@ export const TEORIA = {
       },
     ],
     fontes: FONTES_CB04,
+  },
+  "cb-05": {
+    titulo: "Livros Diário e Razão",
+    resumo: "O Livro Diário e a estrutura do lançamento, formalidades da escrituração, correção de erros, ECD/SPED, o Livro Razão e a diferença entre os dois.",
+    secoes: [
+      {
+        titulo: "1. O Livro Diário",
+        blocos: [
+          { t: "p", texto: "O **Livro Diário** é um dos principais livros obrigatórios da contabilidade de qualquer entidade — empresa, instituição pública ou organização sem fins lucrativos —, previsto no **Código Civil** (Lei nº 10.406/2002) e na **Lei das S.A.** (Lei nº 6.404/1976)." },
+          { t: "p", texto: "Sua função é **registrar, em ordem cronológica e de forma detalhada, todos os fatos contábeis** que afetam o patrimônio — compras, vendas, pagamentos, recebimentos, provisões —, seguindo o **método das partidas dobradas** (Módulo 03)." },
+          { t: "p", texto: "Além de instrumento de controle interno, o Diário é **exigência legal e fiscal**. Mantê-lo em ordem é responsabilidade do contador e base para as decisões, para as demonstrações contábeis e para a comprovação da regularidade fiscal." },
+        ],
+      },
+      {
+        titulo: "2. Estrutura do lançamento no Diário",
+        blocos: [
+          { t: "p", texto: "Cada lançamento contém obrigatoriamente: **data** do fato; **conta debitada**; **conta creditada**; **histórico** (descrição do fato, com o documento de origem); **valor**." },
+          { t: "exemplo", titulo: "Modelo de página do Livro Diário", tabela: { cab: ["Data", "Histórico", "Débito (R$)", "Crédito (R$)"], linhas: [
+            ["01/03/2025", "D – 1.1.1.01 Caixa Geral", "10.000,00", ""],
+            ["", "C – 3.1.01 Capital Subscrito", "", "10.000,00"],
+            ["", "Integralização de capital em dinheiro pelo sócio Marcos Almeida.", "", ""],
+            ["05/03/2025", "D – 1.1.3.01 Mercadorias para Revenda", "3.000,00", ""],
+            ["", "C – 1.1.1.01 Caixa Geral", "", "3.000,00"],
+            ["", "Compra de mercadorias à vista, conforme NF nº 000123.", "", ""],
+          ] } },
+          { t: "destaque", texto: "O histórico deve permitir entender o fato **sem consultar outro documento**: o que aconteceu, com quem e o número da nota fiscal, duplicata ou fatura." },
+        ],
+      },
+      {
+        titulo: "3. Formalidades da escrituração",
+        blocos: [
+          { t: "p", texto: "A escrituração é feita em **idioma e moeda nacional**, em **forma contábil** (partidas dobradas), em **ordem cronológica** de dia, mês e ano, **sem** intervalos em branco, entrelinhas, borrões, rasuras, emendas ou transportes para as margens (Código Civil, art. 1.183; ITG 2000)." },
+          { t: "p", texto: "**Como corrigir um erro:** nunca se apaga nem se rasura. Usa-se o **lançamento de estorno** (o lançamento inverso, que anula o errado), o **lançamento de transferência** (leva o valor para a conta certa) ou o **lançamento complementar** (acerta, para mais ou para menos, o valor registrado)." },
+        ],
+      },
+      {
+        titulo: "4. Livro Diário eletrônico (SPED Contábil)",
+        blocos: [
+          { t: "p", texto: "Hoje o Diário é digital: é a **ECD – Escrituração Contábil Digital**, parte do **SPED** (Sistema Público de Escrituração Digital), que substitui o antigo livro em papel e dá mais segurança e agilidade à fiscalização." },
+          { t: "p", texto: "O livro em papel precisava ser autenticado na Junta Comercial; na ECD, a **autenticação acontece com a própria transmissão ao SPED** (Decreto nº 8.683/2016)." },
+        ],
+      },
+      {
+        titulo: "5. O Livro Razão",
+        blocos: [
+          { t: "p", texto: "O **Livro Razão** reúne os lançamentos do Diário **conta por conta**, com o **saldo** depois de cada movimento. O razonete do Módulo 03 é a forma simplificada do Razão." },
+          { t: "exemplo", titulo: "Razão da conta 1.1.1.01 Caixa Geral", tabela: { cab: ["Data", "Histórico", "Débito", "Crédito", "Saldo", "D/C"], linhas: [
+            ["01/03", "Integralização de capital", "10.000,00", "", "10.000,00", "D"],
+            ["05/03", "Compra de mercadorias, NF 000123", "", "3.000,00", "7.000,00", "D"],
+          ] } },
+        ],
+      },
+      {
+        titulo: "6. Diário × Razão",
+        blocos: [
+          { t: "tabela", cab: ["Característica", "Livro Diário", "Livro Razão"], linhas: [
+            ["Objetivo", "Registrar todos os fatos em **ordem cronológica**", "Detalhar os lançamentos **por conta**"],
+            ["Obrigatoriedade", "Obrigatório por lei", "**Obrigatório** para as empresas do Lucro Real (Lei nº 8.218/1991, art. 14) e registro permanente da entidade (ITG 2000)"],
+            ["Forma", "Método das partidas dobradas", "Os mesmos lançamentos do Diário, agrupados por conta"],
+            ["Uso", "Ver tudo o que aconteceu numa data", "Acompanhar o saldo e o movimento de uma conta"],
+          ] },
+        ],
+      },
+      {
+        titulo: "7. Exercício resolvido",
+        blocos: [
+          { t: "exemplo", titulo: "12/03 — venda à vista de R$ 5.000,00, custo de R$ 2.500,00", tabela: { cab: ["Data", "Histórico", "Débito", "Crédito"], linhas: [
+            ["12/03", "D – 1.1.1.01 Caixa Geral", "5.000,00", ""],
+            ["", "C – 4.1.1.01 Receita de Vendas de Mercadorias", "", "5.000,00"],
+            ["", "D – 6.2.01 CMV", "2.500,00", ""],
+            ["", "C – 1.1.3.01 Mercadorias para Revenda", "", "2.500,00"],
+            ["", "Venda de mercadorias à vista e baixa do custo das mercadorias vendidas.", "", ""],
+          ] } },
+          { t: "exemplo", titulo: "14/03 — pagamento do salário de Pedro Silva, R$ 1.800,00, pelo banco", tabela: { cab: ["Data", "Histórico", "Débito", "Crédito"], linhas: [
+            ["14/03", "D – 5.1.02 Salários Administrativos", "1.800,00", ""],
+            ["", "C – 1.1.1.02.01 Banco X", "", "1.800,00"],
+            ["", "Pagamento de salário ao funcionário Pedro Silva.", "", ""],
+          ] } },
+          { t: "p", texto: "Se o salário já tivesse sido reconhecido no fim do mês anterior (Salários a Pagar), o débito iria para **2.1.3.01 Salários a Pagar** — é o regime de competência, que volta no Módulo 07." },
+        ],
+      },
+      {
+        titulo: "No CTC",
+        blocos: [
+          { t: "lista", itens: [
+            "**Escrituração → Lançamentos** é o **Livro Diário** da sua empresa: data, contas, valores e histórico, em ordem cronológica.",
+            "**Razão por conta** é o **Livro Razão**: escolha a conta e veja cada movimento com o saldo.",
+            "Para corrigir um lançamento, use **corrigir** no próprio lançamento; o CTC registra quem alterou e quando.",
+            "Pratique antes com o exercício \"Do Diário ao Razão\", abaixo.",
+          ] },
+        ],
+      },
+    ],
+    fontes: FONTES_CB05,
   },
 };
 

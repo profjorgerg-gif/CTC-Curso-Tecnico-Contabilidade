@@ -1,7 +1,7 @@
 // Slides do Guia Pedagógico (aprovado em 04/10/2026): uma apresentação por módulo.
 // Cada slide: { titulo, pontos?: [], tabela?: { cab: [], linhas: [[]] }, destaque?, notas }.
 // "notas" são as anotações do professor (aparecem só quando ele liga "Notas do professor").
-// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais.
+// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão.
 
 export const SLIDES = {
   cb: [
@@ -553,6 +553,118 @@ export const SLIDES = {
             "3. As receitas de 2025 entram nos saldos iniciais de 2026?",
           ],
           notas: "Respostas: 1) R$ 30.000,00 (50.000 − 20.000 a integralizar). 2) Devedora — redutora do PL. 3) Não: foram encerradas na ARE; só as contas patrimoniais têm saldo inicial.",
+        },
+      ],
+    },
+    {
+      id: "cb-diario-razao",
+      modulo: "Livros Diário e Razão",
+      titulo: "Livros Diário e Razão",
+      subtitulo: "Escrituração em ordem cronológica e por conta",
+      slides: [
+        {
+          titulo: "O Livro Diário",
+          pontos: [
+            "Registra todos os fatos contábeis em ordem cronológica",
+            "Previsto no Código Civil e na Lei das S.A.",
+            "Segue o método das partidas dobradas",
+            "Exigência legal e fiscal; responsabilidade do contador",
+          ],
+          notas: "Compare com um diário pessoal: tudo o que acontece, dia após dia, na ordem em que aconteceu.",
+        },
+        {
+          titulo: "Elementos do lançamento",
+          pontos: ["Data do fato", "Conta debitada", "Conta creditada", "Histórico (descrição + documento)", "Valor"],
+          destaque: "O histórico deve explicar o fato sem precisar de outro documento.",
+          notas: "Mostre um histórico ruim (\"pagamento\") e um bom (\"Pagamento da conta de luz, fatura nº 456789\").",
+        },
+        {
+          titulo: "Página do Livro Diário",
+          tabela: {
+            cab: ["Data", "Histórico", "Débito", "Crédito"],
+            linhas: [
+              ["01/03", "D – Caixa Geral", "10.000,00", ""],
+              ["", "C – Capital Subscrito", "", "10.000,00"],
+              ["", "Integralização de capital pelo sócio Marcos Almeida", "", ""],
+              ["05/03", "D – Mercadorias para Revenda", "3.000,00", ""],
+              ["", "C – Caixa Geral", "", "3.000,00"],
+              ["", "Compra à vista, NF nº 000123", "", ""],
+            ],
+          },
+          notas: "Destaque a ordem: data, conta debitada, conta creditada (recuada) e histórico.",
+        },
+        {
+          titulo: "Formalidades da escrituração",
+          pontos: [
+            "Idioma e moeda nacional",
+            "Forma contábil e ordem cronológica",
+            "Sem espaços em branco, entrelinhas, borrões, rasuras ou emendas",
+            "Base: Código Civil, art. 1.183, e ITG 2000",
+          ],
+          notas: "Pergunte: e se o contador errar? Ele não pode apagar — veja o próximo slide.",
+        },
+        {
+          titulo: "Como corrigir um erro",
+          tabela: {
+            cab: ["Forma", "Quando usar"],
+            linhas: [
+              ["Estorno", "Anular o lançamento errado com o lançamento inverso"],
+              ["Transferência", "Levar o valor para a conta certa"],
+              ["Complementar", "Acertar o valor para mais ou para menos"],
+            ],
+          },
+          notas: "Exemplo de estorno: lançou D Caixa / C Receita em duplicidade → D Receita / C Caixa.",
+        },
+        {
+          titulo: "Diário eletrônico: ECD / SPED",
+          pontos: [
+            "ECD — Escrituração Contábil Digital, parte do SPED",
+            "Substitui o livro em papel",
+            "A transmissão ao SPED vale como autenticação (Decreto nº 8.683/2016)",
+          ],
+          notas: "Comente que o técnico em contabilidade vai trabalhar com sistemas que geram a ECD.",
+        },
+        {
+          titulo: "O Livro Razão",
+          tabela: {
+            cab: ["Data", "Histórico", "Débito", "Crédito", "Saldo"],
+            linhas: [
+              ["01/03", "Integralização de capital", "10.000,00", "", "10.000,00 D"],
+              ["05/03", "Compra de mercadorias", "", "3.000,00", "7.000,00 D"],
+            ],
+          },
+          destaque: "O Razão mostra cada conta com o saldo depois de cada movimento.",
+          notas: "Ligue com o razonete do Módulo 03: o Razão é o razonete \"em colunas\", com saldo.",
+        },
+        {
+          titulo: "Diário × Razão",
+          tabela: {
+            cab: ["", "Diário", "Razão"],
+            linhas: [
+              ["Organização", "Cronológica", "Por conta"],
+              ["Obrigatoriedade", "Obrigatório por lei", "Obrigatório no Lucro Real; registro permanente (ITG 2000)"],
+              ["Uso", "O que aconteceu numa data", "Saldo e movimento de uma conta"],
+            ],
+          },
+          notas: "Os dois saem da mesma escrituração: o Razão é o Diário reorganizado por conta.",
+        },
+        {
+          titulo: "No CTC",
+          pontos: [
+            "Escrituração → Lançamentos = Livro Diário",
+            "Razão por conta = Livro Razão",
+            "Exercício \"Do Diário ao Razão\" no Módulo 05",
+          ],
+          notas: "Abra os lançamentos de uma empresa de teste e depois o Razão do Caixa Geral.",
+        },
+        {
+          titulo: "Para fixar",
+          pontos: [
+            "1. Cite os cinco elementos do lançamento.",
+            "2. Lançou-se uma receita em duplicidade. Como corrigir?",
+            "3. Caixa: saldo 7.000 D; entra 5.000 de venda à vista. Novo saldo?",
+          ],
+          notas: "Respostas: 1) Data, conta debitada, conta creditada, histórico e valor. 2) Por estorno: lançamento inverso. 3) R$ 12.000,00 D.",
         },
       ],
     },

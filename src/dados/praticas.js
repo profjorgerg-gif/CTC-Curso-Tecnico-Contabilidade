@@ -102,6 +102,7 @@ export const CONTAS_RAZONETE = [
   { codigo: "4.1.1.01", nome: "Receita de Vendas de Mercadorias" },
   { codigo: "4.1.1.03", nome: "Receita de Prestação de Serviços" },
   { codigo: "4.3.01", nome: "Juros Ativos" },
+  { codigo: "5.1.02", nome: "Salários Administrativos" },
   { codigo: "5.1.04", nome: "Energia Elétrica" },
   { codigo: "5.1.14", nome: "Aluguéis" },
   { codigo: "5.3.01", nome: "Juros Passivos" },
@@ -114,6 +115,7 @@ const RAZONETES_SERVICOS = {
   tipo: "razonetes",
   titulo: "Razonetes — Prestadora de Serviços Exemplo Ltda.",
   instrucao: "Faça o lançamento de cada fato: escolha a conta, o lado (débito ou crédito) e o valor. Depois de conferido, o lançamento vai para os razonetes. No fim, apure o saldo de cada razonete.",
+  conclusao: "Duplicatas a Pagar ficou com saldo nulo: a obrigação surgiu e foi paga.",
   fatos: [
     { texto: "Os sócios integralizaram o capital de R$ 20.000,00 em dinheiro.",
       partidas: [{ d: "D", conta: "1.1.1.01", valor: 20000 }, { d: "C", conta: "3.1.01", valor: 20000 }],
@@ -229,10 +231,41 @@ const GAMA = {
   ],
 };
 
+// Módulo 05 — do Diário ao Razão (página do Livro Diário do material 8.4, completada; aprovado em 05/10/2026)
+const DIARIO_RAZAO = {
+  id: "cb-diario-razao",
+  tipo: "razonetes",
+  formato: "razao",
+  titulo: "Do Diário ao Razão — março de 2025",
+  instrucao: "Lance cada fato de março no Livro Diário: escolha a conta, o lado (débito ou crédito) e o valor. No fim, monte o Livro Razão de cada conta, com o saldo depois de cada movimento.",
+  conclusao: "Esses saldos finais do Razão são o ponto de partida do Módulo 08.",
+  fatos: [
+    { data: "01/03/2025", texto: "Integralização de capital de R$ 10.000,00 em dinheiro pelo sócio Marcos Almeida.", historico: "Integralização de capital em dinheiro pelo sócio Marcos Almeida.",
+      partidas: [{ d: "D", conta: "1.1.1.01", valor: 10000 }, { d: "C", conta: "3.1.01", valor: 10000 }],
+      explicacao: "D Caixa Geral (Ativo aumenta) / C Capital Subscrito (PL aumenta)." },
+    { data: "02/03/2025", texto: "Depósito de R$ 6.000,00 do caixa na conta do Banco X.", historico: "Depósito em dinheiro na conta do Banco X.",
+      partidas: [{ d: "D", conta: "1.1.1.02.01", valor: 6000 }, { d: "C", conta: "1.1.1.01", valor: 6000 }],
+      explicacao: "D Banco X / C Caixa Geral: o dinheiro só muda de lugar dentro do Ativo." },
+    { data: "05/03/2025", texto: "Compra de mercadorias à vista, em dinheiro, por R$ 3.000,00, conforme NF nº 000123.", historico: "Compra de mercadorias à vista, conforme NF nº 000123.",
+      partidas: [{ d: "D", conta: "1.1.3.01", valor: 3000 }, { d: "C", conta: "1.1.1.01", valor: 3000 }],
+      explicacao: "D Mercadorias para Revenda / C Caixa Geral." },
+    { data: "10/03/2025", texto: "Pagamento da conta de luz, R$ 450,00, pelo Banco X (fatura nº 456789, vencimento em 08/03/2025).", historico: "Pagamento da conta de luz, fatura nº 456789.",
+      partidas: [{ d: "D", conta: "5.1.04", valor: 450 }, { d: "C", conta: "1.1.1.02.01", valor: 450 }],
+      explicacao: "D Energia Elétrica (despesa) / C Banco X." },
+    { data: "12/03/2025", texto: "Venda de mercadorias à vista, em dinheiro, por R$ 5.000,00. O custo das mercadorias vendidas foi de R$ 2.500,00. Registre a venda e a baixa do custo no mesmo lançamento.", historico: "Venda de mercadorias à vista e baixa do custo das mercadorias vendidas.",
+      partidas: [{ d: "D", conta: "1.1.1.01", valor: 5000 }, { d: "C", conta: "4.1.1.01", valor: 5000 }, { d: "D", conta: "6.2.01", valor: 2500 }, { d: "C", conta: "1.1.3.01", valor: 2500 }],
+      explicacao: "4ª fórmula: D Caixa 5.000 / C Receita de Vendas 5.000 e D CMV 2.500 / C Mercadorias 2.500." },
+    { data: "14/03/2025", texto: "Pagamento do salário do funcionário Pedro Silva, R$ 1.800,00, pelo Banco X.", historico: "Pagamento de salário ao funcionário Pedro Silva.",
+      partidas: [{ d: "D", conta: "5.1.02", valor: 1800 }, { d: "C", conta: "1.1.1.02.01", valor: 1800 }],
+      explicacao: "D Salários Administrativos (despesa) / C Banco X." },
+  ],
+};
+
 export const PRATICAS = {
   "cb-01": [CIA_VAMOS, ALFA, BETA], // patrimônio e fatos contábeis (movido do Módulo 02 em 05/10/2026)
   "cb-03": [RAZONETES_SERVICOS],
   "cb-04": [GAMA],
+  "cb-05": [DIARIO_RAZAO],
 };
 
 export const praticasDo = (disciplina, numero) => PRATICAS[`${disciplina}-${String(numero).padStart(2, "0")}`] || [];
