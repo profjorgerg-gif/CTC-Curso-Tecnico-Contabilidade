@@ -1,4 +1,4 @@
-// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026, Módulos 06 e 07 em 06/10/2026).
+// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026, Módulos 06 a 08 em 06/10/2026).
 // Chave: "{disciplina}-{nº do módulo com 2 dígitos}" (ex.: "cb-01").
 // Blocos: { t: "p" | "lista" | "tabela" | "destaque" | "exemplo", ... }; **trecho** = negrito.
 // Base: material didático do prof. Jorge Lima Cardoso (CEDUP Hermann Hering), revisado.
@@ -52,6 +52,13 @@ const FONTES_CB06 = [
 const FONTES_CB07 = [
   "CARDOSO, J. L. Folha de Pagamento na Prática; Exemplo de Contabilização da Folha (Competência e Pagamento). Material didático. Blumenau: CEDUP Hermann Hering, 2025.",
   "CPC – COMITÊ DE PRONUNCIAMENTOS CONTÁBEIS. CPC 00 (R2) – Estrutura Conceitual para Relatório Financeiro. Brasília, 2019.",
+  "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
+  "RIBEIRO, O. M. Contabilidade básica fácil. 28. ed. São Paulo: Saraiva, 2012.",
+];
+
+const FONTES_CB08 = [
+  "CARDOSO, J. L. Trabalho Final – Contabilidade Básica (MPD, LD, LR, BV, BP e DRE). Material didático. Blumenau: CEDUP Hermann Hering, 2025.",
+  "IUDÍCIBUS, S. de (coord.). Contabilidade introdutória. 10. ed. São Paulo: Atlas, 2009.",
   "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
   "RIBEIRO, O. M. Contabilidade básica fácil. 28. ed. São Paulo: Saraiva, 2012.",
 ];
@@ -811,6 +818,92 @@ export const TEORIA = {
       },
     ],
     fontes: FONTES_CB07,
+  },
+  "cb-08": {
+    titulo: "Balancete de Verificação",
+    resumo: "O que é o balancete, modelos de 2, 4 e 6 colunas, como montar a partir do Razão, o que ele detecta e o que não detecta.",
+    secoes: [
+      {
+        titulo: "1. O que é o balancete",
+        blocos: [
+          { t: "p", texto: "O **balancete de verificação** é a relação de **todas as contas** com movimento ou saldo numa data, com seus **débitos, créditos e saldos**, tirados do Livro Razão." },
+          { t: "lista", itens: [
+            "**Conferir** se o método das partidas dobradas foi respeitado: total dos débitos = total dos créditos, e total dos saldos devedores = total dos saldos credores.",
+            "Dar uma **visão geral** da situação das contas antes do fechamento.",
+            "Ser a **base** para a DRE e o Balanço Patrimonial.",
+          ] },
+          { t: "p", texto: "Na prática, as empresas fazem o balancete **todo mês**." },
+        ],
+      },
+      {
+        titulo: "2. Modelos de balancete",
+        blocos: [
+          { t: "tabela", cab: ["Modelo", "Colunas"], linhas: [
+            ["2 colunas", "Saldo devedor e saldo credor"],
+            ["**4 colunas**", "**Débito, Crédito** (movimento) e **Saldo Débito, Saldo Crédito**"],
+            ["6 colunas", "Saldo anterior, movimento do período (D e C) e saldo atual"],
+          ] },
+        ],
+      },
+      {
+        titulo: "3. Como montar (a partir do Razão)",
+        blocos: [
+          { t: "lista", numerada: true, itens: [
+            "Liste as contas na **ordem do plano**: Ativo, Passivo, PL, Receitas, Despesas e Custos.",
+            "Em cada conta, some os **débitos** e os **créditos** do Razão.",
+            "Calcule o **saldo**: débitos maiores → saldo **devedor**; créditos maiores → saldo **credor**.",
+            "Some as quatro colunas e confira: **total de débitos = total de créditos** e **saldos devedores = saldos credores**.",
+          ] },
+        ],
+      },
+      {
+        titulo: "4. Exemplo: o mês de março do Módulo 05",
+        blocos: [
+          { t: "tabela", cab: ["Conta", "Débito", "Crédito", "Saldo Débito", "Saldo Crédito"], linhas: [
+            ["1.1.1.01 Caixa Geral", "15.000,00", "9.000,00", "6.000,00", ""],
+            ["1.1.1.02.01 Banco X", "6.000,00", "2.250,00", "3.750,00", ""],
+            ["1.1.3.01 Mercadorias para Revenda", "3.000,00", "2.500,00", "500,00", ""],
+            ["3.1.01 Capital Subscrito", "", "10.000,00", "", "10.000,00"],
+            ["4.1.1.01 Receita de Vendas de Mercadorias", "", "5.000,00", "", "5.000,00"],
+            ["5.1.02 Salários Administrativos", "1.800,00", "", "1.800,00", ""],
+            ["5.1.04 Energia Elétrica", "450,00", "", "450,00", ""],
+            ["6.2.01 CMV", "2.500,00", "", "2.500,00", ""],
+            ["**Totais**", "**28.750,00**", "**28.750,00**", "**15.000,00**", "**15.000,00**"],
+          ] },
+          { t: "destaque", texto: "O balancete tem **contas patrimoniais e de resultado** juntas. O Balanço Patrimonial só tem as patrimoniais, porque as de resultado são encerradas na ARE (Módulo 10)." },
+        ],
+      },
+      {
+        titulo: "5. O que o balancete detecta — e o que não detecta",
+        blocos: [
+          { t: "tabela", cab: ["O balancete **mostra** (não fecha)", "O balancete **não mostra** (fecha mesmo com erro)"], linhas: [
+            ["Lançamento com débito diferente do crédito", "**Omissão** de um lançamento inteiro"],
+            ["Erro de soma ou de transcrição de um saldo", "Lançamento em **duplicidade**"],
+            ["Saldo colocado na coluna errada", "**Conta errada** (ex.: Aluguéis no lugar de Energia)"],
+            ["", "**Inversão**: debitou a conta que devia creditar, e vice-versa"],
+            ["", "**Valor errado igual** nos dois lados"],
+          ] },
+          { t: "destaque", texto: "Balancete fechado **não garante** que a escrituração está certa — só que débitos e créditos estão iguais. Por isso o Razão também é conferido conta a conta." },
+        ],
+      },
+      {
+        titulo: "6. Saldo \"estranho\" é sinal de alerta",
+        blocos: [
+          { t: "p", texto: "Se uma conta tem saldo de natureza **contrária** à normal — Caixa com saldo credor (saiu mais dinheiro do que entrou), Fornecedores com saldo devedor (pagou mais do que devia) —, verifique os lançamentos." },
+        ],
+      },
+      {
+        titulo: "No CTC",
+        blocos: [
+          { t: "lista", itens: [
+            "A aba **Balancete** da Escrituração monta o balancete da sua empresa a partir dos lançamentos, com o selo **\"Fechado: débitos = créditos\"** ou **\"Não fecha — confira os lançamentos\"**.",
+            "No Acompanhamento da turma, o professor vê quem está com o balancete fechando.",
+            "Pratique antes com o exercício \"Monte o balancete\", abaixo.",
+          ] },
+        ],
+      },
+    ],
+    fontes: FONTES_CB08,
   },
 };
 

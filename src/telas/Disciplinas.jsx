@@ -7,6 +7,7 @@ import { praticasDo } from "../dados/praticas";
 import BalancoSucessivo from "../componentes/BalancoSucessivo";
 import Razonetes from "../componentes/Razonetes";
 import FichaEstoque from "../componentes/FichaEstoque";
+import BalanceteExercicio from "../componentes/BalanceteExercicio";
 import { useEffect, useState } from "react";
 import { usePlano } from "../lib/contabil";
 import { estudado, marcarEstudado, passoDo, situacaoDoAluno } from "../lib/trilha";
@@ -72,7 +73,7 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
           <p className="suave">{teoria.resumo}</p>
         </div>
         <Teoria teoria={teoria} />
-        {praticasDo(atual.id, nModulo).map((ex) => (ex.tipo === "balanco-sucessivo" ? <BalancoSucessivo key={ex.id} ex={ex} /> : ex.tipo === "razonetes" ? <Razonetes key={ex.id} ex={ex} /> : ex.tipo === "ficha-estoque" ? <FichaEstoque key={ex.id} ex={ex} /> : null))}
+        {praticasDo(atual.id, nModulo).map((ex) => (ex.tipo === "balanco-sucessivo" ? <BalancoSucessivo key={ex.id} ex={ex} /> : ex.tipo === "razonetes" ? <Razonetes key={ex.id} ex={ex} /> : ex.tipo === "ficha-estoque" ? <FichaEstoque key={ex.id} ex={ex} /> : ex.tipo === "balancete" ? <BalanceteExercicio key={ex.id} ex={ex} /> : null))}
         <ProximoPasso disciplina={atual} n={nModulo} papel={papel} ir={ir} />
       </>
     );

@@ -310,6 +310,16 @@ const FOLHA = {
   ],
 };
 
+// Módulo 08 — monte o balancete (fatos dos razonetes do Módulo 03; aprovado em 06/10/2026)
+const BALANCETE_SERVICOS = {
+  id: "cb-balancete-servicos",
+  tipo: "balancete",
+  titulo: "Monte o balancete — Prestadora de Serviços Exemplo Ltda.",
+  instrucao: "São os 9 fatos dos razonetes do Módulo 03. Para cada conta, some os débitos e os créditos do Razão e preencha as 4 colunas do balancete de verificação. Deixe em branco o que for zero.",
+  conclusao: "Duplicatas a Pagar tem movimento, mas saldo zero: aparece no balancete só nas colunas de movimento.",
+  fatos: RAZONETES_SERVICOS.fatos,
+};
+
 export const PRATICAS = {
   "cb-01": [CIA_VAMOS, ALFA, BETA], // patrimônio e fatos contábeis (movido do Módulo 02 em 05/10/2026)
   "cb-03": [RAZONETES_SERVICOS],
@@ -317,6 +327,7 @@ export const PRATICAS = {
   "cb-05": [DIARIO_RAZAO],
   "cb-06": [FICHA_ESTOQUE],
   "cb-07": [FOLHA],
+  "cb-08": [BALANCETE_SERVICOS],
 };
 
 export const praticasDo = (disciplina, numero) => PRATICAS[`${disciplina}-${String(numero).padStart(2, "0")}`] || [];

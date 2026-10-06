@@ -1,7 +1,7 @@
 // Slides do Guia Pedagógico (aprovado em 04/10/2026): uma apresentação por módulo.
 // Cada slide: { titulo, pontos?: [], tabela?: { cab: [], linhas: [[]] }, destaque?, notas }.
 // "notas" são as anotações do professor (aparecem só quando ele liga "Notas do professor").
-// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão; Mercadorias e Estoque; Lançamentos e Competência.
+// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão; Mercadorias e Estoque; Lançamentos e Competência; Balancete.
 
 export const SLIDES = {
   cb: [
@@ -908,6 +908,112 @@ export const SLIDES = {
             "3. Seguro anual de 6.000 pago em janeiro: qual a despesa de cada mês?",
           ],
           notas: "Respostas: 1) Março (D Aluguéis / C Aluguéis a Pagar). 2) 10.000 − 900 − 250 = R$ 8.850,00. 3) R$ 500,00.",
+        },
+      ],
+    },
+    {
+      id: "cb-balancete",
+      modulo: "Balancete de Verificação",
+      titulo: "Balancete de Verificação",
+      subtitulo: "A conferência das partidas dobradas",
+      slides: [
+        {
+          titulo: "O que é o balancete",
+          pontos: [
+            "Relação de todas as contas com movimento ou saldo numa data",
+            "Débitos, créditos e saldos tirados do Razão",
+            "Confere se débitos = créditos e saldos devedores = credores",
+            "Base para a DRE e o Balanço Patrimonial",
+          ],
+          notas: "Comente que as empresas fazem o balancete todo mês, antes de qualquer relatório.",
+        },
+        {
+          titulo: "Modelos",
+          tabela: {
+            cab: ["Modelo", "Colunas"],
+            linhas: [
+              ["2 colunas", "Saldo devedor · Saldo credor"],
+              ["4 colunas", "Débito · Crédito · Saldo Débito · Saldo Crédito"],
+              ["6 colunas", "Saldo anterior · Movimento D e C · Saldo atual"],
+            ],
+          },
+          notas: "No CTC e nos exercícios usamos o de 4 colunas.",
+        },
+        {
+          titulo: "Como montar",
+          pontos: [
+            "1. Contas na ordem do plano",
+            "2. Some os débitos e os créditos de cada conta no Razão",
+            "3. Saldo: lado maior menos lado menor",
+            "4. Some as colunas e confira as igualdades",
+          ],
+          notas: "Lembre: conta com débitos e créditos iguais tem saldo zero, mas aparece nas colunas de movimento.",
+        },
+        {
+          titulo: "Exemplo: março (Módulo 05)",
+          tabela: {
+            cab: ["Conta", "Débito", "Crédito", "Saldo D", "Saldo C"],
+            linhas: [
+              ["Caixa Geral", "15.000", "9.000", "6.000", ""],
+              ["Banco X", "6.000", "2.250", "3.750", ""],
+              ["Mercadorias", "3.000", "2.500", "500", ""],
+              ["Capital Subscrito", "", "10.000", "", "10.000"],
+              ["Receita de Vendas", "", "5.000", "", "5.000"],
+              ["Salários", "1.800", "", "1.800", ""],
+              ["Energia", "450", "", "450", ""],
+              ["CMV", "2.500", "", "2.500", ""],
+              ["Totais", "28.750", "28.750", "15.000", "15.000"],
+            ],
+          },
+          notas: "Peça que a turma confira as somas de cada coluna.",
+        },
+        {
+          titulo: "O que o balancete NÃO detecta",
+          pontos: [
+            "Omissão de um lançamento inteiro",
+            "Lançamento em duplicidade",
+            "Conta errada (ex.: Aluguéis no lugar de Energia)",
+            "Inversão de débito e crédito",
+            "Valor errado igual nos dois lados",
+          ],
+          destaque: "Balancete fechado não garante escrituração certa.",
+          notas: "Dê um exemplo de inversão: o pagamento de energia lançado D Banco / C Energia. O balancete fecha, mas está errado.",
+        },
+        {
+          titulo: "O que o balancete detecta",
+          pontos: [
+            "Lançamento com débito diferente do crédito",
+            "Erro de soma ou de transcrição de saldo",
+            "Saldo na coluna errada",
+          ],
+          notas: "No CTC, o lançamento só grava com D = C, então o primeiro tipo de erro não acontece no sistema.",
+        },
+        {
+          titulo: "Saldo estranho = alerta",
+          pontos: [
+            "Caixa com saldo credor: saiu mais do que entrou?",
+            "Fornecedores com saldo devedor: pagou a mais?",
+            "Receita com saldo devedor: lançamento invertido?",
+          ],
+          notas: "Ensine a \"ler\" o balancete: cada conta deve ter saldo da sua natureza.",
+        },
+        {
+          titulo: "No CTC",
+          pontos: [
+            "Aba Balancete da Escrituração",
+            "Selo \"Fechado\" ou \"Não fecha\"",
+            "Exercício \"Monte o balancete\" no Módulo 08",
+          ],
+          notas: "Mostre o Acompanhamento da turma: a coluna Balancete indica quem fecha.",
+        },
+        {
+          titulo: "Para fixar",
+          pontos: [
+            "1. Uma conta tem débitos de 7.000 e créditos de 9.500. Saldo?",
+            "2. O pagamento de energia foi esquecido. O balancete fecha?",
+            "3. Por que o balancete tem receitas e despesas e o Balanço não?",
+          ],
+          notas: "Respostas: 1) Credor de 2.500. 2) Sim — omissão não é detectada. 3) As contas de resultado são encerradas na ARE antes do Balanço.",
         },
       ],
     },
