@@ -39,9 +39,11 @@ export function conferirLancamento(linhas, gabarito) {
 }
 
 // saldo de cada razonete a partir dos lançamentos dos fatos já concluídos
-function razonetes(fatos) {
+function razonetes(fatos, iniciais = []) {
   const r = {};
-  fatos.forEach((f, i) => f.partidas.forEach((p) => {
+  // saldos iniciais (já existentes antes do primeiro fato) entram como movimento "SI"
+  [{ partidas: iniciais, si: true }, ...fatos].forEach((f, k) => f.partidas.forEach((p) => {
+    const i = f.si ? -1 : k - 1;
     r[p.conta] = r[p.conta] || { D: [], C: [] };
     r[p.conta][p.d].push({ n: i + 1, valor: p.valor });
     r[p.conta].movs = r[p.conta].movs || [];
@@ -74,7 +76,7 @@ export default function Razonetes({ ex }) {
   const travado = p.estado !== "montando";
   // razonetes mostram os fatos já resolvidos (e o atual, depois de conferido ou revelado)
   const lancados = ex.fatos.slice(0, p.fato + (travado && !naApuracao ? 1 : 0));
-  const rz = useMemo(() => razonetes(lancados), [lancados.length]);
+  const rz = useMemo(() => razonetes(lancados, ex.saldosIniciais || []), [lancados.length]);
 
   const totD = p.linhas.filter((l) => l.d === "D").reduce((s, l) => s + (lerValor(l.valor) || 0), 0);
   const totC = p.linhas.filter((l) => l.d === "C").reduce((s, l) => s + (lerValor(l.valor) || 0), 0);
@@ -141,7 +143,7 @@ export default function Razonetes({ ex }) {
               {["D", "C"].map((lado) => (
                 <div key={lado} className="mono pequeno" style={{ padding: "4px 6px", borderLeft: lado === "C" ? "2px solid var(--destaque)" : "none", textAlign: lado === "D" ? "left" : "right", display: "flex", flexDirection: "column", gap: 2, minHeight: 40 }}>
                   <span className="suave" style={{ fontFamily: "inherit" }}>{lado === "D" ? "Débito" : "Crédito"}</span>
-                  {r[lado].map((e, k) => <span key={k} style={{ whiteSpace: "nowrap", fontSize: 12 }}>({n2(e.n)}) {fmt(e.valor)}</span>)}
+                  {r[lado].map((e, k) => <span key={k} style={{ whiteSpace: "nowrap", fontSize: 12 }}>({e.n === 0 ? "SI" : n2(e.n)}) {fmt(e.valor)}</span>)}
                 </div>
               ))}
             </div>
@@ -200,7 +202,7 @@ export default function Razonetes({ ex }) {
                 {r.movs.map((mv, k) => {
                   const chave = `${r.conta}#${k}`;
                   const s = saldoDoAluno(chave);
-                  const f = ex.fatos[mv.n - 1];
+                  const f = mv.n === 0 ? { data: "SI", historico: "Saldo inicial" } : ex.fatos[mv.n - 1];
                   const ok = apur?.marcas[chave];
                   return (
                     <tr key={k}>

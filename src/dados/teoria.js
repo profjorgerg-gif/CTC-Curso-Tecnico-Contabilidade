@@ -1,4 +1,4 @@
-// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026, Módulos 06 a 09 em 06/10/2026).
+// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026, Módulos 06 a 10 em 06/10/2026).
 // Chave: "{disciplina}-{nº do módulo com 2 dígitos}" (ex.: "cb-01").
 // Blocos: { t: "p" | "lista" | "tabela" | "destaque" | "exemplo", ... }; **trecho** = negrito.
 // Base: material didático do prof. Jorge Lima Cardoso (CEDUP Hermann Hering), revisado.
@@ -68,6 +68,12 @@ const FONTES_CB09 = [
   "BRASIL. Lei nº 6.404, de 15 de dezembro de 1976. Dispõe sobre as Sociedades por Ações. Art. 187.",
   "CFC – CONSELHO FEDERAL DE CONTABILIDADE. NBC TG 26 (R5) – Apresentação das Demonstrações Contábeis. Brasília: CFC.",
   "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
+];
+
+const FONTES_CB10 = [
+  "IUDÍCIBUS, S. de (coord.). Contabilidade introdutória. 10. ed. São Paulo: Atlas, 2009.",
+  "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
+  "RIBEIRO, O. M. Contabilidade básica fácil. 28. ed. São Paulo: Saraiva, 2012.",
 ];
 
 export const TEORIA = {
@@ -1012,6 +1018,88 @@ export const TEORIA = {
       },
     ],
     fontes: FONTES_CB09,
+  },
+  "cb-10": {
+    titulo: "Encerramento do Exercício (ARE)",
+    resumo: "Por que encerrar, a conta ARE, os passos do encerramento, exemplos com lucro e com prejuízo, quando encerrar e o que acontece depois.",
+    secoes: [
+      {
+        titulo: "1. Por que encerrar",
+        blocos: [
+          { t: "p", texto: "As contas de **resultado** (receitas, despesas e custos) são **temporárias**: medem o desempenho de **um período**. No fim dele, são **zeradas** e o resultado (lucro ou prejuízo) vai para o **Patrimônio Líquido** — assim o novo período começa com essas contas zeradas (Módulo 04)." },
+          { t: "p", texto: "As contas **patrimoniais** (Ativo, Passivo e PL) **não são encerradas**: seus saldos passam para o período seguinte." },
+        ],
+      },
+      {
+        titulo: "2. A conta ARE",
+        blocos: [
+          { t: "p", texto: "A **7.1.01 ARE – Apuração do Resultado do Exercício** é uma conta **transitória**: recebe os saldos das contas de resultado, mostra o lucro ou o prejuízo e fica zerada no fim do encerramento." },
+        ],
+      },
+      {
+        titulo: "3. Os passos do encerramento",
+        blocos: [
+          { t: "tabela", cab: ["Passo", "Lançamento"], linhas: [
+            ["1. Conferir os saldos no balancete", "—"],
+            ["2. Encerrar as **receitas** (saldo credor)", "D – Receita / C – 7.1.01 ARE"],
+            ["3. Encerrar **despesas, custos e deduções** (saldo devedor)", "D – 7.1.01 ARE / C – Despesa, Custo ou Dedução"],
+            ["4. Ver o saldo da ARE", "Credor = **lucro** · Devedor = **prejuízo**"],
+            ["5a. Transferir o **lucro**", "D – 7.1.01 ARE / C – 3.9 Resultado do Exercício"],
+            ["5b. Transferir o **prejuízo**", "D – 3.6 (−) Prejuízos Acumulados / C – 7.1.01 ARE"],
+          ] },
+          { t: "destaque", texto: "Para zerar uma conta, lança-se o **valor do saldo no lado contrário**: receita (saldo credor) se encerra a débito; despesa (saldo devedor), a crédito." },
+        ],
+      },
+      {
+        titulo: "4. Exemplo com lucro — Prestadora de Serviços (Módulos 03 e 08)",
+        blocos: [
+          { t: "p", texto: "Contas de resultado do balancete: Receita de Prestação de Serviços 8.000,00 C; Energia Elétrica 1.200,00 D; Aluguéis 1.000,00 D; Juros Passivos 80,00 D." },
+          { t: "tabela", cab: ["", "Débito", "Crédito", "R$"], linhas: [
+            ["Encerramento da receita", "4.1.1.03 Receita de Prestação de Serviços", "7.1.01 ARE", "8.000,00"],
+            ["Encerramento das despesas", "7.1.01 ARE", "5.1.04 Energia (1.200) · 5.1.14 Aluguéis (1.000) · 5.3.01 Juros (80)", "2.280,00"],
+            ["Transferência do lucro", "7.1.01 ARE", "3.9 Resultado do Exercício", "5.720,00"],
+          ] },
+          { t: "p", texto: "Razonete da ARE: crédito de 8.000,00 e débitos de 2.280,00 + 5.720,00 → saldo **zero**. O PL passa de R$ 20.000,00 (capital) para **R$ 25.720,00**, e o Ativo (30.720) = Passivo (5.000) + PL (25.720)." },
+        ],
+      },
+      {
+        titulo: "5. Exemplo com prejuízo",
+        blocos: [
+          { t: "p", texto: "Receitas de R$ 3.000,00 e despesas de R$ 4.200,00: a ARE fica com saldo **devedor** de R$ 1.200,00 (prejuízo). Lançamento: **D – 3.6 (−) Prejuízos Acumulados / C – 7.1.01 ARE: R$ 1.200,00**. O prejuízo **reduz** o PL." },
+        ],
+      },
+      {
+        titulo: "6. Quando encerrar",
+        blocos: [
+          { t: "lista", itens: [
+            "No **fim do exercício social** (em geral, 31/12).",
+            "Se a empresa apura o resultado **mensal ou trimestralmente**, também no fim de cada período — no CTC, escolhido na Parametrização (\"apuração\").",
+            "No **inventário periódico**, o CMV precisa ser apurado **antes** do encerramento (Módulo 06).",
+          ] },
+        ],
+      },
+      {
+        titulo: "7. Depois do encerramento",
+        blocos: [
+          { t: "lista", itens: [
+            "As contas de resultado ficam **zeradas**; o balancete pós-encerramento só tem contas patrimoniais — e dele sai o **Balanço Patrimonial** (Módulo 12).",
+            "O lucro no PL ainda precisa ser **destinado** (reservas, dividendos): é a **DLPA**, Módulo 11.",
+            "A **DRE** continua mostrando o resultado do período: ela é montada com os saldos **antes** do encerramento.",
+          ] },
+        ],
+      },
+      {
+        titulo: "No CTC",
+        blocos: [
+          { t: "lista", itens: [
+            "Na aba **Encerramento (ARE)**, você **faz os lançamentos de encerramento** da sua empresa: para cada conta de resultado, escolhe o lado e o valor; depois, a transferência do lucro ou do prejuízo.",
+            "O CTC confere; só então você vê os lançamentos e grava o encerramento. Ele pode ser desfeito para corrigir lançamentos e encerrar de novo.",
+            "Pratique antes com o exercício de encerramento, abaixo.",
+          ] },
+        ],
+      },
+    ],
+    fontes: FONTES_CB10,
   },
 };
 

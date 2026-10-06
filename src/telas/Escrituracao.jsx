@@ -12,6 +12,7 @@ import { AREAS, areaConfirmada, fimDePeriodoValido, parametrosEfetivos } from ".
 import { corrigirLancamento, ehQuestoes, FINALIDADES, finalidadeDe, GABARITO_ORIENTADOS, listasDaTurma, valeNota, ajudaDaLista } from "../lib/exercicios";
 import { lerBoletim } from "../lib/notas";
 import MontarDemonstracao, { montagemConcluida } from "../componentes/MontarDemonstracao";
+import EncerramentoAluno from "../componentes/EncerramentoAluno";
 import { balanco, CONTA_LUCROS, dlpa, dre, jaEncerrado, propostaEncerramento } from "../lib/demonstracoes";
 import { apuracaoPeriodica, custoDaSaida, kardex, METODOS, movimentosDeEstoque } from "../lib/estoque";
 import { semAcento } from "../lib/arquivos";
@@ -1095,7 +1096,7 @@ function Dre({ empresa, plano, dados, params, donoAluno }) {
 }
 
 // ---------------- Encerramento (ARE) ----------------
-function Encerramento({ sessao, empresa, plano, dados, recarregar, params, periodico }) {
+function Encerramento({ sessao, empresa, plano, dados, recarregar, params, periodico, donoAluno }) {
   const encerrado = jaEncerrado(dados.lancamentos);
   const p = propostaEncerramento(plano, dados.lancamentos, dados.saldos);
   const ultimaData = dados.lancamentos.reduce((m, l) => (l.data > m ? l.data : m), empresa.inicioExercicio || "");
@@ -1121,6 +1122,23 @@ function Encerramento({ sessao, empresa, plano, dados, recarregar, params, perio
     setOcupado(false);
   };
   const doEncerramento = dados.lancamentos.filter((l) => l.encerramento);
+  // aluno: faz os lançamentos de encerramento antes de ver a proposta e gravar (aprovado em 06/10/2026)
+  const [conferido, setConferido] = useState(false);
+  const alunoMonta = donoAluno && !encerrado && p.propostos.length > 0 && !conferido && !faltaApurarCMV;
+  if (alunoMonta) {
+    return (
+      <>
+        <section className="cartao">
+          <h2>Encerramento do exercício — Apuração do Resultado (ARE)</h2>
+          <p className="pequeno suave" style={{ maxWidth: 820 }}>
+            No fim do exercício, as contas de resultado (receitas, despesas e custos) são zeradas contra a conta {nome("7.1.01")}.
+            O saldo que sobra na ARE é o lucro ou o prejuízo, transferido para o Patrimônio Líquido. Antes de gravar, faça você os lançamentos; o CTC confere.
+          </p>
+        </section>
+        <EncerramentoAluno propostos={p.propostos} nome={nome} chave={`ctc-montar-are-${empresa.id}`} aoConferir={() => setConferido(true)} />
+      </>
+    );
+  }
 
   return (
     <>

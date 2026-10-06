@@ -1,7 +1,7 @@
 // Slides do Guia Pedagógico (aprovado em 04/10/2026): uma apresentação por módulo.
 // Cada slide: { titulo, pontos?: [], tabela?: { cab: [], linhas: [[]] }, destaque?, notas }.
 // "notas" são as anotações do professor (aparecem só quando ele liga "Notas do professor").
-// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão; Mercadorias e Estoque; Lançamentos e Competência; Balancete; DRE.
+// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão; Mercadorias e Estoque; Lançamentos e Competência; Balancete; DRE; Encerramento.
 
 export const SLIDES = {
   cb: [
@@ -1129,6 +1129,107 @@ export const SLIDES = {
             "3. Receita de aluguel de uma sala sublocada entra em qual linha?",
           ],
           notas: "Respostas: 1) 80.000 − 1.000 − 40.000 = R$ 39.000,00. 2) Despesas Financeiras (5.3). 3) Outras Receitas Operacionais (4.4).",
+        },
+      ],
+    },
+    {
+      id: "cb-encerramento",
+      modulo: "Encerramento do Exercício (ARE)",
+      titulo: "Encerramento do Exercício",
+      subtitulo: "A Apuração do Resultado do Exercício (ARE)",
+      slides: [
+        {
+          titulo: "Por que encerrar",
+          pontos: [
+            "Contas de resultado são temporárias: medem um período",
+            "No fim do período, são zeradas",
+            "O lucro ou o prejuízo vai para o Patrimônio Líquido",
+            "Contas patrimoniais não são encerradas",
+          ],
+          notas: "Compare com um placar de campeonato: a cada temporada, o placar zera; o saldo de títulos (PL) continua.",
+        },
+        {
+          titulo: "A conta ARE (7.1.01)",
+          pontos: [
+            "Conta transitória",
+            "Recebe os saldos das contas de resultado",
+            "Mostra o lucro (saldo credor) ou o prejuízo (saldo devedor)",
+            "Fica zerada no fim do encerramento",
+          ],
+          notas: "A ARE \"existe\" só durante o encerramento.",
+        },
+        {
+          titulo: "Os passos",
+          tabela: {
+            cab: ["Passo", "Lançamento"],
+            linhas: [
+              ["Encerrar receitas", "D Receita / C ARE"],
+              ["Encerrar despesas e custos", "D ARE / C Despesa ou Custo"],
+              ["Lucro", "D ARE / C 3.9 Resultado do Exercício"],
+              ["Prejuízo", "D 3.6 (−) Prejuízos Acumulados / C ARE"],
+            ],
+          },
+          destaque: "Zera-se a conta lançando o saldo no lado contrário.",
+          notas: "Deduções da receita (4.2) são devedoras: encerram-se como as despesas.",
+        },
+        {
+          titulo: "Exemplo: Prestadora de Serviços",
+          tabela: {
+            cab: ["", "Débito", "Crédito", "R$"],
+            linhas: [
+              ["Receita", "Receita de Serviços", "ARE", "8.000,00"],
+              ["Despesas", "ARE", "Energia · Aluguéis · Juros", "2.280,00"],
+              ["Lucro", "ARE", "Resultado do Exercício", "5.720,00"],
+            ],
+          },
+          notas: "Desenhe o razonete da ARE: C 8.000; D 2.280 e D 5.720 → saldo zero.",
+        },
+        {
+          titulo: "Exemplo com prejuízo",
+          pontos: [
+            "Receitas 3.000; despesas 4.200",
+            "ARE com saldo devedor de 1.200 = prejuízo",
+            "D (−) Prejuízos Acumulados / C ARE: 1.200",
+            "O prejuízo reduz o PL",
+          ],
+          notas: "Pergunte: o que acontece com o PL quando há prejuízo?",
+        },
+        {
+          titulo: "Quando encerrar",
+          pontos: [
+            "Fim do exercício social (em geral, 31/12)",
+            "Ou no fim de cada mês ou trimestre, conforme a apuração",
+            "Inventário periódico: apurar o CMV antes",
+          ],
+          notas: "No CTC, a apuração (anual, trimestral, mensal) é escolhida na Parametrização.",
+        },
+        {
+          titulo: "Depois do encerramento",
+          pontos: [
+            "Contas de resultado zeradas",
+            "Balanço Patrimonial só com contas patrimoniais (Módulo 12)",
+            "Destinação do lucro: DLPA (Módulo 11)",
+            "A DRE usa os saldos antes do encerramento",
+          ],
+          notas: "Mostre o Balancete de uma empresa encerrada: só sobram contas patrimoniais.",
+        },
+        {
+          titulo: "No CTC",
+          pontos: [
+            "Exercício de encerramento no Módulo 10",
+            "Aba Encerramento (ARE): o aluno faz os lançamentos",
+            "O CTC confere antes de gravar; dá para desfazer",
+          ],
+          notas: "Lembre a turma: se lançar algo depois do encerramento, é preciso desfazer e encerrar de novo.",
+        },
+        {
+          titulo: "Para fixar",
+          pontos: [
+            "1. Receita de vendas com saldo credor de 10.000: como encerrar?",
+            "2. Receitas 9.000 e despesas 6.500: lucro ou prejuízo? Lançamento?",
+            "3. Caixa é encerrado na ARE?",
+          ],
+          notas: "Respostas: 1) D Receita / C ARE 10.000. 2) Lucro de 2.500: D ARE / C Resultado do Exercício. 3) Não: é conta patrimonial.",
         },
       ],
     },

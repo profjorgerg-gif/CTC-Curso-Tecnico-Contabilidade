@@ -103,6 +103,8 @@ export const CONTAS_RAZONETE = [
   { codigo: "2.1.8.11", nome: "INSS Retido Empregados" },
   { codigo: "2.1.9.01", nome: "Empréstimos Bancários" },
   { codigo: "3.1.01", nome: "Capital Subscrito" },
+  { codigo: "3.6", nome: "(−) Prejuízos Acumulados" },
+  { codigo: "3.9", nome: "Resultado do Exercício" },
   { codigo: "4.1.1.01", nome: "Receita de Vendas de Mercadorias" },
   { codigo: "4.1.1.03", nome: "Receita de Prestação de Serviços" },
   { codigo: "4.3.01", nome: "Juros Ativos" },
@@ -112,6 +114,7 @@ export const CONTAS_RAZONETE = [
   { codigo: "5.1.14", nome: "Aluguéis" },
   { codigo: "5.3.01", nome: "Juros Passivos" },
   { codigo: "6.2.01", nome: "Custo das Mercadorias Vendidas (CMV)" },
+  { codigo: "7.1.01", nome: "ARE – Apuração do Resultado do Exercício" },
 ];
 
 // fatos: partidas [{ d: "D" | "C", conta, valor }]; base: material 6 e 6.1 do prof. Jorge Cardoso
@@ -344,6 +347,33 @@ const DRE_DELTA = {
   ],
 };
 
+// Módulo 10 — encerramento (saldos do balancete do Módulo 08; aprovado em 06/10/2026)
+const ENCERRAMENTO_SERVICOS = {
+  id: "cb-encerramento-servicos",
+  tipo: "razonetes",
+  titulo: "Encerramento do exercício — Prestadora de Serviços Exemplo Ltda.",
+  instrucao: "Os saldos do balancete do Módulo 08 já estão nos razonetes (SI). Faça os lançamentos de encerramento: zere a receita e as despesas contra a ARE e transfira o resultado para o Patrimônio Líquido. No fim, apure os razonetes.",
+  conclusao: "As contas de resultado e a ARE ficaram zeradas; o lucro de 5.720,00 está no PL (3.9 Resultado do Exercício). Agora o Ativo (30.720) = Passivo (5.000) + PL (25.720).",
+  saldosIniciais: [
+    { d: "D", conta: "1.1.1.01", valor: 11500 }, { d: "D", conta: "1.1.1.02.01", valor: 11720 },
+    { d: "D", conta: "1.1.3.01", valor: 3500 }, { d: "D", conta: "1.2.3.07", valor: 4000 },
+    { d: "C", conta: "2.1.9.01", valor: 5000 }, { d: "C", conta: "3.1.01", valor: 20000 },
+    { d: "C", conta: "4.1.1.03", valor: 8000 }, { d: "D", conta: "5.1.04", valor: 1200 },
+    { d: "D", conta: "5.1.14", valor: 1000 }, { d: "D", conta: "5.3.01", valor: 80 },
+  ],
+  fatos: [
+    { data: "31/12", texto: "Encerre a conta de receita (Receita de Prestação de Serviços, saldo credor de R$ 8.000,00) contra a ARE.",
+      partidas: [{ d: "D", conta: "4.1.1.03", valor: 8000 }, { d: "C", conta: "7.1.01", valor: 8000 }],
+      explicacao: "Receita tem saldo credor: para zerar, debita-se a receita e credita-se a ARE." },
+    { data: "31/12", texto: "Encerre as despesas (Energia Elétrica 1.200,00; Aluguéis 1.000,00; Juros Passivos 80,00) contra a ARE, num só lançamento.",
+      partidas: [{ d: "D", conta: "7.1.01", valor: 2280 }, { d: "C", conta: "5.1.04", valor: 1200 }, { d: "C", conta: "5.1.14", valor: 1000 }, { d: "C", conta: "5.3.01", valor: 80 }],
+      explicacao: "Despesas têm saldo devedor: credita-se cada despesa e debita-se a ARE pelo total (2ª fórmula)." },
+    { data: "31/12", texto: "Transfira o resultado da ARE para o Patrimônio Líquido.",
+      partidas: [{ d: "D", conta: "7.1.01", valor: 5720 }, { d: "C", conta: "3.9", valor: 5720 }],
+      explicacao: "A ARE ficou com saldo credor de 8.000 − 2.280 = 5.720: é lucro. D ARE / C 3.9 Resultado do Exercício zera a ARE e leva o lucro ao PL." },
+  ],
+};
+
 export const PRATICAS = {
   "cb-01": [CIA_VAMOS, ALFA, BETA], // patrimônio e fatos contábeis (movido do Módulo 02 em 05/10/2026)
   "cb-03": [RAZONETES_SERVICOS],
@@ -353,6 +383,7 @@ export const PRATICAS = {
   "cb-07": [FOLHA],
   "cb-08": [BALANCETE_SERVICOS],
   "cb-09": [DRE_DELTA],
+  "cb-10": [ENCERRAMENTO_SERVICOS],
 };
 
 export const praticasDo = (disciplina, numero) => PRATICAS[`${disciplina}-${String(numero).padStart(2, "0")}`] || [];
