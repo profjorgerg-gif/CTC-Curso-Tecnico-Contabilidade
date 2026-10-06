@@ -1310,8 +1310,33 @@ function NoBalanco({ no, nivel = 0 }) {
   );
 }
 
-function Balanco({ empresa, plano, dados, params }) {
+function Balanco({ empresa, plano, dados, params, donoAluno }) {
   const b = balanco(plano, dados.lancamentos, dados.saldos);
+  // aluno: "montar e conferir" o Balanço depois do encerramento (aprovado em 06/10/2026)
+  const filhos = (no) => (no?.filhos || []).map((f) => ({ rotulo: f.conta.nome, valor: f.valor, tipo: "item" }));
+  const linhasBp = [
+    ...filhos(b.ativo), { rotulo: "TOTAL DO ATIVO", valor: b.totAtivo, tipo: "subtotal" },
+    ...filhos(b.passivo), { rotulo: "Total do Passivo", valor: b.totPassivo, tipo: "subtotal" },
+    ...filhos(b.pl), { rotulo: "Total do Patrimônio Líquido", valor: b.totPL, tipo: "subtotal" },
+    { rotulo: "TOTAL DO PASSIVO + PL", valor: arred(b.totPassivo + b.totPL), tipo: "final" },
+  ];
+  const assinaturaBp = linhasBp.map((x) => `${x.rotulo}:${x.valor.toFixed(2)}`).join("|");
+  const chaveBp = `ctc-montar-bp-${empresa.id}`;
+  const [montado, setMontado] = useState(() => montagemConcluida(chaveBp, assinaturaBp));
+  useEffect(() => { setMontado(montagemConcluida(chaveBp, assinaturaBp)); }, [assinaturaBp]);
+  if (donoAluno && jaEncerrado(dados.lancamentos) && b.totAtivo > 0 && !montado) {
+    return (
+      <MontarDemonstracao
+        titulo="Monte o Balanço Patrimonial da sua empresa"
+        subtitulo={`${empresa.razaoSocial} · use o Balancete depois do encerramento: só contas patrimoniais`}
+        linhas={linhasBp}
+        chave={chaveBp}
+        assinatura={assinaturaBp}
+        dica="Preencha cada grupo (soma das contas do grupo) e os totais. Redutoras, como (-) Prejuízos Acumulados, entram deduzindo. Grupos sem valor não aparecem. Se você lançar algo novo, a montagem recomeça."
+        aoConcluir={() => setMontado(true)}
+      />
+    );
+  }
   const lado = { flex: "1 1 360px", display: "flex", flexDirection: "column", gap: 2 };
   const total = (rotulo, valor) => (
     <div style={{ display: "flex", justifyContent: "space-between", borderTop: "2px solid var(--destaque)", paddingTop: 8, marginTop: 8, fontWeight: 700 }}>

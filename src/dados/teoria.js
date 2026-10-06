@@ -1,4 +1,4 @@
-// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026, Módulos 06 a 11 em 06/10/2026).
+// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026, Módulos 06 a 12 em 06/10/2026).
 // Chave: "{disciplina}-{nº do módulo com 2 dígitos}" (ex.: "cb-01").
 // Blocos: { t: "p" | "lista" | "tabela" | "destaque" | "exemplo", ... }; **trecho** = negrito.
 // Base: material didático do prof. Jorge Lima Cardoso (CEDUP Hermann Hering), revisado.
@@ -78,6 +78,13 @@ const FONTES_CB10 = [
 
 const FONTES_CB11 = [
   "BRASIL. Lei nº 6.404, de 15 de dezembro de 1976. Dispõe sobre as Sociedades por Ações. Arts. 176, 186, 189, 193 e 202.",
+  "CFC – CONSELHO FEDERAL DE CONTABILIDADE. NBC TG 26 (R5) – Apresentação das Demonstrações Contábeis. Brasília: CFC.",
+  "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
+  "IUDÍCIBUS, S. de (coord.). Contabilidade introdutória. 10. ed. São Paulo: Atlas, 2009.",
+];
+
+const FONTES_CB12 = [
+  "BRASIL. Lei nº 6.404, de 15 de dezembro de 1976. Dispõe sobre as Sociedades por Ações. Arts. 176 e 178 a 184.",
   "CFC – CONSELHO FEDERAL DE CONTABILIDADE. NBC TG 26 (R5) – Apresentação das Demonstrações Contábeis. Brasília: CFC.",
   "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
   "IUDÍCIBUS, S. de (coord.). Contabilidade introdutória. 10. ed. São Paulo: Atlas, 2009.",
@@ -1189,6 +1196,87 @@ export const TEORIA = {
       },
     ],
     fontes: FONTES_CB11,
+  },
+  "cb-12": {
+    titulo: "Balanço Patrimonial",
+    resumo: "O que é o Balanço, a estrutura do art. 178, de onde vêm os valores, o Balanço final da Prestadora de Serviços, o caminho completo da CB e a leitura inicial (liquidez).",
+    secoes: [
+      {
+        titulo: "1. O que é o Balanço Patrimonial",
+        blocos: [
+          { t: "p", texto: "O **Balanço Patrimonial (BP)** mostra a **posição patrimonial e financeira** da empresa **numa data**: o que ela **tem** (bens e direitos — **Ativo**), o que **deve** a terceiros (**Passivo**) e o que pertence aos **sócios** (**Patrimônio Líquido**). Está previsto na Lei 6.404/1976 (arts. 176 e 178 a 184) e na NBC TG 26." },
+          { t: "destaque", texto: "**Ativo = Passivo + Patrimônio Líquido** — a equação do Módulo 01, agora com todas as contas da empresa." },
+        ],
+      },
+      {
+        titulo: "2. A estrutura (art. 178)",
+        blocos: [
+          { t: "tabela", cab: ["ATIVO", "PASSIVO E PATRIMÔNIO LÍQUIDO"], linhas: [
+            ["**Ativo Circulante** — disponível, valores a receber, estoques, despesas antecipadas", "**Passivo Circulante** — fornecedores, salários, tributos, empréstimos de curto prazo, dividendos a pagar"],
+            ["**Ativo Não Circulante** — Realizável a Longo Prazo, Investimentos, Imobilizado e Intangível", "**Passivo Não Circulante** — obrigações de longo prazo"],
+            ["", "**Patrimônio Líquido** — Capital Social, Reservas de Capital, Ajustes de Avaliação Patrimonial, Reservas de Lucros, (−) Ações em Tesouraria, (−) Prejuízos Acumulados"],
+          ] },
+          { t: "lista", itens: [
+            "No **Ativo**, as contas seguem a ordem **decrescente de liquidez**; no **Passivo**, a ordem de **exigibilidade** (Módulo 02).",
+            "As **contas redutoras** aparecem **deduzindo** a conta principal (ex.: Veículos 50.000 (−) Depreciação Acumulada 10.000).",
+          ] },
+        ],
+      },
+      {
+        titulo: "3. De onde vêm os valores",
+        blocos: [
+          { t: "p", texto: "Do **balancete depois do encerramento** (Módulos 10 e 11), que só tem **contas patrimoniais**: as receitas e despesas já foram zeradas e o resultado está no PL, já destinado. Se o Balanço for feito **antes** do encerramento, o resultado do período aparece separado no PL — o CTC mostra \"Resultado do período ainda não encerrado\"." },
+        ],
+      },
+      {
+        titulo: "4. Exemplo: Prestadora de Serviços — o ciclo completo",
+        blocos: [
+          { t: "tabela", cab: ["ATIVO", "R$", "PASSIVO E PL", "R$"], linhas: [
+            ["**Ativo Circulante**", "**26.720,00**", "**Passivo Circulante**", "**6.358,50**"],
+            ["Caixa Geral", "11.500,00", "Empréstimos Bancários", "5.000,00"],
+            ["Banco X", "11.720,00", "Dividendos a Pagar", "1.358,50"],
+            ["Mercadorias para Revenda", "3.500,00", "**Patrimônio Líquido**", "**24.361,50**"],
+            ["**Ativo Não Circulante**", "**4.000,00**", "Capital Subscrito", "20.000,00"],
+            ["Equipamentos de Informática", "4.000,00", "Reserva Legal", "286,00"],
+            ["", "", "Resultado do Exercício (lucros acumulados)", "4.075,50"],
+            ["**TOTAL DO ATIVO**", "**30.720,00**", "**TOTAL DO PASSIVO + PL**", "**30.720,00**"],
+          ] },
+          { t: "p", texto: "O PL cresceu de R$ 20.000,00 (capital) para R$ 24.361,50: o lucro de 5.720,00 menos os dividendos de 1.358,50, que saíram do PL e viraram obrigação." },
+        ],
+      },
+      {
+        titulo: "5. O caminho completo da CB",
+        blocos: [
+          { t: "p", texto: "**Abertura** (04) → **lançamentos** (03, 05, 06, 07) → **balancete** (08) → **DRE** (09) → **encerramento** (10) → **DLPA** (11) → **Balanço Patrimonial** (12). O Balanço fecha o exercício, e os saldos dele são os **saldos iniciais** do exercício seguinte (Módulo 04)." },
+        ],
+      },
+      {
+        titulo: "6. Leitura do Balanço (introdução — a AGB aprofunda)",
+        blocos: [
+          { t: "lista", itens: [
+            "**Liquidez corrente** = Ativo Circulante ÷ Passivo Circulante = 26.720 ÷ 6.358,50 ≈ **4,20**: R$ 4,20 de recursos de curto prazo para cada R$ 1,00 de dívida de curto prazo.",
+            "**Participação de capital de terceiros** = Passivo ÷ PL = 6.358,50 ÷ 24.361,50 ≈ **26%**.",
+          ] },
+        ],
+      },
+      {
+        titulo: "7. Apresentação",
+        blocos: [
+          { t: "p", texto: "As demonstrações são apresentadas com os valores do **exercício anterior**, para comparação (Lei 6.404/1976, art. 176, § 1º), e **assinadas** pelo administrador e pelo **contador** responsável, com o número do CRC." },
+        ],
+      },
+      {
+        titulo: "No CTC",
+        blocos: [
+          { t: "lista", itens: [
+            "Na aba **Balanço Patrimonial**, depois do encerramento, você **monta o Balanço** da sua empresa — os grupos e os totais —, e o CTC confere antes de mostrar o Balanço pronto, com as assinaturas.",
+            "O selo **\"Ativo = Passivo + Patrimônio Líquido\"** mostra se o Balanço fecha.",
+            "Pratique antes com o exercício \"Monte o Balanço\", abaixo.",
+          ] },
+        ],
+      },
+    ],
+    fontes: FONTES_CB12,
   },
 };
 

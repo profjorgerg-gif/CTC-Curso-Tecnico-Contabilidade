@@ -26,7 +26,7 @@ export const TRILHA = {
     9: { texto: "Monte a DRE do exercício logo acima. Depois, na aba DRE da Escrituração, monte a DRE da sua empresa: o CTC confere antes de mostrar a pronta.", destino: ["escrituracao", "dre"], botao: "Montar a DRE da empresa", pratica: (x) => !!x.empresaId && montagemConcluida(`ctc-montar-dre-${x.empresaId}`) },
     10: { texto: "Faça o exercício de encerramento logo acima. Depois, na aba Encerramento (ARE), faça os lançamentos de encerramento da sua empresa: o CTC confere antes de gravar.", destino: ["escrituracao", "are"], botao: "Fazer o encerramento", pratica: (x) => x.encerrado },
     11: { texto: "Monte a DLPA do exercício logo acima. Depois do encerramento, lance a Reserva Legal e os dividendos da sua empresa e monte a DLPA na aba DLPA: o CTC confere antes de mostrar a pronta.", destino: ["escrituracao", "dlpa"], botao: "Montar a DLPA da empresa", pratica: (x) => !!x.empresaId && montagemConcluida(`ctc-montar-dlpa-${x.empresaId}`) },
-    12: { texto: "Abra o Balanço Patrimonial e confira: Ativo = Passivo + PL.", destino: ["escrituracao", "balanco"], botao: "Abrir o Balanço", pratica: null },
+    12: { texto: "Monte o Balanço do exercício logo acima. Depois do encerramento, monte o Balanço Patrimonial da sua empresa na aba Balanço: o CTC confere antes de mostrar o pronto.", destino: ["escrituracao", "balanco"], botao: "Montar o Balanço da empresa", pratica: (x) => !!x.empresaId && montagemConcluida(`ctc-montar-bp-${x.empresaId}`) },
   },
 };
 export const passoDo = (disciplina, numero) => TRILHA[disciplina]?.[numero] || null;

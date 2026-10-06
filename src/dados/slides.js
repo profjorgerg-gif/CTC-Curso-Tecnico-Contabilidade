@@ -1,7 +1,7 @@
 // Slides do Guia Pedagógico (aprovado em 04/10/2026): uma apresentação por módulo.
 // Cada slide: { titulo, pontos?: [], tabela?: { cab: [], linhas: [[]] }, destaque?, notas }.
 // "notas" são as anotações do professor (aparecem só quando ele liga "Notas do professor").
-// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão; Mercadorias e Estoque; Lançamentos e Competência; Balancete; DRE; Encerramento; DLPA.
+// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão; Mercadorias e Estoque; Lançamentos e Competência; Balancete; DRE; Encerramento; DLPA; Balanço Patrimonial.
 
 export const SLIDES = {
   cb: [
@@ -1325,6 +1325,110 @@ export const SLIDES = {
             "3. Dividendos declarados ficam em qual grupo?",
           ],
           notas: "Respostas: 1) R$ 500,00. 2) Limite 10.000 → só 200,00 (5% seria 1.000). 3) Passivo Circulante (2.1.7.01 Dividendos a Pagar).",
+        },
+      ],
+    },
+    {
+      id: "cb-balanco",
+      modulo: "Balanço Patrimonial",
+      titulo: "Balanço Patrimonial",
+      subtitulo: "A posição patrimonial e financeira — o fechamento do ciclo",
+      slides: [
+        {
+          titulo: "O que é o Balanço",
+          pontos: [
+            "Posição patrimonial e financeira numa data",
+            "Ativo: o que a empresa tem",
+            "Passivo: o que deve a terceiros",
+            "Patrimônio Líquido: o que pertence aos sócios",
+          ],
+          destaque: "Ativo = Passivo + Patrimônio Líquido",
+          notas: "Retome a Loja Alfa do Módulo 01: o Balanço é a mesma equação, com todas as contas.",
+        },
+        {
+          titulo: "A estrutura (art. 178)",
+          tabela: {
+            cab: ["ATIVO", "PASSIVO E PL"],
+            linhas: [
+              ["Ativo Circulante", "Passivo Circulante"],
+              ["Ativo Não Circulante: RLP, Investimentos, Imobilizado, Intangível", "Passivo Não Circulante"],
+              ["", "Patrimônio Líquido"],
+            ],
+          },
+          notas: "Ativo em ordem de liquidez; Passivo em ordem de exigibilidade.",
+        },
+        {
+          titulo: "De onde vêm os valores",
+          pontos: [
+            "Balancete depois do encerramento",
+            "Só contas patrimoniais",
+            "Resultado já no PL e destinado (DLPA)",
+            "Redutoras deduzindo a conta principal",
+          ],
+          notas: "Antes do encerramento, o CTC mostra o resultado separado no PL.",
+        },
+        {
+          titulo: "Exemplo: Prestadora de Serviços",
+          tabela: {
+            cab: ["ATIVO", "R$", "PASSIVO E PL", "R$"],
+            linhas: [
+              ["Ativo Circulante", "26.720,00", "Passivo Circulante", "6.358,50"],
+              ["Ativo Não Circulante", "4.000,00", "Patrimônio Líquido", "24.361,50"],
+              ["TOTAL", "30.720,00", "TOTAL", "30.720,00"],
+            ],
+          },
+          notas: "Detalhe as contas de cada grupo com a turma (ver a teoria).",
+        },
+        {
+          titulo: "O PL da Prestadora",
+          tabela: {
+            cab: ["Conta", "R$"],
+            linhas: [
+              ["Capital Subscrito", "20.000,00"],
+              ["Reserva Legal", "286,00"],
+              ["Lucros acumulados", "4.075,50"],
+              ["Total do PL", "24.361,50"],
+            ],
+          },
+          notas: "Lucro 5.720 − dividendos 1.358,50 = aumento de 4.361,50 no PL.",
+        },
+        {
+          titulo: "O caminho completo da CB",
+          pontos: [
+            "Abertura → lançamentos → balancete",
+            "→ DRE → encerramento → DLPA",
+            "→ Balanço Patrimonial",
+            "Os saldos do Balanço abrem o exercício seguinte",
+          ],
+          notas: "Faça a turma recontar o ciclo com a própria empresa no CTC.",
+        },
+        {
+          titulo: "Leitura: liquidez corrente",
+          pontos: [
+            "Liquidez corrente = AC ÷ PC",
+            "26.720 ÷ 6.358,50 ≈ 4,20",
+            "R$ 4,20 de curto prazo para cada R$ 1,00 de dívida de curto prazo",
+          ],
+          notas: "Os indicadores são aprofundados na AGB.",
+        },
+        {
+          titulo: "No CTC",
+          pontos: [
+            "Exercício \"Monte o Balanço\" no Módulo 12",
+            "Aba Balanço: o aluno monta o Balanço da própria empresa",
+            "Selo: Ativo = Passivo + PL",
+            "Assinaturas do administrador e do contador",
+          ],
+          notas: "A montagem só aparece depois do encerramento.",
+        },
+        {
+          titulo: "Para fixar",
+          pontos: [
+            "1. Dividendos a pagar ficam em qual grupo?",
+            "2. AC 30.000 e PC 12.000: qual a liquidez corrente?",
+            "3. Receitas aparecem no Balanço depois do encerramento?",
+          ],
+          notas: "Respostas: 1) Passivo Circulante. 2) 2,5. 3) Não: foram encerradas e o resultado está no PL.",
         },
       ],
     },

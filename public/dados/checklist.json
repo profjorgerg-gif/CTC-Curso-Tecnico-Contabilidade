@@ -74,9 +74,9 @@
     {
       "id": "f2-teoria-cb",
       "fase": "Fase 2 — Contabilidade Básica",
-      "item": "Teoria, slides e banco de questões do Módulo 12 da CB (01 a 11 entregues)",
+      "item": "Teoria, slides, exercícios interativos e banco de questões dos 12 módulos da CB (concluído em 06/10)",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "f2-balanco-sucessivo",
@@ -116,9 +116,9 @@
     {
       "id": "f2-montar-demonstracoes",
       "fase": "Fase 2 — Contabilidade Básica",
-      "item": "\"Montar e conferir\" o Balanço Patrimonial (DRE, ARE e DLPA entregues em 06/10)",
+      "item": "\"Montar e conferir\" a DRE, a DLPA e o Balanço; o aluno faz os lançamentos de encerramento (ARE)",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "f2-lista-competencia",
@@ -319,7 +319,7 @@
     {
       "id": "f9-slides",
       "fase": "Fase 9 — Área do professor e fechamento",
-      "item": "Slides por módulo no Guia Pedagógico (modelo aprovado; CB: Módulos 01 a 11 prontos)",
+      "item": "Slides por módulo no Guia Pedagógico (modelo aprovado; CB completa — 12 módulos; faltam as demais disciplinas)",
       "quem": "Claude",
       "feito": false
     },

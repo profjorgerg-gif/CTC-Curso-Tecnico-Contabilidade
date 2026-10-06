@@ -401,6 +401,42 @@ const DLPA_DELTA = {
   depois: "A Reserva Legal ficou limitada a 2.000,00 (20% × 100.000 = 20.000; já havia 18.000), e não 5% × 41.550 = 2.077,50. Dividendos: 25% × (41.550 − 2.000) = 9.887,50.",
 };
 
+// Módulo 12 — monte o Balanço (fim do ciclo da Prestadora; aprovado em 06/10/2026)
+const BP_SERVICOS = {
+  id: "cb-bp-servicos",
+  tipo: "montar-linhas",
+  titulo: "Monte o Balanço — Prestadora de Serviços Exemplo Ltda.",
+  montar: "Monte o Balanço Patrimonial",
+  empresa: "Prestadora de Serviços Exemplo Ltda.",
+  instrucao: "Balancete depois do encerramento (Módulo 10) e das destinações (Módulo 11): só contas patrimoniais. Agrupe as contas e preencha os grupos e os totais do Balanço.",
+  dica: "Ativo Circulante: disponível, valores a receber e estoques. Ativo Não Circulante: imobilizado. Empréstimos e dividendos a pagar vencem no curto prazo. O PL tem o capital, a reserva legal e o lucro que sobrou.",
+  dados: [
+    ["1.1.1.01 Caixa Geral", "11.500,00 D"],
+    ["1.1.1.02.01 Banco X", "11.720,00 D"],
+    ["1.1.3.01 Mercadorias para Revenda", "3.500,00 D"],
+    ["1.2.3.07 Equipamentos de Informática", "4.000,00 D"],
+    ["2.1.7.01 Dividendos a Pagar", "1.358,50 C"],
+    ["2.1.9.01 Empréstimos Bancários", "5.000,00 C"],
+    ["3.1.01 Capital Subscrito", "20.000,00 C"],
+    ["3.4.01 Reserva Legal", "286,00 C"],
+    ["3.9 Resultado do Exercício (lucros acumulados)", "4.075,50 C"],
+  ],
+  linhas: [
+    { rotulo: "Ativo Circulante", valor: 26720, tipo: "item" },
+    { rotulo: "Ativo Não Circulante", valor: 4000, tipo: "item" },
+    { rotulo: "TOTAL DO ATIVO", valor: 30720, tipo: "subtotal" },
+    { rotulo: "Passivo Circulante", valor: 6358.5, tipo: "item" },
+    { rotulo: "Passivo Não Circulante", valor: 0, tipo: "item" },
+    { rotulo: "Total do Passivo", valor: 6358.5, tipo: "subtotal" },
+    { rotulo: "Capital Social", valor: 20000, tipo: "item" },
+    { rotulo: "Reservas de Lucros", valor: 286, tipo: "item" },
+    { rotulo: "Resultado do Exercício (lucros acumulados)", valor: 4075.5, tipo: "item" },
+    { rotulo: "Total do Patrimônio Líquido", valor: 24361.5, tipo: "subtotal" },
+    { rotulo: "TOTAL DO PASSIVO + PL", valor: 30720, tipo: "final" },
+  ],
+  depois: "Ativo 30.720,00 = Passivo 6.358,50 + PL 24.361,50. Liquidez corrente: 26.720 ÷ 6.358,50 ≈ 4,20.",
+};
+
 export const PRATICAS = {
   "cb-01": [CIA_VAMOS, ALFA, BETA], // patrimônio e fatos contábeis (movido do Módulo 02 em 05/10/2026)
   "cb-03": [RAZONETES_SERVICOS],
@@ -412,6 +448,7 @@ export const PRATICAS = {
   "cb-09": [DRE_DELTA],
   "cb-10": [ENCERRAMENTO_SERVICOS],
   "cb-11": [DLPA_DELTA],
+  "cb-12": [BP_SERVICOS],
 };
 
 export const praticasDo = (disciplina, numero) => PRATICAS[`${disciplina}-${String(numero).padStart(2, "0")}`] || [];
