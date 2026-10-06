@@ -9,7 +9,7 @@ import { garantirEmpresa, lerEmpresa } from "../lib/empresas";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { AREAS, areaConfirmada, fimDePeriodoValido, parametrosEfetivos } from "../lib/parametros";
-import { corrigirLancamento, ehQuestoes, FINALIDADES, finalidadeDe, GABARITO_ORIENTADOS, listasDaTurma, valeNota } from "../lib/exercicios";
+import { corrigirLancamento, ehQuestoes, FINALIDADES, finalidadeDe, GABARITO_ORIENTADOS, listasDaTurma, valeNota, ajudaDaLista } from "../lib/exercicios";
 import { lerBoletim } from "../lib/notas";
 import { balanco, CONTA_LUCROS, dlpa, dre, jaEncerrado, propostaEncerramento } from "../lib/demonstracoes";
 import { apuracaoPeriodica, custoDaSaida, kardex, METODOS, movimentosDeEstoque } from "../lib/estoque";
@@ -27,12 +27,12 @@ const ABAS = [["saldos", "Saldos iniciais"], ["lancamentos", "Lançamentos"], ["
 
 export default function Escrituracao({ sessao, papel, ir, rota }) {
   return papel === "aluno"
-    ? <EscrituracaoDoAluno sessao={sessao} ir={ir} />
+    ? <EscrituracaoDoAluno sessao={sessao} ir={ir} abaInicial={rota?.[0]} />
     : <EscrituracaoPeloProfessor sessao={sessao} ir={ir} turmaId={rota[0]} matricula={rota[1]} />;
 }
 
 // ---------------- aluno ----------------
-function EscrituracaoDoAluno({ sessao, ir }) {
+function EscrituracaoDoAluno({ sessao, ir, abaInicial }) {
   const { turmas, carregando, erro } = useTurmas(sessao);
   const [turmaId, setTurmaId] = useState("");
   const [empresa, setEmpresa] = useState(null);
@@ -78,7 +78,7 @@ function EscrituracaoDoAluno({ sessao, ir }) {
           <button className="botao pequeno" onClick={() => ir("parametrizacao")}>Fazer a parametrização</button>
         </div>
       )}
-      {empresa?.cadastroCompleto && areaConfirmada(empresa, "contabil") && <Livros key={empresa.id} sessao={sessao} empresa={empresa} turma={turma} donoAluno />}
+      {empresa?.cadastroCompleto && areaConfirmada(empresa, "contabil") && <Livros key={empresa.id} sessao={sessao} empresa={empresa} turma={turma} donoAluno abaInicial={abaInicial} />}
     </>
   );
 }
@@ -110,11 +110,11 @@ function EscrituracaoPeloProfessor({ sessao, ir, turmaId, matricula }) {
 }
 
 // ---------------- os livros da empresa ----------------
-function Livros({ sessao, empresa, turma, donoAluno }) {
+function Livros({ sessao, empresa, turma, donoAluno, abaInicial }) {
   const { plano, erro: erroPlano } = usePlano();
   const [dados, setDados] = useState(null);
   const [erro, setErro] = useState("");
-  const [aba, setAba] = useState("lancamentos");
+  const [aba, setAba] = useState(ABAS.some(([id]) => id === abaInicial) ? abaInicial : "lancamentos");
   const params = parametrosEfetivos(empresa, turma);
   const pc = params.contabil;
   const metodo = pc.metodoEstoque || "peps";
@@ -337,7 +337,7 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
   // roteiros guiados: os 8 fatos orientados + as listas enviadas pelo professor
   const roteiros = useMemo(() => [
     { id: "orientados", titulo: "Fatos orientados", fatos: FATOS_ORIENTADOS.map((f, i) => ({ n: i + 1, texto: f.texto, tipo: f.tipo, gabarito: GABARITO_ORIENTADOS[i] })) },
-    ...listas.map((l) => ({ id: l.id, titulo: l.titulo, prazo: l.prazo, fatos: l.fatos, finalidade: finalidadeDe(l), resultadoLiberado: !!l.resultadoLiberado, fechada: !!l.fechada })),
+    ...listas.map((l) => ({ id: l.id, titulo: l.titulo, prazo: l.prazo, fatos: l.fatos, finalidade: finalidadeDe(l), resultadoLiberado: !!l.resultadoLiberado, fechada: !!l.fechada, ajuda: ajudaDaLista(l, turma) })),
   ], [listas]);
   const estadoDo = (r) => {
     const lanc = {};
@@ -349,6 +349,8 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
   const [roteiroId, setRoteiroId] = useState(null);
   const roteiro = roteiros.find((r) => r.id === roteiroId) || roteiros.find((r) => { const e = estadoDo(r); return e.proximo && !e.encerrado; }) || roteiros[0];
   const est = estadoDo(roteiro);
+  // nível de ajuda: o da lista em andamento; nos fatos orientados, o da turma
+  const ajuda = roteiro.ajuda || cfg.ajuda;
   function fatoDoLancamentoBase(l) {
     for (const r of roteiros) { const n = numeroNoRoteiro(l, r.id); if (n) return { r, fato: r.fatos.find((f) => f.n === n) }; }
     return null;
@@ -366,7 +368,7 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
     setForm((f) => {
       if (!formEmBranco(f)) return f;
       const tipo = fatoDoProximo.tipo || "livre";
-      return { ...f, tipo, data: fatoDoProximo.data || f.data, partidas: modeloDeLancamento(tipo, cfg.ajuda, contexto) };
+      return { ...f, tipo, data: fatoDoProximo.data || f.data, partidas: modeloDeLancamento(tipo, ajuda, contexto) };
     });
   }, [roteiro.id, proximoFato, etapaGuiada]);
   const fatoDoLancamento = fatoDoLancamentoBase;
@@ -374,7 +376,7 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
   const muda = (k) => (e) => setForm({ ...form, [k]: e.target.value });
   const mudarTipo = (tipo) => {
     if (!form.partidas.every((p) => !p.conta && !p.valor) && !window.confirm("Trocar o tipo de operação recomeça as linhas do lançamento. Continuar?")) return;
-    setForm((f) => ({ ...f, tipo, partidas: modeloDeLancamento(tipo, cfg.ajuda, contexto) }));
+    setForm((f) => ({ ...f, tipo, partidas: modeloDeLancamento(tipo, ajuda, contexto) }));
   };
   const mudarLinha = (i, campo, valor) => setForm((f) => {
     const partidas = f.partidas.map((p, k) => {
@@ -450,7 +452,7 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
       .filter((l) => !b || semAcento(`${l.historico} ${partidasDe(l).map((p) => p.conta).join(" ")} ${l.documento || ""}`).includes(b));
   }, [lista, busca]);
   const nome = (c) => plano.porCodigo[c]?.nome || c;
-  const nivel = NIVEIS_AJUDA.find((n) => n.valor === cfg.ajuda);
+  const nivel = NIVEIS_AJUDA.find((n) => n.valor === ajuda);
 
   return (
     <>
@@ -513,7 +515,7 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
         <h2>{editando ? "Corrigir lançamento" : etapaGuiada ? `Lançar o fato ${proximoFato}` : "Novo lançamento"}</h2>
         <p className="pequeno suave">
           Partidas dobradas: um lançamento pode ter várias contas a débito e várias a crédito; a soma dos débitos é sempre igual à soma dos créditos.
-          {nivel && cfg.ajuda !== "livre" ? ` Ajuda da turma: ${nivel.rotulo.toLowerCase()} — ${nivel.ajuda.charAt(0).toLowerCase()}${nivel.ajuda.slice(1)}` : ""}
+          {nivel && ajuda !== "livre" ? ` Ajuda${roteiro.id === "orientados" ? " da turma" : " desta lista"}: ${nivel.rotulo.toLowerCase()} — ${nivel.ajuda.charAt(0).toLowerCase()}${nivel.ajuda.slice(1)}` : ""}
         </p>
         <div className="linha-form">
           <div className="campo" style={{ flex: "0 1 180px" }}>

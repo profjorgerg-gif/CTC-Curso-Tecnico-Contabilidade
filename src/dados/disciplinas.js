@@ -7,11 +7,19 @@ export const DISCIPLINAS = [
     origem: "SECCHH — Sistema de Escrituração Contábil",
     usa: ["Plano de Contas", "Débito/Crédito"],
     modulos: [
+      // sequência pedagógica aprovada em 05/10/2026 (segue a ordem das abas da Escrituração)
       "Introdução à Contabilidade (princípios, classificação, regimes)",
-      "Plano de Contas", "Saldos Iniciais", "Lançamentos (8 fatos orientados)",
-      "Consulta por Conta", "Controle de Estoque (PEPS, UEPS, Média)", "Balancete",
-      "DRE", "DLPA — Demonstração de Lucros ou Prejuízos Acumulados",
-      "Encerramento (ARE)", "Balanço Patrimonial",
+      "Plano de Contas",
+      "Débito e Crédito: partidas dobradas e razonetes",
+      "Saldos Iniciais (abertura da empresa)",
+      "Livros Diário e Razão",
+      "Operações com Mercadorias e Controle de Estoque (PEPS e Média; UEPS só no comparativo)",
+      "Lançamentos: 8 fatos orientados e regime de competência",
+      "Balancete de Verificação",
+      "DRE — Demonstração do Resultado do Exercício",
+      "Encerramento do Exercício (ARE)",
+      "DLPA — Demonstração de Lucros ou Prejuízos Acumulados",
+      "Balanço Patrimonial",
     ],
   },
   {

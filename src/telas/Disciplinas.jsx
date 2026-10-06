@@ -5,6 +5,9 @@ import { teoriaDo } from "../dados/teoria";
 import Teoria from "../componentes/Teoria";
 import { praticasDo } from "../dados/praticas";
 import BalancoSucessivo from "../componentes/BalancoSucessivo";
+import { useEffect, useState } from "react";
+import { usePlano } from "../lib/contabil";
+import { estudado, marcarEstudado, passoDo, situacaoDoAluno } from "../lib/trilha";
 
 // Ementa oficial do componente curricular (texto literal do documento da SED/SC)
 function Ementa({ e }) {
@@ -44,6 +47,16 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
   const lista = papel === "aluno" ? DISCIPLINAS.filter((d) => minhas.has(d.id)) : DISCIPLINAS;
   const atual = rota[0] && disciplinaPorId(rota[0]);
 
+  // aluno: situação em cada módulo (estudado · questionário · prática)
+  const { plano } = usePlano();
+  const [situacao, setSituacao] = useState(null);
+  const turmaDaDisc = atual && papel === "aluno" ? turmas.find((t) => t.disciplina === atual.id) : null;
+  useEffect(() => {
+    setSituacao(null);
+    if (!turmaDaDisc || !plano || rota[1]) return;
+    situacaoDoAluno(turmaDaDisc, sessao.perfil?.matricula, plano, atual.id, atual.modulos.length).then(setSituacao).catch(() => setSituacao(null));
+  }, [turmaDaDisc?.id, !!plano, rota[1]]);
+
   // módulo aberto: teoria (rota disciplinas/{id}/m01)
   const nModulo = atual && /^m\d+$/.test(rota[1] || "") ? Number(rota[1].slice(1)) : null;
   const teoria = nModulo ? teoriaDo(atual.id, nModulo) : null;
@@ -58,7 +71,7 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
         </div>
         <Teoria teoria={teoria} />
         {praticasDo(atual.id, nModulo).map((ex) => (ex.tipo === "balanco-sucessivo" ? <BalancoSucessivo key={ex.id} ex={ex} /> : null))}
-        <div className="aviso pequeno">{papel === "aluno" ? "Pratique com os questionários que o professor enviar (menu Questionários)." : "Gere listas de questões deste módulo em Turmas e matrículas → turma → Exercícios da turma → Lista de questões teóricas."}</div>
+        <ProximoPasso disciplina={atual} n={nModulo} papel={papel} ir={ir} />
       </>
     );
   }
@@ -82,7 +95,10 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
               return (
                 <li key={m} style={{ display: "flex", gap: 14, padding: "12px 18px", borderTop: "1px solid var(--linha-suave)", alignItems: "center" }}>
                   <span className="mono" style={{ color: "var(--destaque)", fontWeight: 600, minWidth: 28 }}>{String(i + 1).padStart(2, "0")}</span>
-                  <span style={{ flex: 1 }}>{m}</span>
+                  <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+                    {m}
+                    {tem && situacao?.[i + 1] && <SeloTrilha s={situacao[i + 1]} />}
+                  </span>
                   {tem ? <button className="botao pequeno" onClick={() => ir("disciplinas", atual.id, `m${String(i + 1).padStart(2, "0")}`)}>Estudar</button> : <span className="selo cinza">Em preparação</span>}
                 </li>
               );
@@ -125,5 +141,53 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
         ))}
       </div>
     </>
+  );
+}
+
+// selos da trilha no card do módulo (aluno)
+function SeloTrilha({ s }) {
+  const selo = (estado, rotulo) => estado && <span className={`selo ${estado === "feito" ? "verde" : "cinza"}`}>{estado === "feito" ? "✓ " : ""}{rotulo}</span>;
+  return (
+    <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      {selo(s.estudado ? "feito" : "pendente", "Estudado")}
+      {selo(s.questionario, "Questionário")}
+      {selo(s.pratica, "Prática no CTC")}
+    </span>
+  );
+}
+
+// fim da página do módulo: o que fazer agora (aluno) ou como usar com a turma (professor)
+function ProximoPasso({ disciplina, n, papel, ir }) {
+  const passo = passoDo(disciplina.id, n);
+  const [feito, setFeito] = useState(() => estudado(disciplina.id, n));
+  const proximo = n < disciplina.modulos.length && teoriaDo(disciplina.id, n + 1) ? n + 1 : null;
+  const irProximo = proximo && (
+    <button className="botao secundario" onClick={() => ir("disciplinas", disciplina.id, `m${String(proximo).padStart(2, "0")}`)}>Próximo módulo: {String(proximo).padStart(2, "0")} →</button>
+  );
+  if (papel !== "aluno") {
+    return (
+      <section className="cartao" style={{ gap: 10 }}>
+        <h2>Próximo passo do aluno</h2>
+        {passo && <p style={{ margin: 0 }}>{passo.texto}</p>}
+        <p className="pequeno suave" style={{ margin: 0 }}>Questionários deste módulo: Turmas e matrículas → turma → Exercícios da turma → Lista de questões teóricas. Nas listas de escrituração, escolha o nível de ajuda de cada lista.</p>
+        {irProximo && <div>{irProximo}</div>}
+      </section>
+    );
+  }
+  const alternar = () => { marcarEstudado(disciplina.id, n, !feito); setFeito(!feito); };
+  return (
+    <section className="cartao" style={{ gap: 12 }}>
+      <h2>Próximo passo</h2>
+      <ol style={{ margin: 0, paddingLeft: 22, display: "flex", flexDirection: "column", gap: 8, lineHeight: 1.55 }}>
+        <li>Releia os destaques e os exemplos deste módulo.</li>
+        {passo && <li>{passo.texto}</li>}
+        <li>Responda o questionário do módulo quando o professor enviar (menu Questionários).</li>
+      </ol>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+        {passo?.destino && <button className="botao" onClick={() => ir(...passo.destino)}>{passo.botao}</button>}
+        <button className={`botao ${feito ? "secundario" : ""}`} onClick={alternar}>{feito ? "✓ Estudado (desmarcar)" : "Marcar como estudado"}</button>
+        {irProximo}
+      </div>
+    </section>
   );
 }

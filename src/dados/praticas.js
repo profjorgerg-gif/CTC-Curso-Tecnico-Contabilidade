@@ -79,7 +79,7 @@ const CIA_VAMOS = {
 };
 
 export const PRATICAS = {
-  "cb-02": [CIA_VAMOS],
+  "cb-01": [CIA_VAMOS], // patrimônio e fatos contábeis (movido do Módulo 02 em 05/10/2026)
 };
 
 export const praticasDo = (disciplina, numero) => PRATICAS[`${disciplina}-${String(numero).padStart(2, "0")}`] || [];

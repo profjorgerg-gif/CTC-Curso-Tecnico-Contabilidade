@@ -20,6 +20,7 @@ export const MANUAL_PROFESSOR = [
   ] },
   { id: "lancamentos", titulo: "Lançamentos da turma (nível de ajuda e tributos)", passos: [
     "Nível de ajuda: Livre (o aluno monta tudo), Estrutura (padrão — o CTC mostra as linhas e os efeitos da operação) ou Completo (o CTC também sugere as contas).",
+    "Cada lista de escrituração pode ter o seu próprio nível de ajuda (campo \"Ajuda nos lançamentos\"). Sem escolha, a lista avaliativa e a de recuperação usam \"Livre\" e a de sala usa o padrão da turma. Sugestão: Completo nos primeiros exercícios de sala, Estrutura nas listas de prática e Livre nas avaliações.",
     "Considerar tributos nas operações: \"Não\" na CB; \"Sim\" a partir de CI/CT, quando compra e venda passam a incluir ICMS, PIS e COFINS (ou o Simples Nacional), conforme o regime da empresa de cada aluno.",
   ] },
   { id: "exercicios", titulo: "Exercícios: de sala, avaliativos e recuperação", passos: [
@@ -105,6 +106,8 @@ export const MANUAL_ALUNO = [
   ] },
   { id: "questionarios", titulo: "Teoria e questionários", passos: [
     "Em \"Minhas disciplinas\", abra a disciplina e clique em \"Estudar\" no módulo para ler a teoria.",
+    "No fim de cada módulo, o quadro \"Próximo passo\" diz o que fazer no CTC, com o botão que leva direto à tela certa. Clique em \"Marcar como estudado\" quando terminar.",
+    "Na lista de módulos, os selos mostram o seu andamento: Estudado, Questionário e Prática no CTC (verde = feito). A marcação \"Estudado\" fica guardada neste navegador.",
     "Em \"Questionários\" ficam as listas de questões enviadas pelo professor. Marque as respostas e clique em \"Salvar\" ou \"Enviar\".",
     "De sala: você vê a correção e a explicação na hora e pode refazer. Avaliativo: você pode mudar as respostas até o prazo; a correção e a nota aparecem quando o professor liberar o resultado.",
   ] },

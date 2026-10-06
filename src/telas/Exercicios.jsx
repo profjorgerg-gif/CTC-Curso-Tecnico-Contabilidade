@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { traduzirErro } from "../lib/sessao";
 import { dataBR, dinheiro, usePlano } from "../lib/contabil";
+import { configLancamentos, NIVEIS_AJUDA } from "../lib/modelos";
 import { ehQuestoes, emPartidas, excluirLista, finalidadeDe, FINALIDADES, gerarLista, liberarResultado, listasDaTurma, salvarLista, TIPOS, valeNota } from "../lib/exercicios";
 import { lerBanco, lerGabarito, sortearQuestoes, TIPOS_QUESTAO } from "../lib/questoes";
 import Questao from "../componentes/Questao";
@@ -187,6 +188,13 @@ function EditorLista({ turma, inicial, aoFechar }) {
             <input id="ex-peso" type="number" min="0.5" max="10" step="0.5" className="mono" value={lista.peso ?? 1} disabled={somenteLeitura} onChange={(e) => setLista({ ...lista, peso: e.target.value })} />
           </div>
         )}
+        <div className="campo" style={{ flex: "0 1 230px" }}>
+          <label htmlFor="ex-ajuda">Ajuda nos lançamentos</label>
+          <select id="ex-ajuda" value={lista.ajuda || ""} disabled={somenteLeitura} onChange={(e) => setLista({ ...lista, ajuda: e.target.value })}>
+            <option value="">{valeNota(lista) ? "Padrão: livre (sem ajuda)" : `Padrão da turma (${(NIVEIS_AJUDA.find((n) => n.valor === configLancamentos(turma).ajuda)?.rotulo || "").toLowerCase()})`}</option>
+            {NIVEIS_AJUDA.map((n) => <option key={n.valor} value={n.valor}>{n.rotulo} — {n.ajuda.toLowerCase().replace(/\.$/, "")}</option>)}
+          </select>
+        </div>
         <div className="campo" style={{ flex: "0 1 200px" }}>
           <label htmlFor="ex-prazo">Prazo{valeNota(lista) ? "" : " (opcional)"}</label>
           <input id="ex-prazo" type="date" value={lista.prazo || ""} disabled={somenteLeitura} onChange={(e) => setLista({ ...lista, prazo: e.target.value })} />

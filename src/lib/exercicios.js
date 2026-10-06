@@ -10,6 +10,7 @@ import { auditar } from "./auditoria";
 import { arred, CONTAS_ESTOQUE, dinheiro, dataBR, partidasDe } from "./contabil";
 import { custoDaSaida } from "./estoque";
 import { liberarGabarito, salvarGabarito, semGabarito } from "./questoes";
+import { configLancamentos } from "./modelos";
 
 export const TIPOS = [
   { id: "compras", nome: "Compras de mercadorias", desc: "à vista e a prazo" },
@@ -195,6 +196,15 @@ export const FINALIDADES = {
 export const finalidadeDe = (l) => l?.finalidade || "sala";
 export const valeNota = (l) => ["avaliativa", "recuperacao"].includes(finalidadeDe(l));
 
+// nível de ajuda dos lançamentos numa lista de escrituração (aprovado em 05/10/2026):
+// o professor escolhe por lista; sem escolha, a avaliativa e a recuperação usam "livre"
+// e o exercício de sala usa o padrão da turma
+export function ajudaDaLista(lista, turma) {
+  if (lista?.ajuda) return lista.ajuda;
+  if (lista && valeNota(lista)) return "livre";
+  return configLancamentos(turma).ajuda;
+}
+
 export const tipoListaDe = (l) => l?.tipoLista || "escrituracao";
 export const ehQuestoes = (l) => tipoListaDe(l) === "questoes";
 
@@ -204,6 +214,7 @@ export async function salvarLista(turma, lista, enviar) {
   const dados = {
     titulo: lista.titulo, fatos: questoes ? [] : lista.fatos, prazo: lista.prazo || "", enviada: !!enviar, configuracao: lista.configuracao || {},
     finalidade: fin, peso: Number(lista.peso) || 1, recuperacaoDe: lista.recuperacaoDe || null, tipoLista: tipoListaDe(lista),
+    ajuda: questoes ? null : lista.ajuda || null,
   };
   // questões: no exercício de sala o gabarito vai junto (correção na hora); no avaliativo, fica num registro só do professor
   if (questoes) dados.questoes = fin === "sala" ? lista.questoes : lista.questoes.map(semGabarito);

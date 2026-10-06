@@ -74,7 +74,7 @@
     {
       "id": "f2-teoria-cb",
       "fase": "Fase 2 — Contabilidade Básica",
-      "item": "Teoria e banco de questões dos demais módulos da CB (Módulo 02 Plano de Contas entregue em 05/10; faltam do Módulo 03 em diante)",
+      "item": "Teoria, slides e banco de questões dos Módulos 03 a 12 da CB (sequência de 12 módulos aprovada em 05/10)",
       "quem": "Claude",
       "feito": false
     },
@@ -84,6 +84,48 @@
       "item": "Exercício interativo de balanços sucessivos (exemplo da Cia. Vamos Ltda., corrigido)",
       "quem": "Claude",
       "feito": true
+    },
+    {
+      "id": "f2-sequencia",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Sequência pedagógica da CB revisada: 12 módulos (Débito e Crédito e Livros Diário e Razão incluídos; Estoque antes dos fatos; ARE antes da DLPA)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-trilha",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Trilha do aluno: \"Próximo passo\" no fim de cada módulo e selos de andamento (estudado, questionário, prática)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-ajuda-lista",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Nível de ajuda por lista de escrituração (avaliativa usa \"Livre\" por padrão)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-razonetes",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Razonetes interativos do Módulo 03 (Débito e Crédito)",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f2-montar-demonstracoes",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "\"Montar e conferir\" a DRE, a DLPA e o Balanço; o aluno faz os lançamentos de encerramento (ARE)",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f2-lista-competencia",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Lista-modelo de regime de competência (aluguel e salários a pagar, receita de serviço a receber) para o Módulo 07",
+      "quem": "Claude",
+      "feito": false
     },
     {
       "id": "f2-teste",
