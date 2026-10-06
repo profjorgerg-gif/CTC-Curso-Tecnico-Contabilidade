@@ -17,7 +17,10 @@ export const CONTAS_BALANCO = [
   { id: "caixa", nome: "Caixa", grupo: "ac" },
   { id: "bancos", nome: "Bancos Conta Movimento", grupo: "ac" },
   { id: "aplicacao", nome: "Aplicações Financeiras", grupo: "ac" },
-  { id: "clientes", nome: "Clientes (Duplicatas a Receber)", grupo: "ac" },
+  { id: "clientes", nome: "Duplicatas a Receber (Clientes)", grupo: "ac" },
+  { id: "banco_x", nome: "Bancos Conta Movimento — Banco X", grupo: "ac" },
+  { id: "banco_y", nome: "Bancos Conta Movimento — Banco Y", grupo: "ac" },
+  { id: "aplicacao_li", nome: "Aplicações de Liquidez Imediata", grupo: "ac" },
   { id: "mercadorias", nome: "Mercadorias para Revenda", grupo: "ac" },
   { id: "terrenos", nome: "Terrenos", grupo: "anc" },
   { id: "edificacoes", nome: "Edificações (Prédios)", grupo: "anc" },
@@ -28,11 +31,15 @@ export const CONTAS_BALANCO = [
   { id: "salarios", nome: "Salários a Pagar", grupo: "pc" },
   { id: "emprestimos_cp", nome: "Empréstimos a Pagar", grupo: "pc" },
   { id: "fin_cp", nome: "Financiamentos a Pagar", grupo: "pc" },
+  { id: "encargos", nome: "Encargos Sociais a Recolher", grupo: "pc" },
   { id: "emprestimos_lp", nome: "Empréstimos a Pagar", grupo: "pnc" },
   { id: "fin_lp", nome: "Financiamentos a Pagar", grupo: "pnc" },
   { id: "capital", nome: "Capital Social", grupo: "pl" },
   { id: "capital_integralizar", nome: "(−) Capital a Integralizar", grupo: "pl", redutora: true },
   { id: "reservas", nome: "Reservas de Lucros", grupo: "pl" },
+  // resultado do período (no material: "Resultado Transitório"); o prejuízo reduz o PL
+  { id: "lucro", nome: "Resultado do Exercício — lucro", grupo: "pl" },
+  { id: "prejuizo", nome: "(−) Resultado do Exercício — prejuízo", grupo: "pl", redutora: true },
 ];
 
 // Balanços sucessivos da Cia. Vamos que Vamos Ltda. — material do prof. Jorge Cardoso (4.2),
@@ -44,6 +51,7 @@ const CIA_VAMOS = {
   tipo: "balanco-sucessivo",
   titulo: "Balanços sucessivos — Cia. Vamos que Vamos Ltda.",
   instrucao: "Monte o Balanço Patrimonial depois de cada fato. Adicione as contas, escolhendo o grupo certo, e informe o saldo de cada uma. O balanço de cada fato começa do balanço correto do fato anterior.",
+  contas: ["caixa", "bancos", "aplicacao", "clientes", "mercadorias", "terrenos", "edificacoes", "veiculos", "moveis", "maquinas", "fornecedores", "salarios", "emprestimos_cp", "fin_cp", "emprestimos_lp", "fin_lp", "capital", "capital_integralizar", "reservas"],
   fatos: [
     {
       texto: "Integralização de Capital no valor de R$ 300.000,00. O montante capitalizado foi dividido em: uma sala comercial que será a sede da empresa, no valor de R$ 70.000,00; um veículo no valor de R$ 25.000,00; e o restante em moeda corrente.",
@@ -137,8 +145,72 @@ const RAZONETES_SERVICOS = {
   ],
 };
 
+// EF3.11 e EF3.12 do prof. Jorge Cardoso (incluídos em 05/10/2026), com correções:
+// Alfa — fato 02 pago pelo Banco X (o enunciado dizia Caixa, que estava zerado);
+// Beta — "Beta Comercial" (o enunciado dizia "Serviços", mas a empresa compra e vende mercadorias);
+// "Resultado Transitório" virou "Resultado do Exercício — lucro / (−) prejuízo".
+const CONTAS_COMERCIAL = ["caixa", "banco_x", "banco_y", "aplicacao_li", "clientes", "mercadorias", "terrenos", "veiculos", "moveis", "maquinas",
+  "fornecedores", "salarios", "encargos", "emprestimos_cp", "emprestimos_lp", "capital", "capital_integralizar", "lucro", "prejuizo"];
+const INSTRUCAO_RESULTADO = "Monte o Balanço Patrimonial depois de cada fato. Quando houver receita ou despesa, registre o resultado acumulado no PL: \"Resultado do Exercício — lucro\" ou \"(−) Resultado do Exercício — prejuízo\" (informe o valor sem sinal).";
+
+const ALFA = {
+  id: "cb-bs-alfa",
+  tipo: "balanco-sucessivo",
+  titulo: "Balanços sucessivos — Alfa Comercial Ltda.",
+  instrucao: INSTRUCAO_RESULTADO,
+  contas: CONTAS_COMERCIAL,
+  fatos: [
+    { texto: "Integralização do Capital Social de R$ 150.000,00: R$ 100.000,00 depositados no Banco X, R$ 30.000,00 em móveis e utensílios e R$ 20.000,00 em veículos.",
+      saldos: { banco_x: 100000, moveis: 30000, veiculos: 20000, capital: 150000 },
+      explicacao: "Ativo: Banco X 100.000 + Móveis 30.000 + Veículos 20.000 = 150.000. PL: Capital Social 150.000." },
+    { texto: "Compra de mercadorias para revenda por R$ 60.000,00: R$ 20.000,00 pagos à vista pelo Banco X e R$ 40.000,00 a prazo com fornecedores.",
+      saldos: { banco_x: 80000, mercadorias: 60000, moveis: 30000, veiculos: 20000, fornecedores: 40000, capital: 150000 },
+      explicacao: "Entram Mercadorias 60.000; Banco X 100.000 − 20.000 = 80.000; Fornecedores 40.000 no Passivo Circulante. Total: R$ 190.000,00." },
+    { texto: "Aplicação de liquidez imediata de R$ 25.000,00, com recursos do Banco X.",
+      saldos: { banco_x: 55000, aplicacao_li: 25000, mercadorias: 60000, moveis: 30000, veiculos: 20000, fornecedores: 40000, capital: 150000 },
+      explicacao: "Permutativo: Banco X 80.000 − 25.000 = 55.000 e Aplicações de Liquidez Imediata 25.000. O total não muda." },
+    { texto: "Venda de mercadorias por R$ 40.000,00: R$ 20.000,00 recebidos no Banco Y e R$ 20.000,00 em duplicatas a receber. O custo das mercadorias vendidas foi de R$ 25.000,00.",
+      saldos: { banco_x: 55000, banco_y: 20000, aplicacao_li: 25000, clientes: 20000, mercadorias: 35000, moveis: 30000, veiculos: 20000, fornecedores: 40000, capital: 150000, lucro: 15000 },
+      explicacao: "Entram Banco Y 20.000 e Duplicatas a Receber 20.000; saem do estoque 25.000 (Mercadorias 35.000). Receita 40.000 − CMV 25.000 = lucro de 15.000, que aumenta o PL. Total: R$ 205.000,00." },
+    { texto: "Pagamento de salários de R$ 12.000,00 pelo Banco X e reconhecimento de encargos sociais de R$ 4.000,00, ainda a recolher.",
+      saldos: { banco_x: 43000, banco_y: 20000, aplicacao_li: 25000, clientes: 20000, mercadorias: 35000, moveis: 30000, veiculos: 20000, fornecedores: 40000, encargos: 4000, capital: 150000, prejuizo: 1000 },
+      explicacao: "Banco X 55.000 − 12.000 = 43.000; surge Encargos Sociais a Recolher 4.000 (Passivo). As despesas somam 16.000: o resultado passa de lucro de 15.000 para prejuízo de 1.000, que reduz o PL. Total: R$ 193.000,00." },
+    { texto: "Recebimento de R$ 10.000,00 de clientes no Banco Y, liquidando parte das duplicatas a receber.",
+      saldos: { banco_x: 43000, banco_y: 30000, aplicacao_li: 25000, clientes: 10000, mercadorias: 35000, moveis: 30000, veiculos: 20000, fornecedores: 40000, encargos: 4000, capital: 150000, prejuizo: 1000 },
+      explicacao: "Permutativo: Banco Y 20.000 + 10.000 = 30.000; Duplicatas a Receber 20.000 − 10.000 = 10.000. Total: R$ 193.000,00." },
+  ],
+};
+
+const BETA = {
+  id: "cb-bs-beta",
+  tipo: "balanco-sucessivo",
+  titulo: "Balanços sucessivos — Beta Comercial Ltda.",
+  instrucao: INSTRUCAO_RESULTADO,
+  contas: CONTAS_COMERCIAL,
+  fatos: [
+    { texto: "Integralização do Capital Social de R$ 200.000,00: R$ 120.000,00 no Banco X, R$ 40.000,00 em dinheiro (caixa) e R$ 40.000,00 em veículos.",
+      saldos: { caixa: 40000, banco_x: 120000, veiculos: 40000, capital: 200000 },
+      explicacao: "Ativo: Caixa 40.000 + Banco X 120.000 + Veículos 40.000 = 200.000. PL: Capital Social 200.000." },
+    { texto: "Compra de mercadorias para revenda por R$ 80.000,00: R$ 30.000,00 pagos à vista pelo Banco X e R$ 50.000,00 a prazo com fornecedores.",
+      saldos: { caixa: 40000, banco_x: 90000, mercadorias: 80000, veiculos: 40000, fornecedores: 50000, capital: 200000 },
+      explicacao: "Mercadorias 80.000; Banco X 120.000 − 30.000 = 90.000; Fornecedores 50.000. Total: R$ 250.000,00." },
+    { texto: "Aplicação de liquidez imediata de R$ 20.000,00, com recursos do Banco X.",
+      saldos: { caixa: 40000, banco_x: 70000, aplicacao_li: 20000, mercadorias: 80000, veiculos: 40000, fornecedores: 50000, capital: 200000 },
+      explicacao: "Permutativo: Banco X 90.000 − 20.000 = 70.000 e Aplicações de Liquidez Imediata 20.000." },
+    { texto: "Venda de mercadorias por R$ 60.000,00: R$ 25.000,00 recebidos no Banco Y e R$ 35.000,00 em duplicatas a receber. O custo das mercadorias vendidas foi de R$ 36.000,00.",
+      saldos: { caixa: 40000, banco_x: 70000, banco_y: 25000, aplicacao_li: 20000, clientes: 35000, mercadorias: 44000, veiculos: 40000, fornecedores: 50000, capital: 200000, lucro: 24000 },
+      explicacao: "Entram Banco Y 25.000 e Duplicatas a Receber 35.000; Mercadorias 80.000 − 36.000 = 44.000. Receita 60.000 − CMV 36.000 = lucro de 24.000 no PL. Total: R$ 274.000,00." },
+    { texto: "Pagamento de salários de R$ 15.000,00 pelo Banco X e reconhecimento de encargos sociais de R$ 5.000,00, ainda a recolher.",
+      saldos: { caixa: 40000, banco_x: 55000, banco_y: 25000, aplicacao_li: 20000, clientes: 35000, mercadorias: 44000, veiculos: 40000, fornecedores: 50000, encargos: 5000, capital: 200000, lucro: 4000 },
+      explicacao: "Banco X 70.000 − 15.000 = 55.000; Encargos Sociais a Recolher 5.000. Despesas de 20.000: o lucro cai de 24.000 para 4.000. Total: R$ 259.000,00." },
+    { texto: "Recebimento de R$ 20.000,00 de clientes no Banco Y, liquidando parte das duplicatas a receber.",
+      saldos: { caixa: 40000, banco_x: 55000, banco_y: 45000, aplicacao_li: 20000, clientes: 15000, mercadorias: 44000, veiculos: 40000, fornecedores: 50000, encargos: 5000, capital: 200000, lucro: 4000 },
+      explicacao: "Permutativo: Banco Y 25.000 + 20.000 = 45.000; Duplicatas a Receber 35.000 − 20.000 = 15.000. Total: R$ 259.000,00." },
+  ],
+};
+
 export const PRATICAS = {
-  "cb-01": [CIA_VAMOS], // patrimônio e fatos contábeis (movido do Módulo 02 em 05/10/2026)
+  "cb-01": [CIA_VAMOS, ALFA, BETA], // patrimônio e fatos contábeis (movido do Módulo 02 em 05/10/2026)
   "cb-03": [RAZONETES_SERVICOS],
 };
 

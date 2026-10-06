@@ -152,7 +152,7 @@ export default function BalancoSucessivo({ ex }) {
             <option value="">Escolha o grupo e a conta…</option>
             {GRUPOS_BALANCO.map((g) => (
               <optgroup key={g.id} label={g.nome}>
-                {CONTAS_BALANCO.filter((c) => c.grupo === g.id && !usadas.has(c.id)).map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                {CONTAS_BALANCO.filter((c) => c.grupo === g.id && !usadas.has(c.id) && (!ex.contas || ex.contas.includes(c.id))).map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
               </optgroup>
             ))}
           </select>

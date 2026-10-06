@@ -14,7 +14,7 @@ import { praticasDo } from "../dados/praticas";
 const fatos = (x, ns) => ns.every((n) => x.esc?.lancamentos.some((l) => l.fatoOrientado === n));
 export const TRILHA = {
   cb: {
-    1: { texto: "Faça o exercício de balanços sucessivos logo acima.", pratica: (x) => x.bsConcluido },
+    1: { texto: "Faça o exercício de balanços sucessivos da Cia. Vamos, logo acima. Para praticar mais, faça também os da Alfa Comercial e da Beta Comercial.", pratica: (x) => x.bsConcluido },
     2: { texto: "Abra Consultas → Plano de Contas e localize as contas citadas na teoria (Caixa Geral, Duplicatas a Pagar, CMV, (−) Depreciação Acumulada).", destino: ["banco"], botao: "Abrir Consultas", pratica: null },
     3: { texto: "Faça o exercício de razonetes logo acima: lance os 9 fatos e apure o saldo de cada razonete.", pratica: (x) => x.bsConcluido },
     4: { texto: "Na Escrituração, faça os Saldos Iniciais: o lançamento de abertura da sua empresa.", destino: ["escrituracao", "saldos"], botao: "Fazer os saldos iniciais", pratica: (x) => !!x.esc?.saldosGravados },
@@ -36,7 +36,8 @@ export function estudado(disc, n) { try { return localStorage.getItem(chaveEstud
 export function marcarEstudado(disc, n, sim) { try { if (sim) localStorage.setItem(chaveEstudo(disc, n), "1"); else localStorage.removeItem(chaveEstudo(disc, n)); } catch { /* sem armazenamento */ } }
 
 function bsConcluido(disc, n) {
-  return praticasDo(disc, n).every((ex) => {
+  // conta o primeiro exercício do módulo (os demais são prática extra)
+  return praticasDo(disc, n).slice(0, 1).every((ex) => {
     try { const p = JSON.parse(localStorage.getItem(`ctc-pratica-${ex.id}`) || "null"); return !!p && (ex.tipo === "razonetes" ? !!p.concluido : p.fato >= ex.fatos.length); } catch { return false; }
   });
 }
