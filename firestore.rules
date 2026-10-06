@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // ============================================================================
-// CTC — Regras de segurança do Firestore (Fase 1 + Backup + Suporte + Auditoria + Empresas + Confirmação de acesso + Escrituração + Parametrização + Listas de exercícios, 04/10/2026)
+// CTC — Regras de segurança do Firestore (Fase 1 + Backup + Suporte + Auditoria + Empresas + Confirmação de acesso + Escrituração + Parametrização + Listas de exercícios + Modo de teste, 06/10/2026)
 // Cole este arquivo inteiro em: Console Firebase > Firestore > Regras > Publicar
 //
 // Quem é quem:
@@ -146,6 +146,10 @@ service cloud.firestore {
       match /respostas/{respostaId} {
         allow read: if souProfessorDaTurma(turmaId) ||
           (souAlunoDaTurma(turmaId) && (resource == null || resource.data.matricula == minhaMatricula()));
+        // modo de teste: o professor da turma grava as respostas da própria conta de teste (TESTE-…)
+        allow create, update: if souProfessorDaTurma(turmaId) &&
+          request.resource.data.matricula.matches('TESTE-[A-Z0-9]+') &&
+          respostaId == request.resource.data.listaId + '_' + request.resource.data.matricula;
         allow create, update: if souAlunoDaTurma(turmaId) &&
           request.resource.data.matricula == minhaMatricula() &&
           respostaId == request.resource.data.listaId + '_' + minhaMatricula() &&

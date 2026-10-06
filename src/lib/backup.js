@@ -13,6 +13,7 @@ import {
   addDoc, collection, doc, getDoc, getDocs, serverTimestamp, setDoc, Timestamp, writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { ehEmpresaTeste } from "./modoTeste";
 import { auditar } from "./auditoria";
 
 export const VERSAO_BACKUP = 1;
@@ -75,14 +76,15 @@ export async function backupCompleto(sessao) {
     lerColecao("chamados"), lerColecao("auditoria"),
   ]);
   const bancoQuestoes = await lerColecao("bancoQuestoes").catch(() => []);
-  const empresasBase = await lerColecao("empresas");
+  // a conta de teste dos professores (modo de teste) fica fora do backup
+  const empresasBase = (await lerColecao("empresas")).filter((e) => !ehEmpresaTeste(e.id));
   // cada empresa leva junto os livros (saldos iniciais e Livro Diário)
   const empresas = await Promise.all(empresasBase.map(async (e) => ({ ...e, livros: await lerColecao("empresas", e.id, "livros") })));
   const turmas = await Promise.all(turmasBase.map(async (t) => ({
     ...t, alunos: await lerColecao("turmas", t.id, "alunos"), listas: await lerColecao("turmas", t.id, "listas"),
     avaliacoes: await lerColecao("turmas", t.id, "avaliacoes"), boletim: await lerColecao("turmas", t.id, "boletim"),
     planos: await lerColecao("turmas", t.id, "planos"),
-    gabaritos: await lerColecao("turmas", t.id, "gabaritos"), respostas: await lerColecao("turmas", t.id, "respostas"),
+    gabaritos: await lerColecao("turmas", t.id, "gabaritos"), respostas: (await lerColecao("turmas", t.id, "respostas")).filter((r) => !ehEmpresaTeste(r.id)),
   })));
   const contagem = {
     autorizados: autorizados.length,
@@ -129,7 +131,8 @@ export async function backupDaTurma(sessao, turma) {
     a.empresa = e?.exists() ? paraJson(e.data()) : null;
     if (a.empresa) a.livros = await lerColecao("empresas", `${turma.id}_${a.id}`, "livros").catch(() => []);
   }));
-  const [listas, avaliacoes, boletim, planos, gabaritos, respostas] = await Promise.all(["listas", "avaliacoes", "boletim", "planos", "gabaritos", "respostas"].map((c) => lerColecao("turmas", turma.id, c).catch(() => [])));
+  const [listas, avaliacoes, boletim, planos, gabaritos, todasRespostas] = await Promise.all(["listas", "avaliacoes", "boletim", "planos", "gabaritos", "respostas"].map((c) => lerColecao("turmas", turma.id, c).catch(() => [])));
+  const respostas = todasRespostas.filter((r) => !ehEmpresaTeste(r.id)); // sem as do modo de teste
   const { id, alunos: _ignorar, ...dadosTurma } = turma;
   const agora = new Date();
   const arquivo = `Backup-CTC-Turma-${semAcentoNome(turma.nome)}-${carimbo(agora)}.json`;

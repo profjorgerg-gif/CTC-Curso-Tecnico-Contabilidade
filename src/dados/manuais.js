@@ -63,6 +63,13 @@ export const MANUAL_PROFESSOR = [
     "Consulta do Plano de Contas, CFOP, NCM (por capítulo) e cronograma IBS/CBS.",
     "Professor e administrador podem corrigir o Plano de Contas; cada alteração fica no histórico.",
   ] },
+  { id: "teste", titulo: "Modo de teste (ver o CTC como aluno)", passos: [
+    "Abra Modo de teste no menu: cada turma sua tem uma \"Conta de teste do professor\" com matrícula fictícia (TESTE-…). Clique em \"Entrar no modo de teste →\".",
+    "O CTC passa a mostrar exatamente a tela do aluno da turma: trilha, empresa, parametrização, escrituração, questionários (só os enviados) e notas. Não precisa de outra conta Google, nem de turma ou aluno de mentira.",
+    "A faixa no topo lembra que você está no modo de teste; \"Sair do modo de teste\" volta à sua tela de professor. O modo vale só na aba do navegador em que foi aberto.",
+    "A conta de teste não entra na lista de alunos, nas notas, no acompanhamento nem no backup, e não abre chamados de Suporte. A auditoria marca as ações como \"(modo de teste)\".",
+    "\"Zerar dados de teste\" apaga a empresa, a escrituração, as respostas e o progresso de estudo da conta de teste naquela turma, para testar de novo do zero.",
+  ] },
   { id: "backup", titulo: "Backup e Suporte", passos: [
     "Backup: o professor baixa o backup da turma (alunos, empresas, lançamentos, listas, notas e planos). O administrador faz o backup completo e a restauração.",
     "Suporte: abra um chamado para dúvidas ou problemas e acompanhe a resposta do administrador.",

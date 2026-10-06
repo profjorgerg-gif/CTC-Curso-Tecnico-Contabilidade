@@ -14,6 +14,9 @@ export function definirSessaoAuditoria(sessao) {
 export async function auditar(acao, detalhe = "", tipo = "acao") {
   const u = auth.currentUser;
   if (!u) return;
+  let teste = false; // ação feita no modo de teste (ver lib/modoTeste.js)
+  try { teste = JSON.parse(sessionStorage.getItem("ctc-modo-teste") || "null")?.uid === u.uid; } catch { /* sem sessionStorage */ }
+  if (teste && !/modo de teste/i.test(acao)) acao = `${acao} (modo de teste)`;
   try {
     await addDoc(collection(db, "auditoria"), {
       tipo, acao, detalhe: String(detalhe).slice(0, 500),

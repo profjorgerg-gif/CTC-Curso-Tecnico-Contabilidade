@@ -18,6 +18,8 @@ import MinhasNotas from "./telas/Notas";
 import Guia from "./telas/Guia";
 import Ajuda from "./telas/Manuais";
 import Questionarios from "./telas/Questionarios";
+import ModoTeste from "./telas/ModoTeste";
+import { lerModoTeste, matriculaDeTeste, NOME_ALUNO_TESTE, sairModoTeste } from "./lib/modoTeste";
 import { definirSessaoAuditoria, registrarAcesso } from "./lib/auditoria";
 import { confirmadoNesteNavegador, useSaidaPorInatividade } from "./lib/seguranca";
 import { ConfirmarAluno, ConfirmarProfessor } from "./telas/Confirmacao";
@@ -26,8 +28,8 @@ import Rodape from "./componentes/Rodape";
 // Itens do menu por perfil
 const MENUS = {
   aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["empresa", "Minha empresa"], ["parametrizacao", "Parametrização"], ["escrituracao", "Escrituração"], ["questionarios", "Questionários"], ["notas", "Minhas notas"], ["turmas", "Minhas turmas"], ["banco", "Consultas"], ["ajuda", "Ajuda"], ["suporte", "Suporte"]],
-  professor: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["guia", "Guia Pedagógico"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"]],
-  admin: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["guia", "Guia Pedagógico"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["suporte", "Suporte"], ["auditoria", "Auditoria"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
+  professor: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["guia", "Guia Pedagógico"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["teste", "Modo de teste"], ["suporte", "Suporte"]],
+  admin: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["guia", "Guia Pedagógico"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["teste", "Modo de teste"], ["suporte", "Suporte"], ["auditoria", "Auditoria"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
 };
 
 // A página atual fica no endereço (#turmas, #banco...) para sobreviver ao F5
@@ -44,6 +46,13 @@ export default function App() {
     const ouvir = () => setRota(lerPagina());
     window.addEventListener("hashchange", ouvir);
     return () => window.removeEventListener("hashchange", ouvir);
+  }, []);
+  // modo de teste: o professor vê o CTC como aluno (ver lib/modoTeste.js)
+  const [, setVersaoTeste] = useState(0);
+  useEffect(() => {
+    const ouvir = () => { setVersaoTeste((n) => n + 1); setRota(lerPagina()); };
+    window.addEventListener("ctc-modo-teste", ouvir);
+    return () => window.removeEventListener("ctc-modo-teste", ouvir);
   }, []);
 
   const ir = (...partes) => { window.location.hash = partes.join("/"); };
@@ -81,12 +90,17 @@ export default function App() {
       : <ConfirmarProfessor sessao={sessao} aoConfirmar={aoConfirmar} />);
   }
 
-  const papel = sessao.papel;
-  const menu = MENUS[papel];
+  const teste = sessao.papel !== "aluno" ? lerModoTeste(sessao.usuario.uid) : null;
+  const sess = teste
+    ? { ...sessao, papel: "aluno", papelReal: sessao.papel, teste, perfil: { nome: NOME_ALUNO_TESTE, matricula: matriculaDeTeste(sessao.usuario.uid) } }
+    : sessao;
+  const papel = sess.papel;
+  // no modo de teste não há Suporte (para não abrir chamado de mentira)
+  const menu = teste ? MENUS.aluno.filter(([id]) => id !== "suporte") : MENUS[papel];
   // telas abertas por dentro de outras (sem item próprio no menu)
   const ocultas = papel === "aluno" ? [] : ["escrituracao"];
   const [pagina, ...resto] = menu.some(([id]) => id === rota[0]) || ocultas.includes(rota[0]) ? rota : ["inicio"];
-  const props = { sessao, papel, ir, rota: resto };
+  const props = { sessao: sess, papel, ir, rota: resto };
 
   return comRodape(
     <>
@@ -96,11 +110,17 @@ export default function App() {
           <span className="suave">Curso Técnico em Contabilidade</span>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <span className="pequeno suave">{sessao.perfil?.nome || sessao.usuario.displayName}</span>
-          <span className="selo verde">{NOME_PAPEL[papel]}</span>
+          <span className="pequeno suave">{sess.perfil?.nome || sessao.usuario.displayName}</span>
+          <span className={`selo ${teste ? "ocre" : "verde"}`}>{teste ? "Modo de teste" : NOME_PAPEL[papel]}</span>
           <button className="botao secundario pequeno" onClick={sair}>Sair</button>
         </div>
       </header>
+      {teste && (
+        <div className="faixa-teste" role="status">
+          <span><strong>Modo de teste</strong> · {teste.turmaNome} · você está vendo o CTC como aluno ({sess.perfil.matricula})</span>
+          <button className="botao pequeno" onClick={sairModoTeste}>Sair do modo de teste</button>
+        </div>
+      )}
       <div className="corpo">
         <nav className="menu" aria-label="Menu principal">
           {menu.map(([id, rotulo]) => (
@@ -123,6 +143,7 @@ export default function App() {
           {pagina === "guia" && <Guia {...props} />}
           {pagina === "ajuda" && <Ajuda {...props} />}
           {pagina === "questionarios" && <Questionarios {...props} />}
+          {pagina === "teste" && <ModoTeste {...props} />}
           {pagina === "escrituracao" && <Escrituracao key={resto.join("/")} {...props} />}
         </main>
       </div>

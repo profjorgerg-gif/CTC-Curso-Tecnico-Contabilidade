@@ -128,9 +128,16 @@
       "feito": true
     },
     {
+      "id": "f2-modo-teste",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Menu \"Modo de teste\": professor e administrador veem o CTC como aluno, sem turma nem aluno de mentira",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
       "id": "f2-teste",
       "fase": "Fase 2 — Contabilidade Básica",
-      "item": "Teste com o aluno de teste e aprovação do professor",
+      "item": "Teste do CB pelo Modo de teste (como aluno) e aprovação do professor",
       "quem": "Professor",
       "feito": false
     },
@@ -340,7 +347,7 @@
     {
       "id": "g-turma-teste",
       "fase": "Ajustes gerais",
-      "item": "Excluir a turma \"Teste CB\" ao final dos testes",
+      "item": "Excluir a turma \"Teste CB\" e o aluno de teste (substituídos pelo Modo de teste)",
       "quem": "Professor",
       "feito": false
     },
