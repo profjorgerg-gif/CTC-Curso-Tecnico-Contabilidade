@@ -19,7 +19,7 @@ export const TRILHA = {
     3: { texto: "Faça o exercício de razonetes logo acima: lance os 9 fatos e apure o saldo de cada razonete.", pratica: (x) => x.bsConcluido },
     4: { texto: "Faça o exercício de abertura da Comercial Gama logo acima. Depois, na Escrituração, faça os Saldos Iniciais: o lançamento de abertura da sua empresa.", destino: ["escrituracao", "saldos"], botao: "Fazer os saldos iniciais", pratica: (x) => !!x.esc?.saldosGravados },
     5: { texto: "Faça o exercício \"Do Diário ao Razão\" logo acima. Depois, abra o Razão por conta da sua empresa e confira como a abertura aparece.", destino: ["escrituracao", "razao"], botao: "Abrir o Razão", pratica: (x) => x.bsConcluido },
-    6: { texto: "Lance os fatos orientados 1 a 4 (compras e vendas) e acompanhe a ficha no Controle de estoque.", destino: ["escrituracao", "lancamentos"], botao: "Lançar compras e vendas", pratica: (x) => fatos(x, [1, 2, 3, 4]) },
+    6: { texto: "Preencha a ficha de controle de estoque logo acima. Depois, lance os fatos orientados 1 a 4 (compras e vendas) na sua empresa e confira a ficha no Controle de estoque.", destino: ["escrituracao", "lancamentos"], botao: "Lançar compras e vendas", pratica: (x) => fatos(x, [1, 2, 3, 4]) },
     7: { texto: "Lance os 8 fatos orientados e as listas que o professor enviar.", destino: ["escrituracao", "lancamentos"], botao: "Lançar os fatos", pratica: (x) => fatos(x, [1, 2, 3, 4, 5, 6, 7, 8]) },
     8: { texto: "Abra o Balancete e confira se o total dos débitos é igual ao dos créditos.", destino: ["escrituracao", "balancete"], botao: "Abrir o Balancete", pratica: (x) => fatos(x, [1, 2, 3, 4, 5, 6, 7, 8]) && x.balanceteFecha },
     9: { texto: "Abra a DRE da sua empresa e acompanhe como o resultado é apurado.", destino: ["escrituracao", "dre"], botao: "Abrir a DRE", pratica: null },
@@ -38,7 +38,7 @@ export function marcarEstudado(disc, n, sim) { try { if (sim) localStorage.setIt
 function bsConcluido(disc, n) {
   // conta o primeiro exercício do módulo (os demais são prática extra)
   return praticasDo(disc, n).slice(0, 1).every((ex) => {
-    try { const p = JSON.parse(localStorage.getItem(`ctc-pratica-${ex.id}`) || "null"); return !!p && (ex.tipo === "razonetes" ? !!p.concluido : p.fato >= ex.fatos.length); } catch { return false; }
+    try { const p = JSON.parse(localStorage.getItem(`ctc-pratica-${ex.id}`) || "null"); return !!p && (ex.tipo === "balanco-sucessivo" ? p.fato >= ex.fatos.length : !!p.concluido); } catch { return false; }
   });
 }
 

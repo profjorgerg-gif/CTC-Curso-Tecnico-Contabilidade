@@ -1,4 +1,4 @@
-// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026).
+// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026, Módulo 06 em 06/10/2026).
 // Chave: "{disciplina}-{nº do módulo com 2 dígitos}" (ex.: "cb-01").
 // Blocos: { t: "p" | "lista" | "tabela" | "destaque" | "exemplo", ... }; **trecho** = negrito.
 // Base: material didático do prof. Jorge Lima Cardoso (CEDUP Hermann Hering), revisado.
@@ -40,6 +40,13 @@ const FONTES_CB05 = [
   "BRASIL. Decreto nº 8.683, de 25 de fevereiro de 2016.",
   "CFC – CONSELHO FEDERAL DE CONTABILIDADE. ITG 2000 (R1) – Escrituração Contábil. Brasília: CFC.",
   "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
+];
+
+const FONTES_CB06 = [
+  "CARDOSO, J. L. Compra e Venda de Mercadorias com Tributos; Resumo para Quadro. Material didático. Blumenau: CEDUP Hermann Hering, 2025.",
+  "CPC – COMITÊ DE PRONUNCIAMENTOS CONTÁBEIS. CPC 16 (R1) – Estoques. Brasília: CPC.",
+  "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
+  "RIBEIRO, O. M. Contabilidade básica fácil. 28. ed. São Paulo: Saraiva, 2012.",
 ];
 
 export const TEORIA = {
@@ -612,6 +619,108 @@ export const TEORIA = {
       },
     ],
     fontes: FONTES_CB05,
+  },
+  "cb-06": {
+    titulo: "Operações com Mercadorias e Controle de Estoque",
+    resumo: "Compra e venda de mercadorias, custo de aquisição, inventário permanente e periódico, ficha de controle de estoque, PEPS e Média Ponderada (UEPS só no comparativo) e lucro bruto.",
+    secoes: [
+      {
+        titulo: "1. Operações com mercadorias",
+        blocos: [
+          { t: "p", texto: "A empresa comercial **compra mercadorias para revender**. Cada operação tem seu registro:" },
+          { t: "tabela", cab: ["Operação", "Débito", "Crédito"], linhas: [
+            ["Compra à vista", "1.1.3.01 Mercadorias para Revenda", "Caixa/Banco"],
+            ["Compra a prazo", "1.1.3.01 Mercadorias para Revenda", "2.1.1.01 Duplicatas a Pagar"],
+            ["Venda à vista (receita)", "Caixa/Banco", "4.1.1.01 Receita de Vendas de Mercadorias"],
+            ["Venda a prazo (receita)", "1.1.2.01 Duplicatas a Receber", "4.1.1.01 Receita de Vendas de Mercadorias"],
+            ["Baixa do custo da venda", "6.2.01 CMV", "1.1.3.01 Mercadorias para Revenda"],
+          ] },
+          { t: "destaque", texto: "Toda venda tem **dois lados**: a **receita** (pelo preço de venda) e o **custo** (pelo custo da mercadoria que saiu do estoque — o CMV). O **lucro bruto** é a diferença." },
+        ],
+      },
+      {
+        titulo: "2. O custo de aquisição",
+        blocos: [
+          { t: "p", texto: "O estoque é registrado pelo **custo de aquisição** (CPC 16): preço de compra **mais** fretes, seguros e outros gastos para trazer a mercadoria até a empresa, **menos** descontos incondicionais e tributos recuperáveis. Os tributos recuperáveis (ICMS, PIS e COFINS a recuperar) são estudados na Contabilidade Intermediária e na Tributária." },
+        ],
+      },
+      {
+        titulo: "3. Inventário permanente × periódico",
+        blocos: [
+          { t: "tabela", cab: ["", "Permanente", "Periódico"], linhas: [
+            ["Controle", "A cada entrada e saída, na **ficha de estoque**", "Só no fim do período, por **contagem física**"],
+            ["CMV", "Apurado a cada venda", "**CMV = Estoque Inicial + Compras − Estoque Final**"],
+            ["No CTC", "Venda e CMV no mesmo lançamento", "Apuração do CMV no encerramento"],
+          ] },
+        ],
+      },
+      {
+        titulo: "4. A ficha de controle de estoque",
+        blocos: [
+          { t: "p", texto: "A **ficha de controle de estoque** (kardex) registra cada movimento da mercadoria em três blocos: **entradas**, **saídas** e **saldo** — cada um com quantidade, custo unitário e total. O custo de cada saída depende do **método de avaliação**." },
+          { t: "p", texto: "**Movimentos do exemplo** (são os fatos orientados 1 a 4 do CTC): compra de 100 un a R$ 20,00; compra de 50 un a R$ 25,00; venda de 40 un por R$ 3.000,00; venda de 30 un por R$ 2.400,00." },
+        ],
+      },
+      {
+        titulo: "5. Os métodos de avaliação",
+        blocos: [
+          { t: "p", texto: "**a) PEPS — Primeiro que Entra, Primeiro que Sai:** a saída usa o custo dos lotes **mais antigos**." },
+          { t: "tabela", cab: ["Movimento", "Custo da saída", "Saldo"], linhas: [
+            ["Compra 100 × 20,00", "—", "100 un · 2.000,00"],
+            ["Compra 50 × 25,00", "—", "150 un · 3.250,00"],
+            ["Venda 40 un", "40 × 20,00 = **800,00**", "110 un · 2.450,00"],
+            ["Venda 30 un", "30 × 20,00 = **600,00**", "80 un · 1.850,00"],
+          ] },
+          { t: "p", texto: "CMV = **R$ 1.400,00**; estoque final = R$ 1.850,00 (30 un a R$ 20,00 + 50 un a R$ 25,00)." },
+          { t: "p", texto: "**b) Média Ponderada Móvel:** a cada compra recalcula-se o custo médio; a saída usa esse custo. Depois das duas compras: 3.250,00 ÷ 150 = **R$ 21,67** por unidade." },
+          { t: "tabela", cab: ["Movimento", "Custo da saída", "Saldo"], linhas: [
+            ["Compra 100 × 20,00", "—", "100 un · 2.000,00"],
+            ["Compra 50 × 25,00", "—", "150 un · 3.250,00 (média 21,67)"],
+            ["Venda 40 un", "40 × 21,67 = **866,67**", "110 un · 2.383,33"],
+            ["Venda 30 un", "30 × 21,67 = **650,00**", "80 un · 1.733,33"],
+          ] },
+          { t: "p", texto: "CMV = **R$ 1.516,67**; estoque final = R$ 1.733,33." },
+          { t: "p", texto: "**c) UEPS — Último que Entra, Primeiro que Sai (só para comparação):** a saída usa o custo dos lotes **mais recentes**. Daria CMV de R$ 1.650,00 e estoque final de R$ 1.600,00." },
+          { t: "destaque", texto: "O **UEPS não é permitido** pelo CPC 16 nem pela legislação do Imposto de Renda: com preços subindo, aumenta o CMV e reduz o lucro tributável. No CTC, aparece **só no comparativo** do Controle de Estoque." },
+        ],
+      },
+      {
+        titulo: "6. Comparativo e lucro bruto",
+        blocos: [
+          { t: "p", texto: "Receita das duas vendas: 3.000,00 + 2.400,00 = **R$ 5.400,00**." },
+          { t: "tabela", cab: ["Método", "CMV", "Lucro bruto (Receita − CMV)", "Estoque final"], linhas: [
+            ["PEPS", "1.400,00", "**4.000,00**", "1.850,00"],
+            ["Média Ponderada", "1.516,67", "**3.883,33**", "1.733,33"],
+            ["UEPS (não permitido)", "1.650,00", "3.750,00", "1.600,00"],
+          ] },
+          { t: "p", texto: "Com preços em alta, o **PEPS** dá o maior lucro e o maior estoque final; o **UEPS**, o menor; a **Média** fica no meio." },
+        ],
+      },
+      {
+        titulo: "7. Apuração do resultado da venda",
+        blocos: [
+          { t: "tabela", cab: ["", "R$"], linhas: [
+            ["Receita Bruta", "5.400,00"],
+            ["(−) Deduções (tributos sobre vendas — CI/CT)", "—"],
+            ["= Receita Líquida", "5.400,00"],
+            ["(−) CMV (PEPS)", "1.400,00"],
+            ["**= Lucro Bruto**", "**4.000,00**"],
+          ] },
+        ],
+      },
+      {
+        titulo: "No CTC",
+        blocos: [
+          { t: "lista", itens: [
+            "Na **Parametrização**, você escolhe o **inventário** (permanente ou periódico) e o **método** (PEPS ou Média Ponderada).",
+            "Na venda, o lançamento já tem a **receita** e a **baixa do CMV**; a ajuda do CMV calcula o custo pelo método da sua empresa.",
+            "O **Controle de estoque** mostra a ficha de cada movimento e o comparativo dos métodos.",
+            "Pratique antes com a ficha de controle de estoque, abaixo.",
+          ] },
+        ],
+      },
+    ],
+    fontes: FONTES_CB06,
   },
 };
 

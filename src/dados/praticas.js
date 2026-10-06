@@ -261,11 +261,27 @@ const DIARIO_RAZAO = {
   ],
 };
 
+// Módulo 06 — ficha de controle de estoque (fatos orientados 1 a 4; aprovado em 06/10/2026)
+const FICHA_ESTOQUE = {
+  id: "cb-ficha-estoque",
+  tipo: "ficha-estoque",
+  titulo: "Ficha de controle de estoque",
+  instrucao: "Preencha a ficha pelo PEPS e depois pela Média Ponderada Móvel: o custo de cada saída e o saldo (unidades e reais) depois de cada movimento. São os fatos orientados 1 a 4 que você vai lançar na sua empresa.",
+  metodos: ["peps", "media"],
+  movimentos: [
+    { texto: "Compra de 100 un a R$ 20,00", tipo: "Entrada", quantidade: 100, valorUnit: 20 },
+    { texto: "Compra de 50 un a R$ 25,00", tipo: "Entrada", quantidade: 50, valorUnit: 25 },
+    { texto: "Venda de 40 un por R$ 3.000,00", tipo: "Saída", quantidade: 40, receita: 3000 },
+    { texto: "Venda de 30 un por R$ 2.400,00", tipo: "Saída", quantidade: 30, receita: 2400 },
+  ],
+};
+
 export const PRATICAS = {
   "cb-01": [CIA_VAMOS, ALFA, BETA], // patrimônio e fatos contábeis (movido do Módulo 02 em 05/10/2026)
   "cb-03": [RAZONETES_SERVICOS],
   "cb-04": [GAMA],
   "cb-05": [DIARIO_RAZAO],
+  "cb-06": [FICHA_ESTOQUE],
 };
 
 export const praticasDo = (disciplina, numero) => PRATICAS[`${disciplina}-${String(numero).padStart(2, "0")}`] || [];

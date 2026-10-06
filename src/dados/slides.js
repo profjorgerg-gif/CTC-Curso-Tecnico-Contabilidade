@@ -1,7 +1,7 @@
 // Slides do Guia Pedagógico (aprovado em 04/10/2026): uma apresentação por módulo.
 // Cada slide: { titulo, pontos?: [], tabela?: { cab: [], linhas: [[]] }, destaque?, notas }.
 // "notas" são as anotações do professor (aparecem só quando ele liga "Notas do professor").
-// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão.
+// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão; Mercadorias e Estoque.
 
 export const SLIDES = {
   cb: [
@@ -665,6 +665,137 @@ export const SLIDES = {
             "3. Caixa: saldo 7.000 D; entra 5.000 de venda à vista. Novo saldo?",
           ],
           notas: "Respostas: 1) Data, conta debitada, conta creditada, histórico e valor. 2) Por estorno: lançamento inverso. 3) R$ 12.000,00 D.",
+        },
+      ],
+    },
+    {
+      id: "cb-mercadorias-estoque",
+      modulo: "Operações com Mercadorias e Controle de Estoque (PEPS e Média; UEPS só no comparativo)",
+      titulo: "Mercadorias e Controle de Estoque",
+      subtitulo: "Compra, venda, CMV, ficha de estoque e métodos de avaliação",
+      slides: [
+        {
+          titulo: "Compra e venda de mercadorias",
+          tabela: {
+            cab: ["Operação", "Débito", "Crédito"],
+            linhas: [
+              ["Compra à vista", "Mercadorias para Revenda", "Caixa/Banco"],
+              ["Compra a prazo", "Mercadorias para Revenda", "Duplicatas a Pagar"],
+              ["Venda (receita)", "Caixa/Banco ou Dup. a Receber", "Receita de Vendas"],
+              ["Baixa do custo", "CMV", "Mercadorias para Revenda"],
+            ],
+          },
+          destaque: "Toda venda tem dois lados: a receita e o custo (CMV).",
+          notas: "Pergunte: quando vendo uma mercadoria, o que entra e o que sai? Entra o preço de venda e sai a mercadoria pelo custo.",
+        },
+        {
+          titulo: "Custo de aquisição (CPC 16)",
+          pontos: [
+            "Preço de compra",
+            "+ fretes, seguros e gastos até a mercadoria chegar",
+            "− descontos incondicionais",
+            "− tributos recuperáveis (na CI e na CT)",
+          ],
+          notas: "Exemplo: mercadoria de 1.000 com frete de 50: o estoque entra por 1.050.",
+        },
+        {
+          titulo: "Inventário permanente × periódico",
+          tabela: {
+            cab: ["", "Permanente", "Periódico"],
+            linhas: [
+              ["Controle", "A cada movimento", "Contagem no fim do período"],
+              ["CMV", "A cada venda", "EI + Compras − EF"],
+            ],
+          },
+          notas: "No CTC, o aluno escolhe o inventário na Parametrização.",
+        },
+        {
+          titulo: "A ficha de controle de estoque",
+          pontos: [
+            "Entradas: quantidade, custo unitário, total",
+            "Saídas: quantidade, custo unitário, total",
+            "Saldo: quantidade, custo unitário, total",
+          ],
+          destaque: "O custo da saída depende do método de avaliação.",
+          notas: "Desenhe a ficha no quadro com as três colunas e preencha com a turma.",
+        },
+        {
+          titulo: "Os movimentos do exemplo",
+          pontos: [
+            "1. Compra de 100 un a R$ 20,00",
+            "2. Compra de 50 un a R$ 25,00",
+            "3. Venda de 40 un por R$ 3.000,00",
+            "4. Venda de 30 un por R$ 2.400,00",
+          ],
+          notas: "São os fatos orientados 1 a 4 que o aluno lança na própria empresa no CTC.",
+        },
+        {
+          titulo: "PEPS — Primeiro que Entra, Primeiro que Sai",
+          tabela: {
+            cab: ["Movimento", "Custo da saída", "Saldo"],
+            linhas: [
+              ["Compra 100 × 20", "—", "100 un · 2.000,00"],
+              ["Compra 50 × 25", "—", "150 un · 3.250,00"],
+              ["Venda 40", "800,00", "110 un · 2.450,00"],
+              ["Venda 30", "600,00", "80 un · 1.850,00"],
+            ],
+          },
+          destaque: "CMV = R$ 1.400,00",
+          notas: "As duas vendas saem do primeiro lote (a R$ 20,00), que ainda tem unidades.",
+        },
+        {
+          titulo: "Média Ponderada Móvel",
+          tabela: {
+            cab: ["Movimento", "Custo da saída", "Saldo"],
+            linhas: [
+              ["Compra 100 × 20", "—", "100 un · 2.000,00"],
+              ["Compra 50 × 25", "—", "150 un · 3.250,00 (média 21,67)"],
+              ["Venda 40", "866,67", "110 un · 2.383,33"],
+              ["Venda 30", "650,00", "80 un · 1.733,33"],
+            ],
+          },
+          destaque: "CMV = R$ 1.516,67",
+          notas: "Custo médio = saldo em reais ÷ saldo em unidades. Ele só muda quando entra mercadoria.",
+        },
+        {
+          titulo: "UEPS: só para comparação",
+          pontos: [
+            "A saída usa o custo dos lotes mais recentes",
+            "Não é permitido pelo CPC 16 nem pelo Imposto de Renda",
+            "Com preços em alta, aumenta o CMV e reduz o lucro",
+          ],
+          notas: "No exemplo, o UEPS daria CMV de 1.650,00. No CTC ele aparece só no comparativo.",
+        },
+        {
+          titulo: "Comparativo (receita R$ 5.400,00)",
+          tabela: {
+            cab: ["Método", "CMV", "Lucro bruto", "Estoque final"],
+            linhas: [
+              ["PEPS", "1.400,00", "4.000,00", "1.850,00"],
+              ["Média", "1.516,67", "3.883,33", "1.733,33"],
+              ["UEPS (não permitido)", "1.650,00", "3.750,00", "1.600,00"],
+            ],
+          },
+          notas: "Com preços subindo: PEPS dá o maior lucro e o maior estoque final; UEPS, o menor.",
+        },
+        {
+          titulo: "No CTC",
+          pontos: [
+            "Parametrização: inventário e método de estoque",
+            "Venda: receita e CMV no mesmo lançamento",
+            "Controle de estoque: ficha e comparativo dos métodos",
+            "Exercício \"Ficha de controle de estoque\" no Módulo 06",
+          ],
+          notas: "Mostre a ajuda do CMV ao lançar uma venda numa empresa de teste.",
+        },
+        {
+          titulo: "Para fixar",
+          pontos: [
+            "1. EI 2.000 + Compras 5.000 − EF 1.500. Qual o CMV?",
+            "2. Pelo PEPS, qual lote sai primeiro?",
+            "3. Receita 10.000 e CMV 6.500. Qual o lucro bruto?",
+          ],
+          notas: "Respostas: 1) R$ 5.500,00. 2) O mais antigo. 3) R$ 3.500,00.",
         },
       ],
     },

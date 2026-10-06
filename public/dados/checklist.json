@@ -1,5 +1,5 @@
 {
-  "atualizadoEm": "2026-10-05",
+  "atualizadoEm": "2026-10-06",
   "itens": [
     {
       "id": "f2-empresa",
@@ -74,7 +74,7 @@
     {
       "id": "f2-teoria-cb",
       "fase": "Fase 2 — Contabilidade Básica",
-      "item": "Teoria, slides e banco de questões dos Módulos 06 a 12 da CB (01 a 05 entregues)",
+      "item": "Teoria, slides e banco de questões dos Módulos 07 a 12 da CB (01 a 06 entregues)",
       "quem": "Claude",
       "feito": false
     },
@@ -319,7 +319,7 @@
     {
       "id": "f9-slides",
       "fase": "Fase 9 — Área do professor e fechamento",
-      "item": "Slides por módulo no Guia Pedagógico (modelo aprovado; CB: Módulos 01 a 05 prontos)",
+      "item": "Slides por módulo no Guia Pedagógico (modelo aprovado; CB: Módulos 01 a 06 prontos)",
       "quem": "Claude",
       "feito": false
     },
