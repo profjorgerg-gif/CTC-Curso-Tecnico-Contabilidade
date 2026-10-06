@@ -78,8 +78,68 @@ const CIA_VAMOS = {
   ],
 };
 
+// Razonetes (Módulo 03 — Débito e Crédito), aprovado em 05/10/2026.
+// Contas com os códigos do plano do CTC; algumas não são usadas nos fatos (o aluno precisa escolher).
+export const CONTAS_RAZONETE = [
+  { codigo: "1.1.1.01", nome: "Caixa Geral" },
+  { codigo: "1.1.1.02.01", nome: "Banco X" },
+  { codigo: "1.1.2.01", nome: "Duplicatas a Receber" },
+  { codigo: "1.1.3.01", nome: "Mercadorias para Revenda" },
+  { codigo: "1.2.3.02", nome: "Móveis e Utensílios" },
+  { codigo: "1.2.3.07", nome: "Equipamentos de Informática" },
+  { codigo: "2.1.1.01", nome: "Duplicatas a Pagar" },
+  { codigo: "2.1.3.01", nome: "Salários a Pagar" },
+  { codigo: "2.1.9.01", nome: "Empréstimos Bancários" },
+  { codigo: "3.1.01", nome: "Capital Subscrito" },
+  { codigo: "4.1.1.01", nome: "Receita de Vendas de Mercadorias" },
+  { codigo: "4.1.1.03", nome: "Receita de Prestação de Serviços" },
+  { codigo: "4.3.01", nome: "Juros Ativos" },
+  { codigo: "5.1.04", nome: "Energia Elétrica" },
+  { codigo: "5.1.14", nome: "Aluguéis" },
+  { codigo: "5.3.01", nome: "Juros Passivos" },
+  { codigo: "6.2.01", nome: "Custo das Mercadorias Vendidas (CMV)" },
+];
+
+// fatos: partidas [{ d: "D" | "C", conta, valor }]; base: material 6 e 6.1 do prof. Jorge Cardoso
+const RAZONETES_SERVICOS = {
+  id: "cb-raz-servicos",
+  tipo: "razonetes",
+  titulo: "Razonetes — Prestadora de Serviços Exemplo Ltda.",
+  instrucao: "Faça o lançamento de cada fato: escolha a conta, o lado (débito ou crédito) e o valor. Depois de conferido, o lançamento vai para os razonetes. No fim, apure o saldo de cada razonete.",
+  fatos: [
+    { texto: "Os sócios integralizaram o capital de R$ 20.000,00 em dinheiro.",
+      partidas: [{ d: "D", conta: "1.1.1.01", valor: 20000 }, { d: "C", conta: "3.1.01", valor: 20000 }],
+      explicacao: "Entra dinheiro: Caixa (Ativo) aumenta → débito. O capital dos sócios (PL) aumenta → crédito." },
+    { texto: "Depositou R$ 12.000,00 do caixa na conta do Banco X.",
+      partidas: [{ d: "D", conta: "1.1.1.02.01", valor: 12000 }, { d: "C", conta: "1.1.1.01", valor: 12000 }],
+      explicacao: "Banco X (Ativo) aumenta → débito; Caixa (Ativo) diminui → crédito. Fato permutativo." },
+    { texto: "Comprou mercadorias para revenda à vista, em dinheiro, por R$ 3.500,00.",
+      partidas: [{ d: "D", conta: "1.1.3.01", valor: 3500 }, { d: "C", conta: "1.1.1.01", valor: 3500 }],
+      explicacao: "Entra mercadoria: Mercadorias para Revenda (Ativo) aumenta → débito; sai dinheiro: Caixa diminui → crédito." },
+    { texto: "Recebeu R$ 8.000,00 em dinheiro pela prestação de serviços.",
+      partidas: [{ d: "D", conta: "1.1.1.01", valor: 8000 }, { d: "C", conta: "4.1.1.03", valor: 8000 }],
+      explicacao: "Caixa (Ativo) aumenta → débito. A receita aumenta → crédito (receita tem natureza credora)." },
+    { texto: "Pagou R$ 1.200,00 de energia elétrica por transferência do Banco X.",
+      partidas: [{ d: "D", conta: "5.1.04", valor: 1200 }, { d: "C", conta: "1.1.1.02.01", valor: 1200 }],
+      explicacao: "A despesa aumenta → débito (natureza devedora); o Banco X diminui → crédito." },
+    { texto: "Comprou um computador a prazo por R$ 4.000,00, com emissão de duplicata.",
+      partidas: [{ d: "D", conta: "1.2.3.07", valor: 4000 }, { d: "C", conta: "2.1.1.01", valor: 4000 }],
+      explicacao: "Equipamentos de Informática (Ativo Imobilizado) aumenta → débito; surge a obrigação Duplicatas a Pagar (Passivo) → crédito." },
+    { texto: "Pagou R$ 1.000,00 de aluguel do mês, em dinheiro.",
+      partidas: [{ d: "D", conta: "5.1.14", valor: 1000 }, { d: "C", conta: "1.1.1.01", valor: 1000 }],
+      explicacao: "Despesa de aluguel aumenta → débito; Caixa diminui → crédito." },
+    { texto: "Pagou pelo Banco X a duplicata do computador (R$ 4.000,00) com juros de R$ 80,00 pelo atraso.",
+      partidas: [{ d: "D", conta: "2.1.1.01", valor: 4000 }, { d: "D", conta: "5.3.01", valor: 80 }, { d: "C", conta: "1.1.1.02.01", valor: 4080 }],
+      explicacao: "3ª fórmula (dois débitos e um crédito): a obrigação diminui → débito de 4.000; os juros são despesa → débito de 80; sai do banco o total, 4.080 → crédito." },
+    { texto: "Obteve um empréstimo bancário de R$ 5.000,00, creditado na conta do Banco X.",
+      partidas: [{ d: "D", conta: "1.1.1.02.01", valor: 5000 }, { d: "C", conta: "2.1.9.01", valor: 5000 }],
+      explicacao: "Banco X aumenta → débito; surge a obrigação Empréstimos Bancários (Passivo) → crédito." },
+  ],
+};
+
 export const PRATICAS = {
   "cb-01": [CIA_VAMOS], // patrimônio e fatos contábeis (movido do Módulo 02 em 05/10/2026)
+  "cb-03": [RAZONETES_SERVICOS],
 };
 
 export const praticasDo = (disciplina, numero) => PRATICAS[`${disciplina}-${String(numero).padStart(2, "0")}`] || [];

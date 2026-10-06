@@ -16,7 +16,7 @@ export const TRILHA = {
   cb: {
     1: { texto: "Faça o exercício de balanços sucessivos logo acima.", pratica: (x) => x.bsConcluido },
     2: { texto: "Abra Consultas → Plano de Contas e localize as contas citadas na teoria (Caixa Geral, Duplicatas a Pagar, CMV, (−) Depreciação Acumulada).", destino: ["banco"], botao: "Abrir Consultas", pratica: null },
-    3: { texto: "Pratique débito e crédito com os razonetes (em preparação).", pratica: null },
+    3: { texto: "Faça o exercício de razonetes logo acima: lance os 9 fatos e apure o saldo de cada razonete.", pratica: (x) => x.bsConcluido },
     4: { texto: "Na Escrituração, faça os Saldos Iniciais: o lançamento de abertura da sua empresa.", destino: ["escrituracao", "saldos"], botao: "Fazer os saldos iniciais", pratica: (x) => !!x.esc?.saldosGravados },
     5: { texto: "Abra o Razão por conta e confira como a abertura aparece no Diário e no Razão.", destino: ["escrituracao", "razao"], botao: "Abrir o Razão", pratica: (x) => !!x.esc?.saldosGravados },
     6: { texto: "Lance os fatos orientados 1 a 4 (compras e vendas) e acompanhe a ficha no Controle de estoque.", destino: ["escrituracao", "lancamentos"], botao: "Lançar compras e vendas", pratica: (x) => fatos(x, [1, 2, 3, 4]) },
@@ -37,7 +37,7 @@ export function marcarEstudado(disc, n, sim) { try { if (sim) localStorage.setIt
 
 function bsConcluido(disc, n) {
   return praticasDo(disc, n).every((ex) => {
-    try { const p = JSON.parse(localStorage.getItem(`ctc-pratica-${ex.id}`) || "null"); return p && p.fato >= ex.fatos.length; } catch { return false; }
+    try { const p = JSON.parse(localStorage.getItem(`ctc-pratica-${ex.id}`) || "null"); return !!p && (ex.tipo === "razonetes" ? !!p.concluido : p.fato >= ex.fatos.length); } catch { return false; }
   });
 }
 

@@ -74,7 +74,7 @@
     {
       "id": "f2-teoria-cb",
       "fase": "Fase 2 — Contabilidade Básica",
-      "item": "Teoria, slides e banco de questões dos Módulos 03 a 12 da CB (sequência de 12 módulos aprovada em 05/10)",
+      "item": "Teoria, slides e banco de questões dos Módulos 04 a 12 da CB (01 a 03 entregues)",
       "quem": "Claude",
       "feito": false
     },
@@ -111,7 +111,7 @@
       "fase": "Fase 2 — Contabilidade Básica",
       "item": "Razonetes interativos do Módulo 03 (Débito e Crédito)",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "f2-montar-demonstracoes",
@@ -319,7 +319,7 @@
     {
       "id": "f9-slides",
       "fase": "Fase 9 — Área do professor e fechamento",
-      "item": "Slides por módulo no Guia Pedagógico (modelo aprovado; CB: Módulos 01 e 02 prontos)",
+      "item": "Slides por módulo no Guia Pedagógico (modelo aprovado; CB: Módulos 01 a 03 prontos)",
       "quem": "Claude",
       "feito": false
     },

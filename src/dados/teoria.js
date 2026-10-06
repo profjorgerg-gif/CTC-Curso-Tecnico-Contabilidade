@@ -1,4 +1,4 @@
-// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulo 02 em 05/10/2026).
+// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 e 03 em 05/10/2026).
 // Chave: "{disciplina}-{nº do módulo com 2 dígitos}" (ex.: "cb-01").
 // Blocos: { t: "p" | "lista" | "tabela" | "destaque" | "exemplo", ... }; **trecho** = negrito.
 // Base: material didático do prof. Jorge Lima Cardoso (CEDUP Hermann Hering), revisado.
@@ -16,6 +16,13 @@ const FONTES_CB02 = [
   "CARDOSO, J. L. Estrutura e Aplicação da Contabilidade; Classificação de Contas. Material didático. Blumenau: CEDUP Hermann Hering, 2025.",
   "BRASIL. Lei nº 6.404, de 15 de dezembro de 1976. Dispõe sobre as Sociedades por Ações. Arts. 177 a 182.",
   "CFC – CONSELHO FEDERAL DE CONTABILIDADE. NBC TG 26 (R5) – Apresentação das Demonstrações Contábeis. Brasília: CFC.",
+  "CFC – CONSELHO FEDERAL DE CONTABILIDADE. ITG 2000 (R1) – Escrituração Contábil. Brasília: CFC.",
+];
+
+const FONTES_CB03 = [
+  "CARDOSO, J. L. Método das Partidas Dobradas; Exemplos de Método das Partidas Dobradas; Esquema Geral de Movimentações Contábeis. Material didático. Blumenau: CEDUP Hermann Hering, 2025.",
+  "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
+  "RIBEIRO, O. M. Contabilidade básica fácil. 28. ed. São Paulo: Saraiva, 2012.",
   "CFC – CONSELHO FEDERAL DE CONTABILIDADE. ITG 2000 (R1) – Escrituração Contábil. Brasília: CFC.",
 ];
 
@@ -277,6 +284,138 @@ export const TEORIA = {
       },
     ],
     fontes: FONTES_CB02,
+  },
+  "cb-03": {
+    titulo: "Débito e Crédito: partidas dobradas e razonetes",
+    resumo: "Conta e razonete, método das partidas dobradas, regras de débito e crédito, fórmulas de lançamento, apuração de saldos e esquema geral de movimentações.",
+    secoes: [
+      {
+        titulo: "1. Conta e razonete",
+        blocos: [
+          { t: "p", texto: "**Conta** é o nome técnico que identifica cada elemento do patrimônio (bens, direitos, obrigações e PL) e do resultado (receitas, despesas e custos). Exemplos: Caixa Geral, Fornecedores, Capital Social, Aluguéis." },
+          { t: "p", texto: "O **razonete** é a forma gráfica simplificada de uma conta, em \"T\": o **lado esquerdo** é o **débito (D)** e o **lado direito** é o **crédito (C)**." },
+          { t: "destaque", texto: "Em Contabilidade, \"débito\" e \"crédito\" **não** significam \"dívida\" e \"dinheiro a receber\". São apenas os **dois lados** da conta: debitar é registrar no lado esquerdo; creditar é registrar no lado direito." },
+        ],
+      },
+      {
+        titulo: "2. O método das partidas dobradas",
+        blocos: [
+          { t: "p", texto: "O método das partidas dobradas é o fundamento da escrituração contábil moderna, aplicado em todo o mundo. Foi sistematizado por **Luca Pacioli, em 1494**, na obra Summa de Arithmetica." },
+          { t: "lista", numerada: true, itens: [
+            "Cada fato contábil é registrado em, **no mínimo, duas contas**.",
+            "A soma dos **débitos** é sempre igual à soma dos **créditos**.",
+            "Por isso a equação patrimonial nunca se desequilibra: **Ativo = Passivo + Patrimônio Líquido**.",
+          ] },
+          { t: "p", texto: "**Por que é importante:** garante a exatidão dos registros; permite localizar erros (se débitos ≠ créditos, há erro); é a base das demonstrações contábeis (Balanço Patrimonial, DRE); fortalece o controle patrimonial e financeiro." },
+        ],
+      },
+      {
+        titulo: "3. As regras de débito e crédito",
+        blocos: [
+          { t: "p", texto: "A regra vem da **natureza** de cada grupo (Módulo 02):" },
+          { t: "tabela", cab: ["Grupo", "Natureza", "Aumenta com", "Diminui com"], linhas: [
+            ["Ativo", "Devedora", "**Débito**", "Crédito"],
+            ["Despesas e Custos", "Devedora", "**Débito**", "Crédito"],
+            ["Passivo", "Credora", "**Crédito**", "Débito"],
+            ["Patrimônio Líquido", "Credora", "**Crédito**", "Débito"],
+            ["Receitas", "Credora", "**Crédito**", "Débito"],
+          ] },
+          { t: "destaque", texto: "Outra forma de lembrar: o **débito** mostra **onde o recurso foi aplicado** (entrou dinheiro no caixa, entrou mercadoria, surgiu uma despesa); o **crédito** mostra **de onde o recurso veio** (saiu do caixa, veio do fornecedor, veio dos sócios, veio de uma receita)." },
+        ],
+      },
+      {
+        titulo: "4. O lançamento e suas fórmulas",
+        blocos: [
+          { t: "p", texto: "**Elementos do lançamento:** data, conta debitada, conta creditada, histórico (a descrição do fato) e valor." },
+          { t: "tabela", cab: ["Fórmula", "Contas", "Exemplo"], linhas: [
+            ["1ª", "1 débito e 1 crédito", "Compra de móveis à vista"],
+            ["2ª", "1 débito e vários créditos", "Compra de veículo com entrada em dinheiro e o restante financiado"],
+            ["3ª", "Vários débitos e 1 crédito", "Pagamento de duplicata com juros, pelo banco"],
+            ["4ª", "Vários débitos e vários créditos", "Venda com baixa do estoque (receita e CMV juntos)"],
+          ] },
+          { t: "p", texto: "Em todas as fórmulas, **total dos débitos = total dos créditos**." },
+        ],
+      },
+      {
+        titulo: "5. Como lançar: quatro perguntas",
+        blocos: [
+          { t: "lista", numerada: true, itens: [
+            "**Quais contas** o fato movimenta?",
+            "**A que grupo** cada conta pertence (Ativo, Passivo, PL, Receita, Despesa)?",
+            "Cada conta **aumentou ou diminuiu**?",
+            "Pela tabela da seção 3: **débito ou crédito**?",
+          ] },
+          { t: "exemplo", titulo: "Exemplo resolvido — pagamento de aluguel de R$ 1.000,00 em dinheiro", itens: [
+            "Contas: Aluguéis (despesa) e Caixa Geral (ativo).",
+            "A despesa **aumentou** → **débito**. O Caixa **diminuiu** → **crédito**.",
+            "Lançamento: **D – 5.1.14 Aluguéis** R$ 1.000,00 / **C – 1.1.1.01 Caixa Geral** R$ 1.000,00.",
+          ] },
+        ],
+      },
+      {
+        titulo: "6. Saldo do razonete",
+        blocos: [
+          { t: "lista", itens: [
+            "**Saldo devedor:** a soma dos débitos é maior que a dos créditos.",
+            "**Saldo credor:** a soma dos créditos é maior que a dos débitos.",
+            "**Saldo nulo:** as duas somas são iguais.",
+          ] },
+          { t: "exemplo", titulo: "Razonete do Caixa Geral", tabela: { cab: ["Débito", "Crédito"], linhas: [
+            ["10.000,00 (saldo inicial)", "1.000,00 (aluguel)"],
+            ["8.000,00 (serviço recebido)", "3.500,00 (compra de mercadorias)"],
+            ["**18.000,00**", "**4.500,00**"],
+          ] } },
+          { t: "p", texto: "Saldo **devedor** de R$ 13.500,00 — normal para uma conta de Ativo. Somando os saldos de todos os razonetes, o total dos saldos devedores é igual ao dos credores: é o **balancete de verificação** (Módulo 08)." },
+        ],
+      },
+      {
+        titulo: "7. Exemplos resolvidos",
+        blocos: [
+          { t: "tabela", cab: ["Fato", "Débito", "Crédito", "Comentário"], linhas: [
+            ["Recebeu R$ 8.000,00 em dinheiro por serviços prestados", "1.1.1.01 Caixa Geral", "4.1.1.03 Receita de Prestação de Serviços", "Entra dinheiro (Ativo ↑) e surge uma receita, conta de resultado que aumenta o PL"],
+            ["Comprou mercadorias à vista, R$ 3.500,00", "1.1.3.01 Mercadorias para Revenda", "1.1.1.01 Caixa Geral", "Entra mercadoria e sai dinheiro (Ativo ↑ e Ativo ↓)"],
+            ["Pagou R$ 1.200,00 de energia por transferência", "5.1.04 Energia Elétrica", "1.1.1.02.01 Banco X", "Despesa ↑ e Banco ↓"],
+            ["Cliente pagou duplicata de R$ 2.000,00 em dinheiro", "1.1.1.01 Caixa Geral", "1.1.2.01 Duplicatas a Receber", "Entra dinheiro e baixa o direito"],
+            ["Comprou computador a prazo, R$ 4.000,00", "1.2.3.07 Equipamentos de Informática", "2.1.1.01 Duplicatas a Pagar", "Imobilizado ↑ e obrigação ↑"],
+          ] },
+        ],
+      },
+      {
+        titulo: "8. Esquema geral de movimentações",
+        blocos: [
+          { t: "tabela", cab: ["Operação", "Débito", "Crédito"], linhas: [
+            ["Compra de mercadorias", "1.1.3.01 Mercadorias para Revenda", "Caixa/Banco (à vista) ou 2.1.1.01 Duplicatas a Pagar (a prazo)"],
+            ["Venda de mercadorias", "Caixa/Banco ou 1.1.2.01 Duplicatas a Receber", "4.1.1.01 Receita de Vendas de Mercadorias"],
+            ["Baixa do custo da venda", "6.2.01 CMV", "1.1.3.01 Mercadorias para Revenda"],
+            ["Prestação de serviço", "Caixa/Banco ou Duplicatas a Receber", "4.1.1.03 Receita de Prestação de Serviços"],
+            ["Compra de imobilizado", "1.2.3.xx (Móveis, Veículos…)", "Caixa/Banco ou Duplicatas a Pagar"],
+            ["Salários do mês (reconhecer)", "5.1.02 Salários Administrativos", "2.1.3.01 Salários a Pagar"],
+            ["Pagamento dos salários", "2.1.3.01 Salários a Pagar", "Caixa/Banco"],
+            ["Aplicação financeira", "1.1.1.03.xx Aplicação Banco X", "1.1.1.02.xx Banco X"],
+            ["Resgate da aplicação", "Banco X", "Aplicação Banco X"],
+            ["Rendimento da aplicação", "Banco X", "4.3.02 Rendimentos de Aplicações Financeiras"],
+            ["Despesas (energia, aluguel, propaganda)", "5.1.04 / 5.1.14 / 5.2.01", "Caixa/Banco"],
+            ["Aluguel recebido", "Caixa/Banco", "4.4.01 Receitas de Aluguéis"],
+            ["Dividendos recebidos", "Caixa/Banco", "4.4.03 Dividendos Recebidos"],
+            ["Empréstimo obtido", "Caixa/Banco", "2.1.9.01 Empréstimos Bancários"],
+            ["Pagamento do empréstimo", "2.1.9.01 Empréstimos Bancários", "Caixa/Banco"],
+            ["Juros do empréstimo", "5.3.01 Juros Passivos", "Caixa/Banco"],
+          ] },
+          { t: "p", texto: "Tributos sobre vendas, depreciação, provisões e perdas com clientes são estudados nos módulos e disciplinas próprios." },
+        ],
+      },
+      {
+        titulo: "No CTC",
+        blocos: [
+          { t: "lista", itens: [
+            "O lançamento do CTC já segue as partidas dobradas: só é gravado se **débitos = créditos**, e aceita várias linhas de débito e de crédito (2ª, 3ª e 4ª fórmulas).",
+            "Os razonetes de cada conta da sua empresa aparecem no **Razão por conta** (Módulo 05).",
+            "Pratique agora com o exercício de razonetes abaixo.",
+          ] },
+        ],
+      },
+    ],
+    fontes: FONTES_CB03,
   },
 };
 

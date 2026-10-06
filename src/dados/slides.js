@@ -1,7 +1,7 @@
 // Slides do Guia Pedagógico (aprovado em 04/10/2026): uma apresentação por módulo.
 // Cada slide: { titulo, pontos?: [], tabela?: { cab: [], linhas: [[]] }, destaque?, notas }.
 // "notas" são as anotações do professor (aparecem só quando ele liga "Notas do professor").
-// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas.
+// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito.
 
 export const SLIDES = {
   cb: [
@@ -304,6 +304,135 @@ export const SLIDES = {
             "3. Qual é a natureza de (−) Depreciação Acumulada? E de ICMS sobre Vendas?",
           ],
           notas: "Respostas: 1) Passivo Circulante (2.1.1.01); Custos, grupo 6 (6.2.01). 2) Não: é desdobrada em subcontas (Banco X, Banco Y). 3) Credora (redutora do Ativo); devedora (dedução da receita).",
+        },
+      ],
+    },
+    {
+      id: "cb-debito-credito",
+      modulo: "Débito e Crédito: partidas dobradas e razonetes",
+      titulo: "Débito e Crédito",
+      subtitulo: "Partidas dobradas, razonetes e as regras de lançamento",
+      slides: [
+        {
+          titulo: "Conta e razonete",
+          pontos: [
+            "Conta: nome técnico de cada elemento do patrimônio e do resultado",
+            "Razonete: a conta em forma de \"T\"",
+            "Lado esquerdo = DÉBITO · lado direito = CRÉDITO",
+          ],
+          destaque: "Débito e crédito são apenas os dois lados da conta — não significam dívida nem dinheiro a receber.",
+          notas: "Desenhe um T no quadro com o nome Caixa em cima. Pergunte o que a turma entende por \"débito\" e desfaça a ideia de \"débito = dívida\".",
+        },
+        {
+          titulo: "O método das partidas dobradas",
+          pontos: [
+            "Sistematizado por Luca Pacioli em 1494 (Summa de Arithmetica)",
+            "Todo fato é registrado em, no mínimo, duas contas",
+            "Para todo débito há um crédito de igual valor",
+            "Por isso a equação A = P + PL nunca se desequilibra",
+          ],
+          notas: "Comente que o método tem mais de 500 anos e é usado no mundo inteiro, inclusive nos sistemas contábeis modernos.",
+        },
+        {
+          titulo: "Por que é importante",
+          pontos: [
+            "Garante a exatidão dos registros",
+            "Permite localizar erros: débitos ≠ créditos indica erro",
+            "É a base das demonstrações contábeis",
+            "Fortalece o controle patrimonial e financeiro",
+          ],
+          notas: "Ligue com o balancete: se a soma não fecha, há erro em algum lançamento.",
+        },
+        {
+          titulo: "As regras de débito e crédito",
+          tabela: {
+            cab: ["Grupo", "Natureza", "Aumenta com", "Diminui com"],
+            linhas: [
+              ["Ativo", "Devedora", "Débito", "Crédito"],
+              ["Despesas e Custos", "Devedora", "Débito", "Crédito"],
+              ["Passivo", "Credora", "Crédito", "Débito"],
+              ["Patrimônio Líquido", "Credora", "Crédito", "Débito"],
+              ["Receitas", "Credora", "Crédito", "Débito"],
+            ],
+          },
+          notas: "Esta é a tabela mais importante da disciplina. Peça que copiem e deixem à vista durante os exercícios.",
+        },
+        {
+          titulo: "Aplicação × origem",
+          pontos: [
+            "Débito: onde o recurso foi aplicado (entrou no caixa, virou mercadoria, virou despesa)",
+            "Crédito: de onde o recurso veio (saiu do caixa, veio do fornecedor, dos sócios, de uma receita)",
+          ],
+          destaque: "Toda aplicação tem uma origem de mesmo valor.",
+          notas: "Use o exemplo da compra de mercadorias à vista: o recurso foi aplicado em Mercadorias (débito) e veio do Caixa (crédito).",
+        },
+        {
+          titulo: "As fórmulas de lançamento",
+          tabela: {
+            cab: ["Fórmula", "Contas", "Exemplo"],
+            linhas: [
+              ["1ª", "1 D e 1 C", "Compra de móveis à vista"],
+              ["2ª", "1 D e vários C", "Veículo com entrada e financiamento"],
+              ["3ª", "Vários D e 1 C", "Duplicata paga com juros"],
+              ["4ª", "Vários D e vários C", "Venda com baixa do CMV"],
+            ],
+          },
+          notas: "Mostre que no CTC o lançamento aceita várias linhas de débito e de crédito, mas só grava quando os totais são iguais.",
+        },
+        {
+          titulo: "Como lançar: quatro perguntas",
+          pontos: [
+            "1. Quais contas o fato movimenta?",
+            "2. A que grupo cada conta pertence?",
+            "3. Cada conta aumentou ou diminuiu?",
+            "4. Pela tabela: débito ou crédito?",
+          ],
+          notas: "Resolva com a turma: pagamento de aluguel de R$ 1.000,00 em dinheiro → D Aluguéis / C Caixa Geral.",
+        },
+        {
+          titulo: "Saldo do razonete",
+          tabela: {
+            cab: ["Caixa Geral — Débito", "Crédito"],
+            linhas: [
+              ["10.000,00 (saldo inicial)", "1.000,00 (aluguel)"],
+              ["8.000,00 (serviço recebido)", "3.500,00 (mercadorias)"],
+              ["18.000,00", "4.500,00"],
+            ],
+          },
+          destaque: "Saldo devedor de R$ 13.500,00 (débitos > créditos).",
+          notas: "Saldo devedor: D > C. Saldo credor: C > D. Saldo nulo: D = C. A soma dos saldos devedores de todas as contas é igual à dos credores — é o balancete.",
+        },
+        {
+          titulo: "Exemplos resolvidos",
+          tabela: {
+            cab: ["Fato", "Débito", "Crédito"],
+            linhas: [
+              ["Serviço recebido em dinheiro", "Caixa Geral", "Receita de Prestação de Serviços"],
+              ["Mercadorias compradas à vista", "Mercadorias para Revenda", "Caixa Geral"],
+              ["Energia paga pelo banco", "Energia Elétrica", "Banco X"],
+              ["Duplicata recebida em dinheiro", "Caixa Geral", "Duplicatas a Receber"],
+              ["Computador comprado a prazo", "Equipamentos de Informática", "Duplicatas a Pagar"],
+            ],
+          },
+          notas: "Para cada linha, faça as quatro perguntas em voz alta com a turma antes de mostrar a resposta.",
+        },
+        {
+          titulo: "No CTC",
+          pontos: [
+            "Exercício de razonetes no Módulo 03: 9 fatos e a apuração dos saldos",
+            "Na Escrituração, o lançamento só grava com débitos = créditos",
+            "Os razonetes da empresa do aluno ficam no Razão por conta",
+          ],
+          notas: "Faça o primeiro fato do exercício de razonetes ao vivo, projetando a tela.",
+        },
+        {
+          titulo: "Para fixar",
+          pontos: [
+            "1. Pagamento de energia elétrica pelo banco: qual conta é debitada e qual é creditada?",
+            "2. Empréstimo bancário creditado na conta: débito e crédito?",
+            "3. Uma conta com débitos de 5.000 e créditos de 7.000 tem saldo de quanto e de que natureza?",
+          ],
+          notas: "Respostas: 1) D Energia Elétrica (despesa aumenta) / C Banco X (ativo diminui). 2) D Banco X / C Empréstimos Bancários. 3) Saldo credor de R$ 2.000,00.",
         },
       ],
     },
