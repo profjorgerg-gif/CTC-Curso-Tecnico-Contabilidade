@@ -1186,7 +1186,7 @@ function Encerramento({ sessao, empresa, plano, dados, recarregar, params, perio
             </button>
           </div>
           {!dataOk && data && <div className="aviso atencao" style={{ margin: "0 18px 16px" }}>
-            Apuração {pc.apuracao}: a data do encerramento precisa ser {pc.apuracao === "anual" ? `o fim do exercício (${dataBR(pc.exercicioFim)})` : pc.apuracao === "mensal" ? "o último dia de um mês" : "o último dia de um trimestre (31/03, 30/06, 30/09 ou 31/12)"}, e não pode ser anterior ao último lançamento ({dataBR(ultimaData)}).
+            Apuração {pc.apuracao || "(não escolhida — confira a Parametrização)"}: a data do encerramento precisa ser {pc.apuracao === "anual" ? `o fim do exercício (${dataBR(pc.exercicioFim)})` : pc.apuracao === "mensal" ? "o último dia de um mês" : "o último dia de um trimestre (31/03, 30/06, 30/09 ou 31/12)"}, e não pode ser anterior ao último lançamento ({dataBR(ultimaData)}).
           </div>}
           {faltaApurarCMV && <div className="aviso atencao" style={{ margin: "0 18px 16px" }}>Inventário periódico: apure o CMV na aba Controle de estoque antes de encerrar.</div>}
         </section>

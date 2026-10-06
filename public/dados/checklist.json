@@ -135,6 +135,13 @@
       "feito": true
     },
     {
+      "id": "f2-checkup",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Checkup geral da CB e revisão dos 12 bancos de questões (alternativas equilibradas)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
       "id": "f2-teste",
       "fase": "Fase 2 — Contabilidade Básica",
       "item": "Teste do CB pelo Modo de teste (como aluno) e aprovação do professor",

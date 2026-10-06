@@ -103,7 +103,7 @@ export const CONTAS_RAZONETE = [
   { codigo: "2.1.8.11", nome: "INSS Retido Empregados" },
   { codigo: "2.1.9.01", nome: "Empréstimos Bancários" },
   { codigo: "3.1.01", nome: "Capital Subscrito" },
-  { codigo: "3.6", nome: "(−) Prejuízos Acumulados" },
+  { codigo: "3.6", nome: "(-) Prejuízos Acumulados" },
   { codigo: "3.9", nome: "Resultado do Exercício" },
   { codigo: "4.1.1.01", nome: "Receita de Vendas de Mercadorias" },
   { codigo: "4.1.1.03", nome: "Receita de Prestação de Serviços" },

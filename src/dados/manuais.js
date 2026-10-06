@@ -1,7 +1,7 @@
 // Manuais do CTC (estrutura aprovada em 04/10/2026; o texto é revisado a cada entrega
 // e finalizado quando as telas estiverem estáveis). Cada seção: { id, titulo, passos: [], dica? }.
 
-export const ATUALIZADO_EM = "04/10/2026";
+export const ATUALIZADO_EM = "06/10/2026";
 
 export const MANUAL_PROFESSOR = [
   { id: "entrada", titulo: "Entrar no CTC", passos: [
