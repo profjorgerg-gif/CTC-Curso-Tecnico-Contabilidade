@@ -1,4 +1,4 @@
-// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026, Módulo 06 em 06/10/2026).
+// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026, Módulos 06 e 07 em 06/10/2026).
 // Chave: "{disciplina}-{nº do módulo com 2 dígitos}" (ex.: "cb-01").
 // Blocos: { t: "p" | "lista" | "tabela" | "destaque" | "exemplo", ... }; **trecho** = negrito.
 // Base: material didático do prof. Jorge Lima Cardoso (CEDUP Hermann Hering), revisado.
@@ -45,6 +45,13 @@ const FONTES_CB05 = [
 const FONTES_CB06 = [
   "CARDOSO, J. L. Compra e Venda de Mercadorias com Tributos; Resumo para Quadro. Material didático. Blumenau: CEDUP Hermann Hering, 2025.",
   "CPC – COMITÊ DE PRONUNCIAMENTOS CONTÁBEIS. CPC 16 (R1) – Estoques. Brasília: CPC.",
+  "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
+  "RIBEIRO, O. M. Contabilidade básica fácil. 28. ed. São Paulo: Saraiva, 2012.",
+];
+
+const FONTES_CB07 = [
+  "CARDOSO, J. L. Folha de Pagamento na Prática; Exemplo de Contabilização da Folha (Competência e Pagamento). Material didático. Blumenau: CEDUP Hermann Hering, 2025.",
+  "CPC – COMITÊ DE PRONUNCIAMENTOS CONTÁBEIS. CPC 00 (R2) – Estrutura Conceitual para Relatório Financeiro. Brasília, 2019.",
   "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
   "RIBEIRO, O. M. Contabilidade básica fácil. 28. ed. São Paulo: Saraiva, 2012.",
 ];
@@ -299,7 +306,7 @@ export const TEORIA = {
         titulo: "No CTC",
         blocos: [
           { t: "lista", itens: [
-            "A empresa de cada aluno usa o **plano de contas padrão do CTC**: 296 contas, das quais 242 aceitam lançamento.",
+            "A empresa de cada aluno usa o **plano de contas padrão do CTC**: 298 contas, das quais 244 aceitam lançamento.",
             "Na escrituração, o sistema **só deixa escolher contas que aceitam lançamento**; uma conta sintética gera o aviso \"escolha a conta\".",
             "O balancete, o Balanço e a DRE são montados automaticamente a partir dos grupos e níveis do plano.",
           ] },
@@ -721,6 +728,89 @@ export const TEORIA = {
       },
     ],
     fontes: FONTES_CB06,
+  },
+  "cb-07": {
+    titulo: "Lançamentos: 8 fatos orientados e regime de competência",
+    resumo: "Os 8 fatos orientados, o regime de competência na escrituração (despesas a pagar, receitas a receber, despesas antecipadas) e a folha de pagamento: competência e pagamento.",
+    secoes: [
+      {
+        titulo: "1. Do estudo à prática",
+        blocos: [
+          { t: "p", texto: "Você já estudou as contas, o débito e o crédito, a abertura, o Diário e o Razão e as operações com mercadorias. Agora é hora de **escriturar a empresa**. Os **8 fatos orientados** do CTC cobrem as operações básicas de uma empresa comercial:" },
+          { t: "tabela", cab: ["Fatos", "Operação", "O que praticar"], linhas: [
+            ["1 e 2", "Compra de mercadorias, à vista e a prazo", "Estoque × Caixa ou Duplicatas a Pagar"],
+            ["3 e 4", "Venda de mercadorias, à vista e a prazo", "Receita + baixa do CMV (Módulo 06)"],
+            ["5", "Pagamento a fornecedor", "Baixa da obrigação"],
+            ["6", "Recebimento de cliente", "Baixa do direito"],
+            ["7 e 8", "Aluguel e salários", "Despesas"],
+          ] },
+          { t: "destaque", texto: "Para cada fato, use as **quatro perguntas** do Módulo 03: quais contas, que grupo, aumentou ou diminuiu, débito ou crédito." },
+        ],
+      },
+      {
+        titulo: "2. O regime de competência na prática",
+        blocos: [
+          { t: "p", texto: "Pelo **regime de competência** (Módulo 01), receita e despesa pertencem ao **período em que acontecem**, não ao período em que o dinheiro entra ou sai. Na escrituração, isso gera três situações:" },
+          { t: "tabela", cab: ["Situação", "No mês em que acontece", "No mês do dinheiro"], linhas: [
+            ["**Despesa a pagar** (aluguel ou salários do mês, pagos no mês seguinte)", "D Despesa / C Obrigação a pagar (ex.: 2.1.2.03 Aluguéis a Pagar)", "D Obrigação / C Banco"],
+            ["**Receita a receber** (aluguel do mês, recebido no mês seguinte)", "D Direito a receber (ex.: 1.1.2.10 Aluguéis a Receber) / C Receita", "D Banco / C Direito"],
+            ["**Despesa antecipada** (seguro anual pago adiantado)", "D 1.1.4.01 Seguros a Apropriar / C Banco", "Cada mês: D 5.1.07 Seguros / C 1.1.4.01"],
+          ] },
+          { t: "exemplo", titulo: "Seguro anual de R$ 2.400,00 pago em 01/12", itens: [
+            "Em 01/12: D – 1.1.4.01 Seguros a Apropriar / C – Banco X: R$ 2.400,00 (é um direito, ainda não é despesa).",
+            "No fim de cada mês: D – 5.1.07 Seguros / C – 1.1.4.01 Seguros a Apropriar: R$ 200,00 (2.400 ÷ 12).",
+          ] },
+        ],
+      },
+      {
+        titulo: "3. A folha de pagamento: competência e pagamento",
+        blocos: [
+          { t: "tabela", cab: ["Folha de outubro/2025 — CEDUP Contábil Ltda.", "R$"], linhas: [
+            ["Salários brutos", "36.000,00"],
+            ["(−) INSS do empregado (9%)", "3.240,00"],
+            ["(−) IRRF (2,5%)", "900,00"],
+            ["= Salário líquido", "31.860,00"],
+            ["INSS patronal (20%)", "7.200,00"],
+            ["FGTS (8%)", "2.880,00"],
+            ["**Custo total da folha** (36.000 + 7.200 + 2.880)", "**46.080,00**"],
+          ] },
+          { t: "p", texto: "As alíquotas fixas (9% e 2,5%) são uma **simplificação didática**; o INSS e o IRRF reais seguem tabelas progressivas, estudadas em RH." },
+          { t: "p", texto: "**Em outubro (competência):**" },
+          { t: "tabela", cab: ["", "Débito", "Crédito", "R$"], linhas: [
+            ["a) Salários do mês", "5.1.02 Salários Administrativos", "2.1.3.01 Salários a Pagar", "36.000,00"],
+            ["b) Encargos patronais", "5.1.03 Encargos Sociais Administrativos", "2.1.4.01 INSS Folha (7.200,00) e 2.1.4.03 FGTS a Recolher (2.880,00)", "10.080,00"],
+            ["c) Descontos dos empregados", "2.1.3.01 Salários a Pagar", "2.1.8.11 INSS Retido Empregados (3.240,00) e 2.1.8.10 IRRF a Recolher (900,00)", "4.140,00"],
+          ] },
+          { t: "p", texto: "**Em novembro (pagamento):**" },
+          { t: "tabela", cab: ["", "Débito", "Crédito", "R$"], linhas: [
+            ["d) Salário líquido", "2.1.3.01 Salários a Pagar", "Banco X", "31.860,00"],
+            ["e) Recolhimentos", "2.1.4.01 INSS Folha 7.200 + 2.1.8.11 INSS Retido 3.240 + 2.1.4.03 FGTS 2.880 + 2.1.8.10 IRRF 900", "Banco X", "14.220,00"],
+          ] },
+          { t: "destaque", texto: "A despesa de **outubro** é **R$ 46.080,00**, mesmo sem nenhum pagamento em outubro; o desembolso de **novembro** também é R$ 46.080,00 (31.860 + 14.220). A competência põe a despesa no mês certo; o caixa mostra quando o dinheiro saiu." },
+        ],
+      },
+      {
+        titulo: "4. Caixa × competência",
+        blocos: [
+          { t: "tabela", cab: ["Mês", "Regime de competência", "Regime de caixa"], linhas: [
+            ["Outubro", "Despesa de R$ 46.080,00", "Nenhuma despesa"],
+            ["Novembro", "Nenhuma despesa (só pagamentos)", "Despesa de R$ 46.080,00"],
+          ] },
+          { t: "p", texto: "A contabilidade usa a **competência**: o lucro de outubro só fica correto se a folha de outubro estiver nele." },
+        ],
+      },
+      {
+        titulo: "No CTC",
+        blocos: [
+          { t: "lista", itens: [
+            "Em **Escrituração → Lançamentos**, você lança os **8 fatos orientados**; o CTC confere cada um.",
+            "O professor pode enviar a **lista-modelo \"Regime de competência\"**: folha do mês, encargos, descontos, seguro antecipado, aluguel a pagar e a receber, e os pagamentos e recebimentos do mês seguinte.",
+            "Pratique antes com o exercício da folha de pagamento, abaixo.",
+          ] },
+        ],
+      },
+    ],
+    fontes: FONTES_CB07,
   },
 };
 

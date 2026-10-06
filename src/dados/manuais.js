@@ -25,6 +25,7 @@ export const MANUAL_PROFESSOR = [
   ] },
   { id: "exercicios", titulo: "Exercícios: de sala, avaliativos e recuperação", passos: [
     "Na página da turma, \"Gerar exercícios\": escolha a finalidade, a quantidade de fatos, os tipos de operação, a faixa de valores e o período; revise o gabarito e envie.",
+    "Lista-modelo \"Regime de competência\": botão em Exercícios da turma. Escolha o mês de competência (dentro do exercício das empresas dos alunos) e a lista vem pronta com 11 fatos e gabarito: seguro antecipado e apropriação, folha (salários, encargos e descontos), aluguel a pagar e a receber e, no mês seguinte, os pagamentos e recebimentos.",
     "Exercício de sala: o aluno vê a correção (Confere/Diferente) na hora. Não gera nota.",
     "Exercício avaliativo: tem peso e prazo. A correção fica oculta até você clicar em \"Liberar resultado\". Depois do prazo, a lista não aceita mais lançamentos.",
     "\"Fechar e lançar notas\": o CTC calcula a nota de cada aluno (acertos ÷ total × 10, conferindo pelo estoque e método da empresa dele) e grava no quadro de notas.",

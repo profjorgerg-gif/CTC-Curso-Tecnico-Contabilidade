@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { traduzirErro } from "../lib/sessao";
 import { dataBR, dinheiro, usePlano } from "../lib/contabil";
 import { configLancamentos, NIVEIS_AJUDA } from "../lib/modelos";
-import { ehQuestoes, emPartidas, excluirLista, finalidadeDe, FINALIDADES, gerarLista, liberarResultado, listasDaTurma, salvarLista, TIPOS, valeNota } from "../lib/exercicios";
+import { ehQuestoes, emPartidas, excluirLista, finalidadeDe, FINALIDADES, gerarLista, listaModeloCompetencia, liberarResultado, listasDaTurma, salvarLista, TIPOS, valeNota } from "../lib/exercicios";
 import { lerBanco, lerGabarito, sortearQuestoes, TIPOS_QUESTAO } from "../lib/questoes";
 import Questao from "../componentes/Questao";
 import { alunosParaRecuperacao, fecharLista, fmtNota, marcarRecuperacao, MEDIA_MINIMA } from "../lib/notas";
@@ -22,6 +22,10 @@ export function ExerciciosDaTurma({ turma, alunos = [], aoMudarNotas }) {
   const nova = () => setEditando({
     titulo: `Lista ${(listas?.length || 0) + 1}`, fatos: [], prazo: "", finalidade: "sala", peso: 1, tipoLista: "escrituracao",
     configuracao: { quantidade: 10, tipos: TIPOS.map((t) => t.id).slice(0, 4), minimo: 200, maximo: 5000, inicio: `${ano}-02-01`, fim: `${ano}-02-28` },
+  });
+  const novaCompetencia = () => setEditando({
+    titulo: `Regime de competência`, fatos: listaModeloCompetencia(`${ano}-03`), prazo: "", finalidade: "sala", peso: 1, tipoLista: "escrituracao",
+    configuracao: { modelo: "competencia", mes: `${ano}-03` },
   });
   const novaDeQuestoes = () => setEditando({
     titulo: `Questionário ${(listas?.filter(ehQuestoes).length || 0) + 1}`, fatos: [], questoes: [], prazo: "", finalidade: "sala", peso: 1, tipoLista: "questoes",
@@ -50,7 +54,7 @@ export function ExerciciosDaTurma({ turma, alunos = [], aoMudarNotas }) {
       setEditando(ehQuestoes(l)
         ? { titulo: `Recuperação — ${l.titulo}`, fatos: [], questoes: [], prazo: "", finalidade: "recuperacao", recuperacaoDe: l.id, peso: l.peso || 1, tipoLista: "questoes",
           configuracao: { ...l.configuracao, quantidade: (l.questoes || []).length }, alvos, excluir: (l.questoes || []).map((q) => q.id) }
-        : { titulo: `Recuperação — ${l.titulo}`, fatos: [], prazo: "", finalidade: "recuperacao", recuperacaoDe: l.id, peso: l.peso || 1,
+        : { titulo: `Recuperação — ${l.titulo}`, fatos: l.configuracao?.modelo === "competencia" ? listaModeloCompetencia(l.configuracao.mes) : [], prazo: "", finalidade: "recuperacao", recuperacaoDe: l.id, peso: l.peso || 1,
           configuracao: { ...l.configuracao, quantidade: l.fatos.length }, alvos });
     } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
   };
@@ -68,6 +72,7 @@ export function ExerciciosDaTurma({ turma, alunos = [], aoMudarNotas }) {
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button className="botao" onClick={nova}>Lista de escrituração</button>
             <button className="botao" onClick={novaDeQuestoes}>Lista de questões teóricas</button>
+            <button className="botao secundario" onClick={novaCompetencia} title="Lista pronta: folha, encargos, seguro antecipado, aluguel a pagar e a receber">Lista-modelo: regime de competência</button>
           </div>
         )}
       </div>
@@ -206,7 +211,18 @@ function EditorLista({ turma, inicial, aoFechar }) {
         {fin === "recuperacao" && `Recuperação paralela (PPC, seção VIII): vai só para ${lista.alvos ? `os ${lista.alvos.length} aluno(s)` : "os alunos"} abaixo de ${fmtNota(MEDIA_MINIMA)}. Ao fechar, a nota entra como recuperação do instrumento; vale a maior entre a original e a da recuperação.`}
       </p>
 
-      {!somenteLeitura && (
+      {!somenteLeitura && cfg.modelo === "competencia" && (
+        <div className="linha-form" style={{ alignItems: "flex-end" }}>
+          <div className="campo" style={{ flex: "0 1 220px" }}>
+            <label htmlFor="ex-mes">Mês de competência</label>
+            <input id="ex-mes" type="month" value={cfg.mes || ""} onChange={(e) => { const mes = e.target.value; if (!mes) return; setCfg({ ...cfg, mes }); setLista({ ...lista, fatos: listaModeloCompetencia(mes), configuracao: { ...cfg, mes } }); }} />
+          </div>
+          <p className="pequeno suave" style={{ margin: 0, flex: "1 1 300px" }}>
+            Lista pronta com 11 fatos: seguro pago antecipado e apropriação do mês; folha (salários, encargos e descontos); aluguel a pagar e aluguel a receber; e, no mês seguinte, os pagamentos e recebimentos. Escolha um mês dentro do exercício das empresas dos alunos.
+          </p>
+        </div>
+      )}
+      {!somenteLeitura && cfg.modelo !== "competencia" && (
         <>
           <div className="linha-form">
             <div className="campo" style={{ flex: "0 1 280px" }}>

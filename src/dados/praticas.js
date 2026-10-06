@@ -97,12 +97,17 @@ export const CONTAS_RAZONETE = [
   { codigo: "1.2.3.07", nome: "Equipamentos de Informática" },
   { codigo: "2.1.1.01", nome: "Duplicatas a Pagar" },
   { codigo: "2.1.3.01", nome: "Salários a Pagar" },
+  { codigo: "2.1.4.01", nome: "INSS Folha" },
+  { codigo: "2.1.4.03", nome: "FGTS a Recolher" },
+  { codigo: "2.1.8.10", nome: "IRRF a Recolher" },
+  { codigo: "2.1.8.11", nome: "INSS Retido Empregados" },
   { codigo: "2.1.9.01", nome: "Empréstimos Bancários" },
   { codigo: "3.1.01", nome: "Capital Subscrito" },
   { codigo: "4.1.1.01", nome: "Receita de Vendas de Mercadorias" },
   { codigo: "4.1.1.03", nome: "Receita de Prestação de Serviços" },
   { codigo: "4.3.01", nome: "Juros Ativos" },
   { codigo: "5.1.02", nome: "Salários Administrativos" },
+  { codigo: "5.1.03", nome: "Encargos Sociais Administrativos" },
   { codigo: "5.1.04", nome: "Energia Elétrica" },
   { codigo: "5.1.14", nome: "Aluguéis" },
   { codigo: "5.3.01", nome: "Juros Passivos" },
@@ -276,12 +281,42 @@ const FICHA_ESTOQUE = {
   ],
 };
 
+// Módulo 07 — folha de pagamento: competência e pagamento (material 7.2.3, corrigido; aprovado em 06/10/2026)
+const FOLHA = {
+  id: "cb-raz-folha",
+  tipo: "razonetes",
+  titulo: "Folha de pagamento — competência e pagamento (CEDUP Contábil Ltda.)",
+  instrucao: "Lance a folha de outubro (competência) e os pagamentos de novembro. Salários brutos R$ 36.000,00; INSS do empregado 9% (R$ 3.240,00); IRRF 2,5% (R$ 900,00); INSS patronal 20% (R$ 7.200,00); FGTS 8% (R$ 2.880,00). Alíquotas simplificadas para fins didáticos.",
+  conclusao: "As obrigações da folha ficaram zeradas: tudo o que foi reconhecido em outubro foi pago em novembro. A despesa (36.000 + 10.080 = 46.080) ficou em outubro, o mês de competência.",
+  fatos: [
+    { data: "01/10/2025", texto: "Saldo inicial: o Banco X tem R$ 60.000,00, vindos da integralização do capital.",
+      partidas: [{ d: "D", conta: "1.1.1.02.01", valor: 60000 }, { d: "C", conta: "3.1.01", valor: 60000 }],
+      explicacao: "D Banco X / C Capital Subscrito — o ponto de partida." },
+    { data: "31/10/2025", texto: "Reconhecimento da folha de outubro: salários brutos de R$ 36.000,00, a pagar em novembro.",
+      partidas: [{ d: "D", conta: "5.1.02", valor: 36000 }, { d: "C", conta: "2.1.3.01", valor: 36000 }],
+      explicacao: "A despesa é de outubro (competência): D Salários Administrativos / C Salários a Pagar." },
+    { data: "31/10/2025", texto: "Encargos patronais de outubro: INSS patronal de R$ 7.200,00 e FGTS de R$ 2.880,00.",
+      partidas: [{ d: "D", conta: "5.1.03", valor: 10080 }, { d: "C", conta: "2.1.4.01", valor: 7200 }, { d: "C", conta: "2.1.4.03", valor: 2880 }],
+      explicacao: "2ª fórmula: D Encargos Sociais Administrativos 10.080 / C INSS Folha 7.200 e C FGTS a Recolher 2.880." },
+    { data: "31/10/2025", texto: "Descontos dos empregados: INSS de R$ 3.240,00 e IRRF de R$ 900,00, retidos dos salários.",
+      partidas: [{ d: "D", conta: "2.1.3.01", valor: 4140 }, { d: "C", conta: "2.1.8.11", valor: 3240 }, { d: "C", conta: "2.1.8.10", valor: 900 }],
+      explicacao: "Os descontos diminuem o que se deve aos empregados (D Salários a Pagar 4.140) e viram obrigação com o governo (C INSS Retido 3.240 e C IRRF a Recolher 900). Não é despesa nova." },
+    { data: "05/11/2025", texto: "Pagamento dos salários líquidos pelo Banco X.",
+      partidas: [{ d: "D", conta: "2.1.3.01", valor: 31860 }, { d: "C", conta: "1.1.1.02.01", valor: 31860 }],
+      explicacao: "Líquido = 36.000 − 4.140 = 31.860. D Salários a Pagar / C Banco X." },
+    { data: "07/11/2025", texto: "Recolhimento pelo Banco X do INSS (patronal e retido), do FGTS e do IRRF de outubro.",
+      partidas: [{ d: "D", conta: "2.1.4.01", valor: 7200 }, { d: "D", conta: "2.1.8.11", valor: 3240 }, { d: "D", conta: "2.1.4.03", valor: 2880 }, { d: "D", conta: "2.1.8.10", valor: 900 }, { d: "C", conta: "1.1.1.02.01", valor: 14220 }],
+      explicacao: "3ª fórmula: baixam-se as quatro obrigações (7.200 + 3.240 + 2.880 + 900 = 14.220) e sai o total do banco." },
+  ],
+};
+
 export const PRATICAS = {
   "cb-01": [CIA_VAMOS, ALFA, BETA], // patrimônio e fatos contábeis (movido do Módulo 02 em 05/10/2026)
   "cb-03": [RAZONETES_SERVICOS],
   "cb-04": [GAMA],
   "cb-05": [DIARIO_RAZAO],
   "cb-06": [FICHA_ESTOQUE],
+  "cb-07": [FOLHA],
 };
 
 export const praticasDo = (disciplina, numero) => PRATICAS[`${disciplina}-${String(numero).padStart(2, "0")}`] || [];

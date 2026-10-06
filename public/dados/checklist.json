@@ -74,7 +74,7 @@
     {
       "id": "f2-teoria-cb",
       "fase": "Fase 2 — Contabilidade Básica",
-      "item": "Teoria, slides e banco de questões dos Módulos 07 a 12 da CB (01 a 06 entregues)",
+      "item": "Teoria, slides e banco de questões dos Módulos 08 a 12 da CB (01 a 07 entregues)",
       "quem": "Claude",
       "feito": false
     },
@@ -125,7 +125,7 @@
       "fase": "Fase 2 — Contabilidade Básica",
       "item": "Lista-modelo de regime de competência (aluguel e salários a pagar, receita de serviço a receber) para o Módulo 07",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "f2-teste",
@@ -319,7 +319,7 @@
     {
       "id": "f9-slides",
       "fase": "Fase 9 — Área do professor e fechamento",
-      "item": "Slides por módulo no Guia Pedagógico (modelo aprovado; CB: Módulos 01 a 06 prontos)",
+      "item": "Slides por módulo no Guia Pedagógico (modelo aprovado; CB: Módulos 01 a 07 prontos)",
       "quem": "Claude",
       "feito": false
     },

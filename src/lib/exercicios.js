@@ -179,6 +179,34 @@ export function gerarLista({ quantidade, tipos, minimo, maximo, inicio, fim, sem
   return fatos.slice(0, quantidade);
 }
 
+// ---------- lista-modelo "Regime de competência" (aprovada em 06/10/2026) ----------
+// mes = "AAAA-MM": a folha, o seguro, o aluguel a pagar e o aluguel a receber são do mês;
+// pagamentos e recebimentos acontecem no mês seguinte. Usa 2.1.2.03 Aluguéis a Pagar.
+export function listaModeloCompetencia(mes) {
+  const [a, m] = mes.split("-").map(Number);
+  const iso = (ano, mm, dia) => `${ano}-${String(mm).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+  const ultimo = new Date(a, m, 0).getDate();
+  const [a2, m2] = m === 12 ? [a + 1, 1] : [a, m + 1];
+  const d1 = iso(a, m, 1); const dFim = iso(a, m, ultimo);
+  const d5 = iso(a2, m2, 5); const d7 = iso(a2, m2, 7); const d10 = iso(a2, m2, 10);
+  const BX = "1.1.1.02.01";
+  const P = (d, conta, valor) => ({ d, conta, valor });
+  const fatos = [
+    { data: d1, tipo: "livre", texto: "Pagou pelo Banco X o seguro anual da loja, R$ 2.400,00, com cobertura a partir deste mês.", partidas: [P("D", "1.1.4.01", 2400), P("C", BX, 2400)] },
+    { data: dFim, tipo: "despesa", texto: "Apropriação do seguro do mês (1/12 do seguro anual): R$ 200,00.", partidas: [P("D", "5.1.07", 200), P("C", "1.1.4.01", 200)] },
+    { data: dFim, tipo: "despesa", texto: "Folha de pagamento do mês: salários brutos de R$ 6.000,00, a pagar no dia 5 do mês seguinte.", partidas: [P("D", "5.1.02", 6000), P("C", "2.1.3.01", 6000)] },
+    { data: dFim, tipo: "despesa", texto: "Encargos patronais da folha do mês: INSS patronal de 20% (R$ 1.200,00) e FGTS de 8% (R$ 480,00).", partidas: [P("D", "5.1.03", 1680), P("C", "2.1.4.01", 1200), P("C", "2.1.4.03", 480)] },
+    { data: dFim, tipo: "livre", texto: "Descontos dos empregados na folha do mês: INSS de 9% (R$ 540,00) e IRRF de 2,5% (R$ 150,00).", partidas: [P("D", "2.1.3.01", 690), P("C", "2.1.8.11", 540), P("C", "2.1.8.10", 150)] },
+    { data: dFim, tipo: "despesa", texto: "Aluguel da loja referente a este mês, R$ 1.500,00, a pagar no dia 10 do mês seguinte.", partidas: [P("D", "5.1.14", 1500), P("C", "2.1.2.03", 1500)] },
+    { data: dFim, tipo: "livre", texto: "Aluguel de uma sala sublocada a terceiros, referente a este mês, R$ 800,00, a receber no dia 10 do mês seguinte.", partidas: [P("D", "1.1.2.10", 800), P("C", "4.4.01", 800)] },
+    { data: d5, tipo: "pagamento", texto: "Pagou pelo Banco X os salários líquidos da folha do mês anterior.", partidas: [P("D", "2.1.3.01", 5310), P("C", BX, 5310)] },
+    { data: d7, tipo: "pagamento", texto: "Recolheu pelo Banco X o INSS (patronal e retido dos empregados), o FGTS e o IRRF da folha do mês anterior.", partidas: [P("D", "2.1.4.01", 1200), P("D", "2.1.8.11", 540), P("D", "2.1.4.03", 480), P("D", "2.1.8.10", 150), P("C", BX, 2370)] },
+    { data: d10, tipo: "pagamento", texto: "Pagou pelo Banco X o aluguel da loja do mês anterior.", partidas: [P("D", "2.1.2.03", 1500), P("C", BX, 1500)] },
+    { data: d10, tipo: "recebimento", texto: "Recebeu no Banco X o aluguel da sala sublocada do mês anterior.", partidas: [P("D", BX, 800), P("C", "1.1.2.10", 800)] },
+  ];
+  return fatos.map((f, i) => ({ n: i + 1, tipo: f.tipo, data: f.data, texto: `${dataBR(f.data)} — ${f.texto}`, gabarito: emPartidas({ partidas: f.partidas }) }));
+}
+
 // ---------- gravação (turmas/{id}/listas) ----------
 export async function listasDaTurma(turmaId, soEnviadas) {
   const ref = collection(db, "turmas", turmaId, "listas");

@@ -1,7 +1,7 @@
 // Slides do Guia Pedagógico (aprovado em 04/10/2026): uma apresentação por módulo.
 // Cada slide: { titulo, pontos?: [], tabela?: { cab: [], linhas: [[]] }, destaque?, notas }.
 // "notas" são as anotações do professor (aparecem só quando ele liga "Notas do professor").
-// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão; Mercadorias e Estoque.
+// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão; Mercadorias e Estoque; Lançamentos e Competência.
 
 export const SLIDES = {
   cb: [
@@ -290,7 +290,7 @@ export const SLIDES = {
         {
           titulo: "No CTC",
           pontos: [
-            "Plano padrão: 296 contas, 242 aceitam lançamento",
+            "Plano padrão: 298 contas, 244 aceitam lançamento",
             "Na escrituração, só as contas de último nível podem ser escolhidas",
             "Balancete, Balanço e DRE são montados pelos grupos do plano",
           ],
@@ -796,6 +796,118 @@ export const SLIDES = {
             "3. Receita 10.000 e CMV 6.500. Qual o lucro bruto?",
           ],
           notas: "Respostas: 1) R$ 5.500,00. 2) O mais antigo. 3) R$ 3.500,00.",
+        },
+      ],
+    },
+    {
+      id: "cb-lancamentos-competencia",
+      modulo: "Lançamentos: 8 fatos orientados e regime de competência",
+      titulo: "Lançamentos e Competência",
+      subtitulo: "Os 8 fatos orientados e a folha de pagamento no regime de competência",
+      slides: [
+        {
+          titulo: "Os 8 fatos orientados",
+          tabela: {
+            cab: ["Fatos", "Operação"],
+            linhas: [
+              ["1 e 2", "Compra de mercadorias (à vista e a prazo)"],
+              ["3 e 4", "Venda de mercadorias (à vista e a prazo) + CMV"],
+              ["5", "Pagamento a fornecedor"],
+              ["6", "Recebimento de cliente"],
+              ["7 e 8", "Aluguel e salários"],
+            ],
+          },
+          destaque: "Para cada fato: quais contas, que grupo, aumentou ou diminuiu, D ou C.",
+          notas: "Faça o fato 1 ao vivo numa empresa de teste e deixe os demais para a turma.",
+        },
+        {
+          titulo: "Competência na escrituração",
+          tabela: {
+            cab: ["Situação", "No mês do fato", "No mês do dinheiro"],
+            linhas: [
+              ["Despesa a pagar", "D Despesa / C ... a Pagar", "D ... a Pagar / C Banco"],
+              ["Receita a receber", "D ... a Receber / C Receita", "D Banco / C ... a Receber"],
+              ["Despesa antecipada", "D Seguros a Apropriar / C Banco", "D Seguros / C Seguros a Apropriar"],
+            ],
+          },
+          notas: "Retome o Módulo 01: a receita e a despesa pertencem ao mês em que acontecem.",
+        },
+        {
+          titulo: "Exemplo: seguro anual antecipado",
+          pontos: [
+            "01/12: paga R$ 2.400,00 → D Seguros a Apropriar / C Banco X",
+            "Fim de cada mês: R$ 200,00 → D Seguros (despesa) / C Seguros a Apropriar",
+            "O seguro vira despesa aos poucos, mês a mês",
+          ],
+          notas: "Pergunte: se o seguro cobre 12 meses, é justo lançar tudo como despesa de dezembro?",
+        },
+        {
+          titulo: "A folha de outubro",
+          tabela: {
+            cab: ["Descrição", "R$"],
+            linhas: [
+              ["Salários brutos", "36.000,00"],
+              ["(−) INSS empregado 9%", "3.240,00"],
+              ["(−) IRRF 2,5%", "900,00"],
+              ["= Salário líquido", "31.860,00"],
+              ["INSS patronal 20% + FGTS 8%", "10.080,00"],
+              ["Custo total", "46.080,00"],
+            ],
+          },
+          notas: "Alíquotas fixas para simplificar; as tabelas reais (progressivas) ficam para RH.",
+        },
+        {
+          titulo: "Outubro: competência",
+          tabela: {
+            cab: ["", "Débito", "Crédito"],
+            linhas: [
+              ["a) Salários", "Salários Administrativos 36.000", "Salários a Pagar 36.000"],
+              ["b) Encargos", "Encargos Sociais 10.080", "INSS Folha 7.200 · FGTS 2.880"],
+              ["c) Descontos", "Salários a Pagar 4.140", "INSS Retido 3.240 · IRRF 900"],
+            ],
+          },
+          notas: "Os descontos não são despesa nova: só mudam a quem a empresa deve (do empregado para o governo).",
+        },
+        {
+          titulo: "Novembro: pagamento",
+          tabela: {
+            cab: ["", "Débito", "Crédito"],
+            linhas: [
+              ["d) Líquido", "Salários a Pagar 31.860", "Banco X 31.860"],
+              ["e) Recolhimentos", "INSS Folha 7.200 · INSS Retido 3.240 · FGTS 2.880 · IRRF 900", "Banco X 14.220"],
+            ],
+          },
+          destaque: "Despesa em outubro: 46.080. Desembolso em novembro: 46.080.",
+          notas: "Lembre: o IRRF retido também é recolhido no mês seguinte.",
+        },
+        {
+          titulo: "Caixa × competência",
+          tabela: {
+            cab: ["Mês", "Competência", "Caixa"],
+            linhas: [
+              ["Outubro", "Despesa de 46.080,00", "—"],
+              ["Novembro", "—", "Despesa de 46.080,00"],
+            ],
+          },
+          notas: "Qual mostra o lucro correto de outubro? A competência.",
+        },
+        {
+          titulo: "No CTC",
+          pontos: [
+            "Escrituração → Lançamentos: os 8 fatos orientados",
+            "Exercício da folha de pagamento no Módulo 07",
+            "Lista-modelo \"Regime de competência\" enviada pelo professor",
+          ],
+          notas: "Para enviar a lista-modelo: Turmas e matrículas → turma → Exercícios da turma → Lista-modelo: regime de competência.",
+        },
+        {
+          titulo: "Para fixar",
+          pontos: [
+            "1. Aluguel de março pago em 10/04: em que mês é a despesa?",
+            "2. Salários brutos 10.000; INSS 9% e IRRF 2,5%. Qual o líquido?",
+            "3. Seguro anual de 6.000 pago em janeiro: qual a despesa de cada mês?",
+          ],
+          notas: "Respostas: 1) Março (D Aluguéis / C Aluguéis a Pagar). 2) 10.000 − 900 − 250 = R$ 8.850,00. 3) R$ 500,00.",
         },
       ],
     },
