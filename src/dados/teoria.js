@@ -1,4 +1,4 @@
-// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 e 03 em 05/10/2026).
+// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 04 em 05/10/2026).
 // Chave: "{disciplina}-{nº do módulo com 2 dígitos}" (ex.: "cb-01").
 // Blocos: { t: "p" | "lista" | "tabela" | "destaque" | "exemplo", ... }; **trecho** = negrito.
 // Base: material didático do prof. Jorge Lima Cardoso (CEDUP Hermann Hering), revisado.
@@ -24,6 +24,13 @@ const FONTES_CB03 = [
   "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
   "RIBEIRO, O. M. Contabilidade básica fácil. 28. ed. São Paulo: Saraiva, 2012.",
   "CFC – CONSELHO FEDERAL DE CONTABILIDADE. ITG 2000 (R1) – Escrituração Contábil. Brasília: CFC.",
+];
+
+const FONTES_CB04 = [
+  "BRASIL. Lei nº 10.406, de 10 de janeiro de 2002. Institui o Código Civil. Arts. 1.052 a 1.055.",
+  "BRASIL. Lei nº 6.404, de 15 de dezembro de 1976. Dispõe sobre as Sociedades por Ações. Arts. 7º e 182.",
+  "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
+  "RIBEIRO, O. M. Contabilidade básica fácil. 28. ed. São Paulo: Saraiva, 2012.",
 ];
 
 export const TEORIA = {
@@ -416,6 +423,92 @@ export const TEORIA = {
       },
     ],
     fontes: FONTES_CB03,
+  },
+  "cb-04": {
+    titulo: "Saldos Iniciais (abertura da empresa)",
+    resumo: "Constituição da empresa, capital subscrito, integralizado e a integralizar, integralização em dinheiro e em bens, saldos iniciais e balanço de abertura.",
+    secoes: [
+      {
+        titulo: "1. A constituição da empresa",
+        blocos: [
+          { t: "p", texto: "A empresa nasce quando os sócios assinam o **contrato social** (sociedade limitada) ou o **estatuto** (sociedade anônima), que é registrado na **Junta Comercial**; em seguida ela obtém o **CNPJ**." },
+          { t: "p", texto: "O contrato define o **capital social**: o valor dos recursos que os sócios se comprometem a entregar à empresa para que ela comece a funcionar." },
+        ],
+      },
+      {
+        titulo: "2. Capital subscrito, integralizado e a integralizar",
+        blocos: [
+          { t: "tabela", cab: ["Termo", "Significado"], linhas: [
+            ["**Capital subscrito**", "Valor que os sócios **se comprometeram** a entregar (o que está no contrato)"],
+            ["**Capital integralizado**", "Parte **efetivamente entregue** à empresa"],
+            ["**Capital a integralizar**", "Parte **ainda não entregue** — conta **redutora do PL**, de natureza **devedora** (3.1.02)"],
+          ] },
+          { t: "lista", itens: [
+            "**Na subscrição** (assinatura do contrato): D – 3.1.02 (−) Capital a Integralizar / C – 3.1.01 Capital Subscrito.",
+            "**Na integralização** (entrega dos recursos): D – Caixa, Banco ou o bem entregue / C – 3.1.02 (−) Capital a Integralizar.",
+            "Quando os sócios entregam tudo **no mesmo ato** da assinatura, o lançamento é direto: D – Ativo / C – 3.1.01 Capital Subscrito.",
+          ] },
+          { t: "exemplo", titulo: "Capital subscrito de R$ 100.000,00; integralizados R$ 60.000,00 em dinheiro, o restante em 6 meses", tabela: { cab: ["Ativo", "R$", "Patrimônio Líquido", "R$"], linhas: [
+            ["Caixa Geral", "60.000,00", "Capital Subscrito", "100.000,00"],
+            ["", "", "(−) Capital a Integralizar", "(40.000,00)"],
+            ["**Total**", "**60.000,00**", "**Total**", "**60.000,00**"],
+          ] } },
+          { t: "destaque", texto: "O PL mostra só o que os sócios **já entregaram**; o compromisso que falta aparece como redutora." },
+        ],
+      },
+      {
+        titulo: "3. Integralização em dinheiro e em bens",
+        blocos: [
+          { t: "p", texto: "O capital pode ser integralizado em **dinheiro** ou em **bens suscetíveis de avaliação em dinheiro** — imóveis, veículos, móveis, máquinas (Lei 6.404/1976, art. 7º). Na sociedade limitada, **não se admite integralização em prestação de serviços** (Código Civil, art. 1.055, § 2º)." },
+          { t: "exemplo", titulo: "Cia. Vamos (fato 01) — capital de R$ 300.000,00 em sala comercial, veículo e dinheiro", tabela: { cab: ["", "Conta", "R$"], linhas: [
+            ["D", "1.2.3.01 Edificações", "70.000,00"],
+            ["D", "1.2.3.03 Veículos", "25.000,00"],
+            ["D", "1.1.1.01 Caixa Geral", "205.000,00"],
+            ["C", "3.1.01 Capital Subscrito", "300.000,00"],
+          ] } },
+          { t: "p", texto: "É um lançamento de **3ª fórmula** (vários débitos e um crédito), como no Módulo 03." },
+        ],
+      },
+      {
+        titulo: "4. Saldos iniciais e balanço de abertura",
+        blocos: [
+          { t: "p", texto: "**Saldos iniciais** são os saldos das contas no **primeiro dia** da escrituração:" },
+          { t: "lista", itens: [
+            "**Empresa nova:** os saldos iniciais vêm da integralização do capital (o lançamento de abertura).",
+            "**Empresa que já existia** (novo exercício ou mudança de sistema): os saldos iniciais são os **saldos finais do exercício anterior**, tirados do último Balanço Patrimonial.",
+          ] },
+          { t: "p", texto: "**Só as contas patrimoniais** (Ativo, Passivo e PL) têm saldo inicial. As contas de resultado começam o exercício **zeradas**, porque foram encerradas na ARE do exercício anterior (Módulo 10)." },
+          { t: "destaque", texto: "No balanço de abertura, **total dos saldos devedores = total dos saldos credores**." },
+        ],
+      },
+      {
+        titulo: "5. Exemplo: empresa que já existia",
+        blocos: [
+          { t: "exemplo", titulo: "Saldos finais de 31/12 que viram os saldos iniciais de 01/01", tabela: { cab: ["Conta", "Saldo devedor", "Saldo credor"], linhas: [
+            ["1.1.1.01 Caixa Geral", "8.000,00", ""],
+            ["1.1.1.02.01 Banco X", "22.000,00", ""],
+            ["1.1.3.01 Mercadorias para Revenda", "15.000,00", ""],
+            ["1.2.3.02 Móveis e Utensílios", "10.000,00", ""],
+            ["2.1.1.01 Duplicatas a Pagar", "", "12.000,00"],
+            ["3.1.01 Capital Subscrito", "", "40.000,00"],
+            ["3.4.01 Reserva Legal", "", "3.000,00"],
+            ["**Totais**", "**55.000,00**", "**55.000,00**"],
+          ] } },
+        ],
+      },
+      {
+        titulo: "No CTC",
+        blocos: [
+          { t: "lista", itens: [
+            "Em **Minha empresa**, você informa o **capital social**.",
+            "Em **Escrituração → Saldos iniciais**, o CTC já coloca o **Capital Subscrito** a crédito pelo valor do capital social; você distribui o mesmo valor **a débito** nas contas do Ativo que os sócios entregaram (Caixa, Bancos, Imobilizado).",
+            "O CTC só aceita quando o **total devedor é igual ao total credor**. Depois de gravados, os saldos iniciais aparecem no Razão, no Balancete e no Balanço — são o ponto de partida de todos os lançamentos.",
+            "Antes, pratique com o exercício de abertura da Comercial Gama, abaixo.",
+          ] },
+        ],
+      },
+    ],
+    fontes: FONTES_CB04,
   },
 };
 

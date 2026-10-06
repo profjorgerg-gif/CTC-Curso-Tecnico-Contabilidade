@@ -1,7 +1,7 @@
 // Slides do Guia Pedagógico (aprovado em 04/10/2026): uma apresentação por módulo.
 // Cada slide: { titulo, pontos?: [], tabela?: { cab: [], linhas: [[]] }, destaque?, notas }.
 // "notas" são as anotações do professor (aparecem só quando ele liga "Notas do professor").
-// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito.
+// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais.
 
 export const SLIDES = {
   cb: [
@@ -433,6 +433,126 @@ export const SLIDES = {
             "3. Uma conta com débitos de 5.000 e créditos de 7.000 tem saldo de quanto e de que natureza?",
           ],
           notas: "Respostas: 1) D Energia Elétrica (despesa aumenta) / C Banco X (ativo diminui). 2) D Banco X / C Empréstimos Bancários. 3) Saldo credor de R$ 2.000,00.",
+        },
+      ],
+    },
+    {
+      id: "cb-saldos-iniciais",
+      modulo: "Saldos Iniciais (abertura da empresa)",
+      titulo: "Saldos Iniciais",
+      subtitulo: "A abertura da empresa: capital, integralização e balanço de abertura",
+      slides: [
+        {
+          titulo: "Como nasce uma empresa",
+          pontos: [
+            "Contrato social (Ltda.) ou estatuto (S.A.)",
+            "Registro na Junta Comercial e obtenção do CNPJ",
+            "O contrato define o capital social",
+          ],
+          notas: "Pergunte quem já viu um contrato social. Comente que o capital social é o \"investimento inicial\" dos sócios.",
+        },
+        {
+          titulo: "Subscrito × integralizado",
+          tabela: {
+            cab: ["Termo", "Significado"],
+            linhas: [
+              ["Capital subscrito", "O que os sócios se comprometeram a entregar"],
+              ["Capital integralizado", "O que já foi efetivamente entregue"],
+              ["Capital a integralizar", "O que falta entregar (redutora do PL, devedora)"],
+            ],
+          },
+          notas: "Analogia: a promessa (subscrição) e o pagamento da promessa (integralização).",
+        },
+        {
+          titulo: "Os lançamentos",
+          pontos: [
+            "Subscrição: D (−) Capital a Integralizar / C Capital Subscrito",
+            "Integralização: D Caixa, Banco ou bem / C (−) Capital a Integralizar",
+            "Tudo no mesmo ato: D Ativo / C Capital Subscrito",
+          ],
+          notas: "Reforce a natureza: Capital Subscrito é credora (PL); Capital a Integralizar é devedora (redutora do PL).",
+        },
+        {
+          titulo: "Exemplo: integralização parcial",
+          tabela: {
+            cab: ["Ativo", "R$", "Patrimônio Líquido", "R$"],
+            linhas: [
+              ["Caixa Geral", "60.000,00", "Capital Subscrito", "100.000,00"],
+              ["", "", "(−) Capital a Integralizar", "(40.000,00)"],
+              ["Total", "60.000,00", "Total", "60.000,00"],
+            ],
+          },
+          destaque: "O PL mostra só o que os sócios já entregaram.",
+          notas: "É o fato 01 do exercício da Comercial Gama, no Módulo 04 do CTC.",
+        },
+        {
+          titulo: "Dinheiro ou bens",
+          pontos: [
+            "Dinheiro ou bens avaliáveis em dinheiro (Lei 6.404/1976, art. 7º)",
+            "Imóveis, veículos, móveis, máquinas",
+            "Na Ltda., não vale integralizar com prestação de serviços (Código Civil, art. 1.055, § 2º)",
+          ],
+          notas: "Pergunte: um sócio pode entrar com o próprio trabalho como capital? Na Ltda., não.",
+        },
+        {
+          titulo: "Exemplo: Cia. Vamos (fato 01)",
+          tabela: {
+            cab: ["", "Conta", "R$"],
+            linhas: [
+              ["D", "Edificações", "70.000,00"],
+              ["D", "Veículos", "25.000,00"],
+              ["D", "Caixa Geral", "205.000,00"],
+              ["C", "Capital Subscrito", "300.000,00"],
+            ],
+          },
+          notas: "Lançamento de 3ª fórmula: vários débitos e um crédito. Ligue com o Módulo 03.",
+        },
+        {
+          titulo: "Saldos iniciais",
+          pontos: [
+            "Empresa nova: vêm da integralização do capital",
+            "Empresa que já existia: são os saldos finais do exercício anterior",
+            "Só contas patrimoniais têm saldo inicial",
+            "Contas de resultado começam zeradas (foram encerradas na ARE)",
+          ],
+          destaque: "Saldos devedores = saldos credores.",
+          notas: "Antecipe o Módulo 10: o encerramento é que zera as contas de resultado.",
+        },
+        {
+          titulo: "Balanço de abertura (empresa que já existia)",
+          tabela: {
+            cab: ["Conta", "Devedor", "Credor"],
+            linhas: [
+              ["Caixa Geral", "8.000,00", ""],
+              ["Banco X", "22.000,00", ""],
+              ["Mercadorias para Revenda", "15.000,00", ""],
+              ["Móveis e Utensílios", "10.000,00", ""],
+              ["Duplicatas a Pagar", "", "12.000,00"],
+              ["Capital Subscrito", "", "40.000,00"],
+              ["Reserva Legal", "", "3.000,00"],
+              ["Totais", "55.000,00", "55.000,00"],
+            ],
+          },
+          notas: "Peça que a turma confira a soma das duas colunas.",
+        },
+        {
+          titulo: "No CTC",
+          pontos: [
+            "Minha empresa: informe o capital social",
+            "Escrituração → Saldos iniciais: Capital Subscrito já vem a crédito",
+            "Distribua o mesmo valor a débito nas contas do Ativo",
+            "O CTC só grava com total devedor = total credor",
+          ],
+          notas: "Faça ao vivo os saldos iniciais de uma empresa de teste e mostre o resultado no Balanço Patrimonial.",
+        },
+        {
+          titulo: "Para fixar",
+          pontos: [
+            "1. Capital subscrito de 50.000, integralizados 30.000. Quanto é o PL?",
+            "2. Qual a natureza da conta Capital a Integralizar?",
+            "3. As receitas de 2025 entram nos saldos iniciais de 2026?",
+          ],
+          notas: "Respostas: 1) R$ 30.000,00 (50.000 − 20.000 a integralizar). 2) Devedora — redutora do PL. 3) Não: foram encerradas na ARE; só as contas patrimoniais têm saldo inicial.",
         },
       ],
     },

@@ -209,9 +209,30 @@ const BETA = {
   ],
 };
 
+// Módulo 04 — subscrição e integralização do capital (aprovado em 05/10/2026)
+const GAMA = {
+  id: "cb-bs-gama-abertura",
+  tipo: "balanco-sucessivo",
+  titulo: "Abertura da empresa — Comercial Gama Ltda.",
+  instrucao: "Monte o Balanço Patrimonial depois de cada fato. O capital que os sócios ainda não entregaram aparece no PL como \"(−) Capital a Integralizar\" (informe o valor sem sinal).",
+  contas: ["caixa", "bancos", "aplicacao", "clientes", "mercadorias", "terrenos", "edificacoes", "veiculos", "moveis", "maquinas", "fornecedores", "emprestimos_cp", "capital", "capital_integralizar", "reservas"],
+  fatos: [
+    { texto: "Os sócios assinaram o contrato social com capital de R$ 100.000,00 e, no mesmo ato, entregaram R$ 60.000,00 em dinheiro. O restante será integralizado em até 6 meses.",
+      saldos: { caixa: 60000, capital: 100000, capital_integralizar: 40000 },
+      explicacao: "Capital Subscrito: 100.000 (o compromisso). Entregue: Caixa 60.000. O que falta (40.000) aparece como (−) Capital a Integralizar, redutora do PL. PL = 100.000 − 40.000 = 60.000 = Ativo." },
+    { texto: "Um sócio integralizou R$ 30.000,00 entregando um veículo avaliado nesse valor.",
+      saldos: { caixa: 60000, veiculos: 30000, capital: 100000, capital_integralizar: 10000 },
+      explicacao: "Entra Veículos 30.000 (integralização em bens). O capital a integralizar cai para 40.000 − 30.000 = 10.000. Total: R$ 90.000,00." },
+    { texto: "O outro sócio integralizou os R$ 10.000,00 restantes, depositando o valor na conta bancária da empresa.",
+      saldos: { caixa: 60000, bancos: 10000, veiculos: 30000, capital: 100000 },
+      explicacao: "Entra Bancos 10.000 e o capital a integralizar zera: todo o capital subscrito foi integralizado. Total: R$ 100.000,00." },
+  ],
+};
+
 export const PRATICAS = {
   "cb-01": [CIA_VAMOS, ALFA, BETA], // patrimônio e fatos contábeis (movido do Módulo 02 em 05/10/2026)
   "cb-03": [RAZONETES_SERVICOS],
+  "cb-04": [GAMA],
 };
 
 export const praticasDo = (disciplina, numero) => PRATICAS[`${disciplina}-${String(numero).padStart(2, "0")}`] || [];
