@@ -103,7 +103,7 @@ export const MANUAL_ALUNO = [
     "Razão por conta: o razonete (conta T) e o extrato de cada conta.",
     "Controle de estoque: a ficha (kardex) pelo método da sua empresa e o comparativo entre os métodos. No inventário periódico, faça aqui a apuração do CMV no fim do período.",
     "Balancete: débitos = créditos e saldos devedores = credores.",
-    "DRE, Encerramento (ARE), DLPA e Balanço Patrimonial, montados a partir dos seus lançamentos.",
+    "DRE, Encerramento (ARE), DLPA e Balanço Patrimonial, montados a partir dos seus lançamentos. Na DRE, você mesmo monta cada linha primeiro; o CTC confere e depois mostra a DRE pronta (se lançar algo novo, monte de novo).",
   ] },
   { id: "questionarios", titulo: "Teoria e questionários", passos: [
     "Em \"Minhas disciplinas\", abra a disciplina e clique em \"Estudar\" no módulo para ler a teoria.",

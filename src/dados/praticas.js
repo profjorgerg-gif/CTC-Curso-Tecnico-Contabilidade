@@ -320,6 +320,30 @@ const BALANCETE_SERVICOS = {
   fatos: RAZONETES_SERVICOS.fatos,
 };
 
+// Módulo 09 — monte a DRE (aprovado em 06/10/2026); valores diferentes do exemplo da teoria
+const DRE_DELTA = {
+  id: "cb-dre-delta",
+  tipo: "montar-dre",
+  titulo: "Monte a DRE — Comercial Delta Ltda. (outro mês)",
+  empresa: "Comercial Delta Ltda.",
+  instrucao: "Estas são as contas de resultado do balancete, antes do encerramento. Monte a DRE na estrutura do CTC (a mesma da teoria).",
+  contas: [
+    { codigo: "4.1.1.01", nome: "Receita de Vendas de Mercadorias", saldo: 150000, natureza: "C" },
+    { codigo: "4.2.06", nome: "(−) Devoluções de Vendas", saldo: 3000, natureza: "D" },
+    { codigo: "6.2.01", nome: "Custo das Mercadorias Vendidas (CMV)", saldo: 72000, natureza: "D" },
+    { codigo: "5.1.02", nome: "Salários Administrativos", saldo: 18000, natureza: "D" },
+    { codigo: "5.1.03", nome: "Encargos Sociais Administrativos", saldo: 5040, natureza: "D" },
+    { codigo: "5.1.14", nome: "Aluguéis", saldo: 3600, natureza: "D" },
+    { codigo: "5.1.04", nome: "Energia Elétrica", saldo: 2160, natureza: "D" },
+    { codigo: "5.2.01", nome: "Propaganda e Publicidade", saldo: 3000, natureza: "D" },
+    { codigo: "5.2.02", nome: "Comissões sobre Vendas", saldo: 2250, natureza: "D" },
+    { codigo: "4.4.01", nome: "Receitas de Aluguéis", saldo: 1500, natureza: "C" },
+    { codigo: "4.3.02", nome: "Rendimentos de Aplicações Financeiras", saldo: 900, natureza: "C" },
+    { codigo: "5.3.01", nome: "Juros Passivos", saldo: 1200, natureza: "D" },
+    { codigo: "5.4.01", nome: "Perdas Diversas", saldo: 600, natureza: "D" },
+  ],
+};
+
 export const PRATICAS = {
   "cb-01": [CIA_VAMOS, ALFA, BETA], // patrimônio e fatos contábeis (movido do Módulo 02 em 05/10/2026)
   "cb-03": [RAZONETES_SERVICOS],
@@ -328,6 +352,7 @@ export const PRATICAS = {
   "cb-06": [FICHA_ESTOQUE],
   "cb-07": [FOLHA],
   "cb-08": [BALANCETE_SERVICOS],
+  "cb-09": [DRE_DELTA],
 };
 
 export const praticasDo = (disciplina, numero) => PRATICAS[`${disciplina}-${String(numero).padStart(2, "0")}`] || [];

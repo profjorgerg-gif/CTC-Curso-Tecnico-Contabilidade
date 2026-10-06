@@ -11,6 +11,7 @@ import { db } from "../firebase";
 import { AREAS, areaConfirmada, fimDePeriodoValido, parametrosEfetivos } from "../lib/parametros";
 import { corrigirLancamento, ehQuestoes, FINALIDADES, finalidadeDe, GABARITO_ORIENTADOS, listasDaTurma, valeNota, ajudaDaLista } from "../lib/exercicios";
 import { lerBoletim } from "../lib/notas";
+import MontarDemonstracao, { montagemConcluida } from "../componentes/MontarDemonstracao";
 import { balanco, CONTA_LUCROS, dlpa, dre, jaEncerrado, propostaEncerramento } from "../lib/demonstracoes";
 import { apuracaoPeriodica, custoDaSaida, kardex, METODOS, movimentosDeEstoque } from "../lib/estoque";
 import { semAcento } from "../lib/arquivos";
@@ -1045,9 +1046,28 @@ function LinhaValor({ rotulo, valor, tipo, recuo }) {
   );
 }
 
-function Dre({ empresa, plano, dados, params }) {
+function Dre({ empresa, plano, dados, params, donoAluno }) {
   const d = dre(plano, dados.lancamentos, dados.saldos);
   const [detalhe, setDetalhe] = useState(true);
+  // aluno: "montar e conferir" antes de ver a DRE pronta (aprovado em 06/10/2026)
+  const assinatura = d.linhas.map((x) => x.valor.toFixed(2)).join("|");
+  const chave = `ctc-montar-dre-${empresa.id}`;
+  const [montada, setMontada] = useState(() => montagemConcluida(chave, assinatura));
+  useEffect(() => { setMontada(montagemConcluida(chave, assinatura)); }, [assinatura]);
+  const temMovimento = d.linhas.some((x) => Math.abs(x.valor) >= 0.005);
+  if (donoAluno && temMovimento && !montada) {
+    return (
+      <MontarDemonstracao
+        titulo="Monte a DRE da sua empresa"
+        subtitulo={`${empresa.razaoSocial} · confira no Balancete os saldos das contas de resultado (grupos 4, 5 e 6)`}
+        linhas={d.linhas}
+        chave={chave}
+        assinatura={assinatura}
+        dica="Antes de ver a DRE pronta, monte-a você: preencha cada linha e os subtotais, na ordem. Linhas sem valor não aparecem. Se você lançar algo novo, a montagem recomeça."
+        aoConcluir={() => setMontada(true)}
+      />
+    );
+  }
   return (
     <section className="cartao">
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>

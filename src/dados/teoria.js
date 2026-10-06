@@ -1,4 +1,4 @@
-// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026, Módulos 06 a 08 em 06/10/2026).
+// Teoria dos módulos (aprovada pelo professor: Módulo 01 em 04/10/2026, Módulos 02 a 05 em 05/10/2026, Módulos 06 a 09 em 06/10/2026).
 // Chave: "{disciplina}-{nº do módulo com 2 dígitos}" (ex.: "cb-01").
 // Blocos: { t: "p" | "lista" | "tabela" | "destaque" | "exemplo", ... }; **trecho** = negrito.
 // Base: material didático do prof. Jorge Lima Cardoso (CEDUP Hermann Hering), revisado.
@@ -61,6 +61,13 @@ const FONTES_CB08 = [
   "IUDÍCIBUS, S. de (coord.). Contabilidade introdutória. 10. ed. São Paulo: Atlas, 2009.",
   "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
   "RIBEIRO, O. M. Contabilidade básica fácil. 28. ed. São Paulo: Saraiva, 2012.",
+];
+
+const FONTES_CB09 = [
+  "CARDOSO, J. L. DRE — modelo CEDUP. Material didático. Blumenau: CEDUP Hermann Hering, 2025.",
+  "BRASIL. Lei nº 6.404, de 15 de dezembro de 1976. Dispõe sobre as Sociedades por Ações. Art. 187.",
+  "CFC – CONSELHO FEDERAL DE CONTABILIDADE. NBC TG 26 (R5) – Apresentação das Demonstrações Contábeis. Brasília: CFC.",
+  "MARION, J. C. Contabilidade básica. 12. ed. São Paulo: Atlas, 2014.",
 ];
 
 export const TEORIA = {
@@ -904,6 +911,107 @@ export const TEORIA = {
       },
     ],
     fontes: FONTES_CB08,
+  },
+  "cb-09": {
+    titulo: "DRE — Demonstração do Resultado do Exercício",
+    resumo: "O que é a DRE, de onde vêm os valores, a estrutura (Lei 6.404/1976, art. 187, e NBC TG 26), exemplo completo e leitura das margens.",
+    secoes: [
+      {
+        titulo: "1. O que é a DRE",
+        blocos: [
+          { t: "p", texto: "A **DRE** mostra **como a empresa chegou ao lucro ou ao prejuízo** de um período, confrontando as **receitas** com os **custos** e as **despesas**, pelo regime de competência. É obrigatória pela Lei 6.404/1976 (art. 187) e pela NBC TG 26." },
+          { t: "destaque", texto: "O Balanço mostra a **posição** da empresa numa data (uma foto); a DRE mostra o **desempenho** num período (um filme)." },
+        ],
+      },
+      {
+        titulo: "2. De onde vêm os valores",
+        blocos: [
+          { t: "p", texto: "Das **contas de resultado do balancete** (Módulo 08), **antes do encerramento**: grupo 4 – Receitas (e as deduções 4.2), grupo 5 – Despesas e grupo 6 – Custos." },
+        ],
+      },
+      {
+        titulo: "3. A estrutura (a mesma do CTC)",
+        blocos: [
+          { t: "tabela", cab: ["Linha", "Contas do plano"], linhas: [
+            ["**Receita Bruta** de Vendas e Serviços", "4.1"],
+            ["(−) Deduções da Receita (devoluções, abatimentos, tributos sobre vendas)", "4.2"],
+            ["**(=) Receita Líquida**", ""],
+            ["(−) Custo das Mercadorias, Produtos e Serviços Vendidos", "6"],
+            ["**(=) Resultado Bruto**", ""],
+            ["(−) Despesas Administrativas", "5.1"],
+            ["(−) Despesas Comerciais (com vendas)", "5.2"],
+            ["(+) Outras Receitas Operacionais", "4.4"],
+            ["**(=) Resultado antes do Resultado Financeiro**", ""],
+            ["(+) Receitas Financeiras", "4.3"],
+            ["(−) Despesas Financeiras", "5.3"],
+            ["**(=) Resultado Operacional**", ""],
+            ["(+) Ganhos de Capital e Resultado de Investimentos", "4.5 e 4.6"],
+            ["(−) Outras Despesas", "5.4"],
+            ["**(=) Resultado antes do IRPJ e da CSLL**", ""],
+            ["(−) Provisão para IRPJ e CSLL", "7.2 (Contabilidade Avançada)"],
+            ["**(=) Resultado Líquido do Exercício**", ""],
+          ] },
+          { t: "p", texto: "Na CB, a provisão para IRPJ e CSLL fica em zero; ela é calculada na Contabilidade Avançada." },
+        ],
+      },
+      {
+        titulo: "4. Exemplo: Comercial Delta Ltda.",
+        blocos: [
+          { t: "tabela", cab: ["Conta (balancete)", "Saldo"], linhas: [
+            ["4.1.1.01 Receita de Vendas de Mercadorias", "120.000,00 C"],
+            ["4.2.06 (−) Devoluções de Vendas", "2.000,00 D"],
+            ["6.2.01 CMV", "60.000,00 D"],
+            ["5.1.02 Salários Administrativos", "15.000,00 D"],
+            ["5.1.03 Encargos Sociais Administrativos", "4.200,00 D"],
+            ["5.1.14 Aluguéis", "3.000,00 D"],
+            ["5.1.04 Energia Elétrica", "1.800,00 D"],
+            ["5.2.01 Propaganda e Publicidade", "2.500,00 D"],
+            ["5.2.02 Comissões sobre Vendas", "1.500,00 D"],
+            ["4.4.01 Receitas de Aluguéis", "1.200,00 C"],
+            ["4.3.02 Rendimentos de Aplicações Financeiras", "800,00 C"],
+            ["5.3.01 Juros Passivos", "1.000,00 D"],
+            ["5.4.01 Perdas Diversas", "500,00 D"],
+          ] },
+          { t: "exemplo", titulo: "DRE da Comercial Delta", tabela: { cab: ["", "R$"], linhas: [
+            ["Receita Bruta", "120.000,00"],
+            ["(−) Deduções", "(2.000,00)"],
+            ["**(=) Receita Líquida**", "**118.000,00**"],
+            ["(−) CMV", "(60.000,00)"],
+            ["**(=) Resultado Bruto**", "**58.000,00**"],
+            ["(−) Despesas Administrativas (15.000 + 4.200 + 3.000 + 1.800)", "(24.000,00)"],
+            ["(−) Despesas Comerciais (2.500 + 1.500)", "(4.000,00)"],
+            ["(+) Outras Receitas Operacionais", "1.200,00"],
+            ["**(=) Resultado antes do Resultado Financeiro**", "**31.200,00**"],
+            ["(+) Receitas Financeiras", "800,00"],
+            ["(−) Despesas Financeiras", "(1.000,00)"],
+            ["**(=) Resultado Operacional**", "**31.000,00**"],
+            ["(−) Outras Despesas", "(500,00)"],
+            ["**(=) Resultado antes do IRPJ e da CSLL**", "**30.500,00**"],
+            ["**(=) Resultado Líquido do Exercício**", "**30.500,00**"],
+          ] } },
+        ],
+      },
+      {
+        titulo: "5. Leitura da DRE",
+        blocos: [
+          { t: "lista", itens: [
+            "**Margem bruta** = Resultado Bruto ÷ Receita Líquida = 58.000 ÷ 118.000 ≈ **49,2%**.",
+            "**Margem líquida** = Resultado Líquido ÷ Receita Líquida = 30.500 ÷ 118.000 ≈ **25,8%**.",
+            "Resultado líquido **positivo** = **lucro**; **negativo** = **prejuízo**. Ele vai para o PL pelo encerramento (Módulo 10) e é distribuído na DLPA (Módulo 11).",
+          ] },
+        ],
+      },
+      {
+        titulo: "No CTC",
+        blocos: [
+          { t: "lista", itens: [
+            "Na aba **DRE** da Escrituração, você **monta a DRE da sua empresa** linha a linha; o CTC confere e só depois mostra a DRE pronta, com o detalhe por conta. Se você lançar algo novo, a montagem recomeça.",
+            "Pratique antes com o exercício \"Monte a DRE\", abaixo.",
+          ] },
+        ],
+      },
+    ],
+    fontes: FONTES_CB09,
   },
 };
 

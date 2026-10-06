@@ -8,6 +8,7 @@ import { ehQuestoes, finalidadeDe, listasDaTurma } from "./exercicios";
 import { lerResposta } from "./questoes";
 import { lerBoletim } from "./notas";
 import { praticasDo } from "../dados/praticas";
+import { montagemConcluida } from "../componentes/MontarDemonstracao";
 
 // Próximo passo de cada módulo. destino = rota do CTC (ex.: ["escrituracao", "saldos"]).
 // pratica(x) diz se a prática no CTC está feita (null = módulo sem prática de escrituração).
@@ -22,7 +23,7 @@ export const TRILHA = {
     6: { texto: "Preencha a ficha de controle de estoque logo acima. Depois, lance os fatos orientados 1 a 4 (compras e vendas) na sua empresa e confira a ficha no Controle de estoque.", destino: ["escrituracao", "lancamentos"], botao: "Lançar compras e vendas", pratica: (x) => fatos(x, [1, 2, 3, 4]) },
     7: { texto: "Faça o exercício da folha de pagamento logo acima. Depois, lance os 8 fatos orientados na sua empresa e as listas que o professor enviar (inclusive a de regime de competência).", destino: ["escrituracao", "lancamentos"], botao: "Lançar os fatos", pratica: (x) => fatos(x, [1, 2, 3, 4, 5, 6, 7, 8]) },
     8: { texto: "Monte o balancete do exercício logo acima. Depois, abra o Balancete da sua empresa e confira se o total dos débitos é igual ao dos créditos.", destino: ["escrituracao", "balancete"], botao: "Abrir o Balancete", pratica: (x) => fatos(x, [1, 2, 3, 4, 5, 6, 7, 8]) && x.balanceteFecha },
-    9: { texto: "Abra a DRE da sua empresa e acompanhe como o resultado é apurado.", destino: ["escrituracao", "dre"], botao: "Abrir a DRE", pratica: null },
+    9: { texto: "Monte a DRE do exercício logo acima. Depois, na aba DRE da Escrituração, monte a DRE da sua empresa: o CTC confere antes de mostrar a pronta.", destino: ["escrituracao", "dre"], botao: "Montar a DRE da empresa", pratica: (x) => !!x.empresaId && montagemConcluida(`ctc-montar-dre-${x.empresaId}`) },
     10: { texto: "Faça o Encerramento do exercício (ARE) da sua empresa.", destino: ["escrituracao", "are"], botao: "Fazer o encerramento", pratica: (x) => x.encerrado },
     11: { texto: "Abra a DLPA e veja o destino do resultado do exercício.", destino: ["escrituracao", "dlpa"], botao: "Abrir a DLPA", pratica: null },
     12: { texto: "Abra o Balanço Patrimonial e confira: Ativo = Passivo + PL.", destino: ["escrituracao", "balanco"], botao: "Abrir o Balanço", pratica: null },
@@ -53,6 +54,7 @@ export async function situacaoDoAluno(turma, matricula, plano, disciplina, total
   const empresa = await lerEmpresa(turma.id, matricula).catch(() => null);
   const esc = empresa ? await lerEscrituracao(empresa.id).catch(() => null) : null;
   const x = {
+    empresaId: empresa?.id,
     esc,
     balanceteFecha: !!(esc && plano && (esc.saldosGravados || esc.lancamentos.length) && balancete(plano, esc.lancamentos, esc.saldos).fecha),
     encerrado: !!(esc && jaEncerrado(esc.lancamentos)),

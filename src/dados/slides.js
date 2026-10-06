@@ -1,7 +1,7 @@
 // Slides do Guia Pedagógico (aprovado em 04/10/2026): uma apresentação por módulo.
 // Cada slide: { titulo, pontos?: [], tabela?: { cab: [], linhas: [[]] }, destaque?, notas }.
 // "notas" são as anotações do professor (aparecem só quando ele liga "Notas do professor").
-// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão; Mercadorias e Estoque; Lançamentos e Competência; Balancete.
+// Modelo aprovado em 05/10/2026. CB: Introdução à Contabilidade; Plano de Contas; Débito e Crédito; Saldos Iniciais; Livros Diário e Razão; Mercadorias e Estoque; Lançamentos e Competência; Balancete; DRE.
 
 export const SLIDES = {
   cb: [
@@ -1014,6 +1014,121 @@ export const SLIDES = {
             "3. Por que o balancete tem receitas e despesas e o Balanço não?",
           ],
           notas: "Respostas: 1) Credor de 2.500. 2) Sim — omissão não é detectada. 3) As contas de resultado são encerradas na ARE antes do Balanço.",
+        },
+      ],
+    },
+    {
+      id: "cb-dre",
+      modulo: "DRE — Demonstração do Resultado do Exercício",
+      titulo: "DRE",
+      subtitulo: "Demonstração do Resultado do Exercício",
+      slides: [
+        {
+          titulo: "O que é a DRE",
+          pontos: [
+            "Mostra como a empresa chegou ao lucro ou ao prejuízo do período",
+            "Confronta receitas com custos e despesas (competência)",
+            "Obrigatória: Lei 6.404/1976, art. 187, e NBC TG 26",
+          ],
+          destaque: "Balanço = foto (posição). DRE = filme (desempenho).",
+          notas: "Pergunte: a empresa tem muito dinheiro no banco — isso quer dizer que teve lucro? Não necessariamente.",
+        },
+        {
+          titulo: "De onde vêm os valores",
+          pontos: [
+            "Das contas de resultado do balancete, antes do encerramento",
+            "Grupo 4 – Receitas (e as deduções 4.2)",
+            "Grupo 5 – Despesas",
+            "Grupo 6 – Custos",
+          ],
+          notas: "Ligue com o Módulo 08: as contas de resultado do balancete viram as linhas da DRE.",
+        },
+        {
+          titulo: "A estrutura (parte 1)",
+          tabela: {
+            cab: ["Linha", "Contas"],
+            linhas: [
+              ["Receita Bruta", "4.1"],
+              ["(−) Deduções da Receita", "4.2"],
+              ["(=) Receita Líquida", ""],
+              ["(−) Custo das vendas (CMV, CPV, CSV)", "6"],
+              ["(=) Resultado Bruto", ""],
+            ],
+          },
+          notas: "Deduções: devoluções, abatimentos e tributos sobre vendas (na CI).",
+        },
+        {
+          titulo: "A estrutura (parte 2)",
+          tabela: {
+            cab: ["Linha", "Contas"],
+            linhas: [
+              ["(−) Despesas Administrativas", "5.1"],
+              ["(−) Despesas Comerciais", "5.2"],
+              ["(+) Outras Receitas Operacionais", "4.4"],
+              ["(+) Receitas Financeiras / (−) Despesas Financeiras", "4.3 / 5.3"],
+              ["(=) Resultado Operacional", ""],
+              ["(+) Ganhos de Capital · (−) Outras Despesas", "4.5, 4.6 / 5.4"],
+              ["(=) Resultado antes do IRPJ e da CSLL", ""],
+              ["(−) Provisão para IRPJ e CSLL", "7.2 (na CA)"],
+              ["(=) Resultado Líquido", ""],
+            ],
+          },
+          notas: "Na CB, a provisão de IRPJ e CSLL fica em zero.",
+        },
+        {
+          titulo: "Exemplo: Comercial Delta",
+          tabela: {
+            cab: ["", "R$"],
+            linhas: [
+              ["Receita Bruta", "120.000,00"],
+              ["(−) Deduções", "(2.000,00)"],
+              ["(=) Receita Líquida", "118.000,00"],
+              ["(−) CMV", "(60.000,00)"],
+              ["(=) Resultado Bruto", "58.000,00"],
+              ["(−) Desp. Administrativas e Comerciais", "(28.000,00)"],
+              ["(+) Outras Receitas Operacionais", "1.200,00"],
+              ["(+/−) Resultado Financeiro", "(200,00)"],
+              ["(−) Outras Despesas", "(500,00)"],
+              ["(=) Resultado Líquido", "30.500,00"],
+            ],
+          },
+          notas: "Mostre a DRE completa da teoria; aqui as linhas estão agrupadas para caber no slide.",
+        },
+        {
+          titulo: "Leitura: as margens",
+          pontos: [
+            "Margem bruta = Resultado Bruto ÷ Receita Líquida ≈ 49,2%",
+            "Margem líquida = Resultado Líquido ÷ Receita Líquida ≈ 25,8%",
+            "Resultado positivo = lucro; negativo = prejuízo",
+          ],
+          notas: "As margens comparam empresas de tamanhos diferentes. O tema volta na AGB.",
+        },
+        {
+          titulo: "Depois da DRE",
+          pontos: [
+            "Módulo 10: o encerramento (ARE) zera as contas de resultado",
+            "O resultado vai para o Patrimônio Líquido",
+            "Módulo 11: a DLPA mostra o destino do lucro",
+          ],
+          notas: "A DRE é feita antes do encerramento, com os saldos das contas de resultado.",
+        },
+        {
+          titulo: "No CTC",
+          pontos: [
+            "Exercício \"Monte a DRE\" no Módulo 09",
+            "Aba DRE da Escrituração: o aluno monta a DRE da própria empresa",
+            "O CTC confere e só depois mostra a DRE pronta",
+          ],
+          notas: "Se o aluno lançar algo novo, a montagem recomeça: a DRE mudou.",
+        },
+        {
+          titulo: "Para fixar",
+          pontos: [
+            "1. RB 80.000; deduções 1.000; CMV 40.000. Resultado bruto?",
+            "2. Juros pagos sobre empréstimo entram em qual linha?",
+            "3. Receita de aluguel de uma sala sublocada entra em qual linha?",
+          ],
+          notas: "Respostas: 1) 80.000 − 1.000 − 40.000 = R$ 39.000,00. 2) Despesas Financeiras (5.3). 3) Outras Receitas Operacionais (4.4).",
         },
       ],
     },
