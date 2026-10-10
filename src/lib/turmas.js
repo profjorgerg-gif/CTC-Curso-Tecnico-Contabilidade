@@ -5,6 +5,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { auditar } from "./auditoria";
+import { guardarNaLixeiraDaTurma } from "./lixeira";
 
 // Lê a lista colada pelo professor: uma linha por aluno, "Nome completo, matrícula"
 // Aceita vírgula, ponto e vírgula ou tabulação (colado do Excel)
@@ -94,6 +95,9 @@ function incluirNoLote(lote, turmaId, alunos) {
 }
 
 export async function removerAluno(turmaId, matricula) {
+  // lixeira de segurança: o aluno pode voltar para a turma pela lixeira (a empresa dele continua guardada)
+  const a = await getDoc(doc(db, "turmas", turmaId, "alunos", matricula));
+  await guardarNaLixeiraDaTurma(turmaId, { tipo: "aluno", dados: { matricula, nome: a.exists() ? a.data().nome : "" }, resumo: `${a.exists() ? a.data().nome : ""} (${matricula})`, motivo: "retirado da turma" });
   const lote = writeBatch(db);
   lote.delete(doc(db, "turmas", turmaId, "alunos", matricula));
   lote.update(doc(db, "matriculas", matricula), { turmas: arrayRemove(turmaId) });

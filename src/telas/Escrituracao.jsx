@@ -3,6 +3,8 @@
 // Razão, Controle de estoque, Balancete e Demonstrações.
 import { useEffect, useMemo, useState } from "react";
 import FluxoEtapa from "../componentes/FluxoEtapa";
+import { LixeiraDaEmpresa } from "../componentes/Lixeira";
+import { devolucoesDoAluno } from "../lib/devolucao";
 import { useRascunho } from "../lib/rascunho";
 import { AvisoRascunho, SeloNaoSalvo } from "../componentes/Rascunho";
 import { useTurmas } from "../lib/useTurmas";
@@ -135,10 +137,13 @@ function Livros({ sessao, empresa, turma, donoAluno, abaInicial }) {
       .catch(() => setListas([]));
   }, [turma?.id]);
   useEffect(() => { if (dados && !dados.saldosGravados) setAba("saldos"); }, [!!dados]);
+  // tarefas devolvidas pelo professor (listas reabertas só para este aluno)
+  const [devolucoes, setDevolucoes] = useState({});
+  useEffect(() => { if (donoAluno && turma?.id) devolucoesDoAluno(turma.id, empresa.matricula).then(setDevolucoes).catch(() => {}); }, [turma?.id, donoAluno]);
 
   if (erroPlano || erro) return <div className="aviso erro">{erroPlano || erro}</div>;
   if (!plano || !dados) return <p className="suave">Carregando os livros…</p>;
-  const props = { sessao, empresa, turma, plano, dados, recarregar: carregar, donoAluno, metodo, params, periodico, listas };
+  const props = { sessao, empresa, turma, plano, dados, recarregar: carregar, donoAluno, metodo, params, periodico, listas, devolucoes };
   const rotulo = (area, campo) => AREAS.find((a) => a.id === area).campos.find((c) => c.id === campo).opcoes?.find((o) => o.valor === params[area][campo])?.rotulo || params[area][campo];
   const totalFatos = FATOS_ORIENTADOS.length;
 
@@ -172,6 +177,7 @@ function Livros({ sessao, empresa, turma, donoAluno, abaInicial }) {
       {aba === "are" && <Encerramento {...props} />}
       {aba === "dlpa" && <Dlpa {...props} />}
       {aba === "balanco" && <Balanco {...props} />}
+      {!donoAluno && <LixeiraDaEmpresa empresa={empresa} aoRestaurar={carregar} />}
     </>
   );
 }
@@ -327,7 +333,7 @@ const somaLado = (partidas, lado) => arred(partidas.filter((p) => p.d === lado).
 // quantidade que sai do estoque no lançamento (créditos na conta de estoque)
 const qtdSaida = (partidas) => partidas.filter((p) => p.d === "C" && CONTAS_ESTOQUE.includes(p.conta)).reduce((s, p) => s + (Number(p.quantidade) || 0), 0);
 
-function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAluno, metodo, params, periodico, listas = [] }) {
+function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAluno, metodo, params, periodico, listas = [], devolucoes = {} }) {
   const lista = dados.lancamentos;
   const cfg = configLancamentos(turma);
   const contexto = { periodico, tributos: cfg.tributos, regime: params.fiscal.regimeTributario, contribuinteIcms: params.fiscal.contribuinteIcms };
@@ -352,7 +358,8 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
   // depois do prazo (ou de fechada) a lista não aceita mais lançamentos do aluno
   const hoje = new Date().toLocaleDateString("sv-SE");
   const oculta = (r) => donoAluno && valeNota(r) && !r.resultadoLiberado;
-  const encerrado = (r) => valeNota(r) && (r.fechada || (r.prazo && hoje > r.prazo));
+  // lista devolvida pelo professor: reaberta para este aluno até a data da devolução
+  const encerrado = (r) => valeNota(r) && (r.fechada || (r.prazo && hoje > r.prazo)) && !devolucoes[r.id];
   // roteiros guiados: os 8 fatos orientados + as listas enviadas pelo professor
   const roteiros = useMemo(() => [
     { id: "orientados", titulo: "Fatos orientados", fatos: FATOS_ORIENTADOS.map((f, i) => ({ n: i + 1, texto: f.texto, tipo: f.tipo, gabarito: GABARITO_ORIENTADOS[i] })) },
@@ -487,6 +494,12 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
               </button>
             );
           })}
+        </div>
+      )}
+      {donoAluno && devolucoes[roteiro.id] && (
+        <div className="aviso atencao" role="status">
+          <strong>↩ O professor devolveu esta lista para você refazer</strong> (até {devolucoes[roteiro.id].ate?.toDate?.().toLocaleDateString("pt-BR")}).
+          <span style={{ display: "block", whiteSpace: "pre-wrap" }}>{devolucoes[roteiro.id].orientacao}</span>
         </div>
       )}
       {etapaGuiada && fatoDaTela && (

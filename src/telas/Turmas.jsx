@@ -11,6 +11,7 @@ import { ConfigLancamentosDaTurma, ParametrosDaTurma } from "./Parametrizacao";
 import { NotasDaTurma } from "./Notas";
 import { AcompanhamentoDaTurma } from "./Acompanhamento";
 import { ExerciciosDaTurma } from "./Exercicios";
+import { LixeiraDaTurma } from "../componentes/Lixeira";
 
 const semestrePadrao = () => {
   const d = new Date();
@@ -156,6 +157,7 @@ function DetalheTurma({ sessao, turmaId, ir, secao }) {
   const [msg, setMsg] = useState({});
   const [confirmarExclusao, setConfirmarExclusao] = useState(false);
   const [versaoNotas, setVersaoNotas] = useState(0);
+  const [palavra, setPalavra] = useState(""); // confirmação da exclusão da turma
   const leitura = useMemo(() => lerListaDeAlunos(lista), [lista]);
 
   const carregar = async () => {
@@ -217,12 +219,12 @@ function DetalheTurma({ sessao, turmaId, ir, secao }) {
         </div>
       </section>
 
-      <div id="sec-acompanhamento" className="ancora">{turma && alunos && <AcompanhamentoDaTurma key={`ac-${turma.id}-${versaoNotas}`} turma={turma} alunos={alunos} ir={ir} />}</div>
+      <div id="sec-acompanhamento" className="ancora">{turma && alunos && <AcompanhamentoDaTurma key={`ac-${turma.id}-${versaoNotas}`} turma={turma} alunos={alunos} ir={ir} sessao={sessao} />}</div>
       <div id="sec-parametros" className="ancora">
         {turma && <ParametrosDaTurma key={turma.id} turma={turma} aoSalvar={recarregarTurmas} />}
         {turma && <ConfigLancamentosDaTurma key={`cfg-${turma.id}`} turma={turma} aoSalvar={recarregarTurmas} />}
       </div>
-      <div id="sec-exercicios" className="ancora">{turma && <ExerciciosDaTurma key={`ex-${turma.id}`} turma={turma} alunos={alunos || []} aoMudarNotas={() => setVersaoNotas((v) => v + 1)} />}</div>
+      <div id="sec-exercicios" className="ancora">{turma && <ExerciciosDaTurma key={`ex-${turma.id}-${versaoNotas}`} turma={turma} alunos={alunos || []} aoMudarNotas={() => setVersaoNotas((v) => v + 1)} />}</div>
       <div id="sec-notas" className="ancora">{turma && alunos && <NotasDaTurma key={`nt-${turma.id}-${versaoNotas}`} turma={turma} alunos={alunos} aoSalvarTurma={recarregarTurmas} />}</div>
       <div id="sec-empresas" className="ancora">{turma && alunos && <EmpresasDaTurma turma={turma} alunos={alunos} ir={ir} />}</div>
 
@@ -236,15 +238,21 @@ function DetalheTurma({ sessao, turmaId, ir, secao }) {
         </button>
       </section>
 
+      <div id="sec-lixeira" className="ancora">{turma && <LixeiraDaTurma turma={turma} aoRestaurar={async () => { await carregar(); setVersaoNotas((v) => v + 1); }} />}</div>
+
       <section className="cartao">
         <h2>Excluir turma</h2>
-        <p className="suave pequeno">Retira todos os alunos desta turma e apaga as empresas deles nesta turma. As matrículas continuam valendo nas outras turmas.</p>
+        <p className="suave pequeno">Retira todos os alunos desta turma e apaga as empresas, listas, notas e respostas da turma. <strong>Isto não vai para a lixeira:</strong> baixe antes o backup da turma (menu Backup). As matrículas continuam valendo nas outras turmas.</p>
         {!confirmarExclusao
           ? <button className="botao perigo" style={{ alignSelf: "flex-start" }} onClick={() => setConfirmarExclusao(true)}>Excluir turma</button>
           : (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button className="botao perigo" onClick={() => acao(async () => { await excluirTurma(turmaId); ir("turmas"); }, "Turma excluída.")}>Confirmar exclusão</button>
-              <button className="botao secundario" onClick={() => setConfirmarExclusao(false)}>Cancelar</button>
+              <div className="campo" style={{ flex: "0 1 260px" }}>
+                <label htmlFor="excl-palavra">Para confirmar, digite EXCLUIR</label>
+                <input id="excl-palavra" value={palavra} onChange={(e) => setPalavra(e.target.value)} autoComplete="off" />
+              </div>
+              <button className="botao perigo" style={{ alignSelf: "flex-end" }} disabled={palavra.trim().toUpperCase() !== "EXCLUIR"} onClick={() => acao(async () => { await excluirTurma(turmaId); ir("turmas"); }, "Turma excluída.")}>Confirmar exclusão</button>
+              <button className="botao secundario" style={{ alignSelf: "flex-end" }} onClick={() => { setConfirmarExclusao(false); setPalavra(""); }}>Cancelar</button>
             </div>
           )}
       </section>

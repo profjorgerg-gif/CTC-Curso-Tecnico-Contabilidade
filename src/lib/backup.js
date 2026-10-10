@@ -76,6 +76,7 @@ export async function backupCompleto(sessao) {
     lerColecao("chamados"), lerColecao("auditoria"),
   ]);
   const bancoQuestoes = await lerColecao("bancoQuestoes").catch(() => []);
+  const contadores = await lerColecao("contadores").catch(() => []); // numeração dos chamados
   // a conta de teste dos professores (modo de teste) fica fora do backup
   const empresasBase = (await lerColecao("empresas")).filter((e) => !ehEmpresaTeste(e.id));
   // cada empresa leva junto os livros (saldos iniciais e Livro Diário)
@@ -85,6 +86,7 @@ export async function backupCompleto(sessao) {
     avaliacoes: await lerColecao("turmas", t.id, "avaliacoes"), boletim: await lerColecao("turmas", t.id, "boletim"),
     planos: await lerColecao("turmas", t.id, "planos"),
     gabaritos: await lerColecao("turmas", t.id, "gabaritos"), respostas: (await lerColecao("turmas", t.id, "respostas")).filter((r) => !ehEmpresaTeste(r.id)),
+    devolucoes: (await lerColecao("turmas", t.id, "devolucoes").catch(() => [])).filter((r) => !ehEmpresaTeste(r.id)),
   })));
   const contagem = {
     autorizados: autorizados.length,
@@ -103,7 +105,7 @@ export async function backupCompleto(sessao) {
   baixarJson(arquivo, {
     sistema: SISTEMA, tipo: "backup-completo", versao: VERSAO_BACKUP,
     geradoEm: agora.toISOString(), geradoPor: quem(sessao), contagem,
-    colecoes: { autorizados, usuarios, matriculas, turmas, empresas, config, historico, chamados, auditoria, bancoQuestoes },
+    colecoes: { autorizados, usuarios, matriculas, turmas, empresas, config, historico, chamados, auditoria, bancoQuestoes, contadores },
   });
   // guarda a data do último backup completo (aviso no Início do administrador)
   await setDoc(doc(db, "config", "backup"), {
@@ -187,6 +189,7 @@ export async function restaurarBackup(sessao, d, aoAvancar = () => {}) {
     por(["turmas", t.id, "planos"], t.planos || []);
     por(["turmas", t.id, "gabaritos"], t.gabaritos || []);
     por(["turmas", t.id, "respostas"], t.respostas || []);
+    por(["turmas", t.id, "devolucoes"], t.devolucoes || []);
   });
   por(["usuarios"], c.usuarios);
   (c.empresas || []).forEach((e) => { // backups anteriores às empresas não têm esta parte
@@ -194,6 +197,7 @@ export async function restaurarBackup(sessao, d, aoAvancar = () => {}) {
     por(["empresas", e.id, "livros"], e.livros || []);
   });
   por(["chamados"], c.chamados || []);
+  por(["contadores"], c.contadores || []);
   por(["bancoQuestoes"], c.bancoQuestoes || []); // backups anteriores ao banco de questões não têm esta parte // backups anteriores ao Suporte não têm chamados
 
   // grava em lotes (o Firestore aceita até 500 por lote)

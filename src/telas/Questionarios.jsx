@@ -1,6 +1,7 @@
 // Aluno: listas de questões teóricas enviadas pelo professor (de sala, avaliativas e recuperação)
 import { useEffect, useState } from "react";
 import FluxoEtapa from "../componentes/FluxoEtapa";
+import { devolucoesDoAluno } from "../lib/devolucao";
 import { useTurmas } from "../lib/useTurmas";
 import { traduzirErro } from "../lib/sessao";
 import { disciplinaPorId } from "../dados/disciplinas";
@@ -17,7 +18,7 @@ const hoje = () => new Date().toLocaleDateString("sv-SE");
 export default function Questionarios({ sessao }) {
   const { turmas, carregando, erro } = useTurmas(sessao);
   const matricula = sessao.perfil?.matricula;
-  const [aberta, setAberta] = useState(null); // { turma, lista }
+  const [aberta, setAberta] = useState(null); // { turma, lista, devolucao }
   if (aberta) return <Responder {...aberta} matricula={matricula} aoVoltar={() => setAberta(null)} />;
   return (
     <>
@@ -28,7 +29,7 @@ export default function Questionarios({ sessao }) {
       <FluxoEtapa etapa="questionarios" />
       {erro && <div className="aviso erro">{erro}</div>}
       {!carregando && turmas.length === 0 && <div className="aviso atencao">Você ainda não está em nenhuma turma.</div>}
-      {turmas.map((t) => <ListasDaTurma key={t.id} turma={t} matricula={matricula} abrir={(lista) => setAberta({ turma: t, lista })} />)}
+      {turmas.map((t) => <ListasDaTurma key={t.id} turma={t} matricula={matricula} abrir={(lista, devolucao) => setAberta({ turma: t, lista, devolucao })} />)}
     </>
   );
 }
@@ -36,11 +37,13 @@ export default function Questionarios({ sessao }) {
 function ListasDaTurma({ turma, matricula, abrir }) {
   const [listas, setListas] = useState(null);
   const [respostas, setRespostas] = useState({});
+  const [devolucoes, setDevolucoes] = useState({});
   const [erro, setErro] = useState("");
   useEffect(() => {
     (async () => {
       try {
-        const [ls, boletim] = await Promise.all([listasDaTurma(turma.id, true), lerBoletim(turma.id, matricula).catch(() => null)]);
+        const [ls, boletim, devs] = await Promise.all([listasDaTurma(turma.id, true), lerBoletim(turma.id, matricula).catch(() => null), devolucoesDoAluno(turma.id, matricula).catch(() => ({}))]);
+        setDevolucoes(devs);
         const minhas = ls.filter((l) => ehQuestoes(l) && (finalidadeDe(l) !== "recuperacao" || boletim?.recuperacoes?.includes(l.id)));
         setListas(minhas);
         const r = {};
@@ -64,7 +67,7 @@ function ListasDaTurma({ turma, matricula, abrir }) {
               {listas.map((l) => {
                 const fin = finalidadeDe(l);
                 const r = respostas[l.id];
-                const encerrada = valeNota(l) && (l.fechada || (l.prazo && hoje() > l.prazo));
+                const encerrada = valeNota(l) && (l.fechada || (l.prazo && hoje() > l.prazo)) && !devolucoes[l.id];
                 const qtd = Object.keys(r?.respostas || {}).length;
                 return (
                   <tr key={l.id}>
@@ -74,9 +77,10 @@ function ListasDaTurma({ turma, matricula, abrir }) {
                     <td>
                       {qtd === 0 ? <span className="selo cinza">Não respondido</span> : <span className="selo verde">{qtd} de {(l.questoes || []).length} respondidas</span>}
                       {encerrada && <span className="pequeno suave" style={{ display: "block" }}>Encerrado</span>}
+                      {devolucoes[l.id] && <span className="pequeno" style={{ display: "block", color: "var(--ocre)" }}>↩ Devolvido para refazer até {devolucoes[l.id].ate?.toDate?.().toLocaleDateString("pt-BR")}</span>}
                       {valeNota(l) && l.resultadoLiberado && l.gabarito && r && <span className="pequeno" style={{ display: "block" }}>Nota: <strong className="mono">{fmtNota(notaDasQuestoes(l.questoes, r.respostas, l.gabarito).nota)}</strong></span>}
                     </td>
-                    <td style={{ textAlign: "right" }}><button className="botao pequeno" onClick={() => abrir(l)}>{encerrada || (valeNota(l) && l.resultadoLiberado) ? "Ver" : qtd ? "Continuar" : "Responder"}</button></td>
+                    <td style={{ textAlign: "right" }}><button className="botao pequeno" onClick={() => abrir(l, devolucoes[l.id])}>{encerrada || (valeNota(l) && l.resultadoLiberado) ? "Ver" : qtd ? "Continuar" : "Responder"}</button></td>
                   </tr>
                 );
               })}
@@ -88,11 +92,11 @@ function ListasDaTurma({ turma, matricula, abrir }) {
   );
 }
 
-function Responder({ turma, lista, matricula, aoVoltar }) {
+function Responder({ turma, lista, matricula, aoVoltar, devolucao }) {
   const fin = finalidadeDe(lista);
   const avaliativa = valeNota(lista);
-  const encerrada = avaliativa && (lista.fechada || (lista.prazo && hoje() > lista.prazo));
-  const liberada = avaliativa && lista.resultadoLiberado && lista.gabarito;
+  const encerrada = avaliativa && (lista.fechada || (lista.prazo && hoje() > lista.prazo)) && !devolucao;
+  const liberada = avaliativa && lista.resultadoLiberado && lista.gabarito && !devolucao; // devolvido: volta a responder
   const [resp, setResp] = useState({});
   const [salvo, setSalvo] = useState({}); // o que já está gravado no banco
   const [carregou, setCarregou] = useState(false);
@@ -134,6 +138,12 @@ function Responder({ turma, lista, matricula, aoVoltar }) {
         <h1>{lista.titulo}</h1>
         <p className="suave">{turma.nome} · {questoes.length} questões</p>
       </div>
+      {devolucao && (
+        <div className="aviso atencao" role="status">
+          <strong>↩ O professor devolveu este questionário para você refazer</strong> (até {devolucao.ate?.toDate?.().toLocaleDateString("pt-BR")}).
+          <span style={{ display: "block", whiteSpace: "pre-wrap" }}>{devolucao.orientacao}</span>
+        </div>
+      )}
       {encerrada && !liberada && <div className="aviso atencao">Este questionário está encerrado. A correção aparece quando o professor liberar o resultado.</div>}
       {avaliativa && !encerrada && !liberada && <div className="aviso pequeno">Questionário avaliativo: as respostas ficam salvas e podem ser alteradas até o prazo. A correção aparece quando o professor liberar o resultado.</div>}
       {nota && <div className="aviso"><strong>Resultado:</strong> {nota.acertos} de {nota.total} certas — nota <strong className="mono">{fmtNota(nota.nota)}</strong>{!avaliativa ? " (exercício de sala, não vale nota)" : ""}.</div>}

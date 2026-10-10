@@ -98,8 +98,8 @@ export default function App() {
     ? { ...sessao, papel: "aluno", papelReal: sessao.papel, teste, perfil: { nome: NOME_ALUNO_TESTE, matricula: matriculaDeTeste(sessao.usuario.uid) } }
     : sessao;
   const papel = sess.papel;
-  // no modo de teste não há Suporte (para não abrir chamado de mentira)
-  const menu = teste ? MENUS.aluno.filter(([id]) => id !== "suporte") : MENUS[papel];
+  // no modo de teste o Suporte só escreve ao professor da turma (você mesmo)
+  const menu = MENUS[papel];
   // telas abertas por dentro de outras (sem item próprio no menu)
   const ocultas = papel === "aluno" ? [] : ["escrituracao"];
   const [pagina, ...resto] = menu.some(([id]) => id === rota[0]) || ocultas.includes(rota[0]) ? rota : ["inicio"];

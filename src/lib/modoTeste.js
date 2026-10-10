@@ -50,6 +50,8 @@ export async function zerarDadosTeste(uid, turma) {
   const m = matriculaDeTeste(uid);
   const eid = idEmpresa(turma.id, m);
   for (const livro of ["saldos", "diario"]) await deleteDoc(doc(db, "empresas", eid, "livros", livro)).catch(() => {});
+  const lx = await getDocs(collection(db, "empresas", eid, "lixeira")).catch(() => null);
+  for (const d of lx?.docs || []) await deleteDoc(d.ref).catch(() => {});
   await deleteDoc(doc(db, "empresas", eid)).catch(() => {});
   const rs = await getDocs(query(collection(db, "turmas", turma.id, "respostas"), where("matricula", "==", m))).catch(() => null);
   for (const r of rs?.docs || []) await deleteDoc(r.ref).catch(() => {});

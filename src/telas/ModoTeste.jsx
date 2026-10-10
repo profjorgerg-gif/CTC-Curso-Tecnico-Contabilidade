@@ -21,8 +21,8 @@ export default function ModoTeste({ sessao, papel, ir }) {
   const [rel, setRel] = useState(null); // { turma, rel }
 
   // Relatório de orientação da conta de teste (só leitura)
-  const relatorio = async (t) => {
-    setOcupado(`rel-${t.id}`); setMsg({ texto: "", tipo: "" }); setRel(null);
+  const relatorio = async (t, manter = false) => {
+    setOcupado(`rel-${t.id}`); setMsg({ texto: "", tipo: "" }); if (!manter) setRel(null);
     try {
       const listas = (await listasDaTurma(t.id, false)).filter((l) => l.enviada);
       const gabaritos = {};
@@ -87,7 +87,7 @@ export default function ModoTeste({ sessao, papel, ir }) {
       )}
       {rel && (
         <section className="cartao">
-          <RelatorioDoAluno rel={rel.rel} turma={rel.turma} />
+          <RelatorioDoAluno rel={rel.rel} turma={rel.turma} sessao={sessao} aoDevolver={() => relatorio(rel.turma, true)} />
           <div><button type="button" className="botao secundario pequeno" onClick={() => setRel(null)}>Fechar relatório</button></div>
         </section>
       )}

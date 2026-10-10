@@ -78,6 +78,20 @@ export const MANUAL_PROFESSOR = [
     "A conta de teste não entra na lista de alunos, nas notas, no acompanhamento nem no backup, e não abre chamados de Suporte. A auditoria marca as ações como \"(modo de teste)\".",
     "\"Zerar dados de teste\" apaga a empresa, a escrituração, as respostas e o progresso de estudo da conta de teste naquela turma, para testar de novo do zero.",
   ] },
+  { id: "suporte-prof", titulo: "Suporte numerado e devolução de tarefa", passos: [
+    "Os chamados dos alunos das suas turmas chegam ao seu Suporte com número (Nº 0001). \"Aguardando você\" mostra os que esperam a sua resposta. Busque por número, aluno, matrícula ou assunto.",
+    "Em cada chamado: \"Imprimir / salvar PDF\", \"Baixar texto (.txt)\" e \"Copiar\". Na lista, \"Exportar (.txt)\" junta todos os chamados filtrados num arquivo só.",
+    "Respostas rápidas: escolha um modelo para inserir no texto; \"Guardar como resposta rápida\" salva o seu texto neste navegador.",
+    "↩ Devolver tarefa (no chamado ou no Relatório de orientação): marque o que reabrir só para aquele aluno — lista de escrituração ou questionário (até a data escolhida, mesmo encerrada; no questionário, pode apagar as respostas), desfazer o encerramento do exercício, ou só orientar sobre os fatos orientados. O aluno recebe a orientação por um chamado.",
+    "Problemas do sistema, de acesso ou sugestões: abra um chamado para o administrador.",
+  ] },
+  { id: "lixeira", titulo: "Lixeira de segurança", passos: [
+    "Antes de apagar ou substituir algo, o CTC guarda uma cópia na lixeira. Se a cópia falhar, nada é apagado.",
+    "Lixeira desta empresa (no fim da escrituração do aluno): lançamentos excluídos, a versão anterior de cada lançamento corrigido, encerramentos desfeitos e saldos iniciais substituídos — feitos pelo aluno ou por você.",
+    "Lixeira da turma (na página da turma): listas excluídas, alunos retirados e respostas apagadas.",
+    "\"Restaurar\" devolve o item (o que estiver no lugar também vai para a lixeira). \"Esvaziar itens com mais de 90 dias\" limpa os antigos: no plano gratuito não há limpeza automática.",
+    "Excluir a turma não passa pela lixeira: baixe o backup antes. Para confirmar, é preciso digitar EXCLUIR.",
+  ] },
   { id: "backup", titulo: "Backup e Suporte", passos: [
     "Backup: o professor baixa o backup da turma (alunos, empresas, lançamentos, listas, notas e planos). O administrador faz o backup completo e a restauração.",
     "Suporte: abra um chamado para dúvidas ou problemas e acompanhe a resposta do administrador.",
@@ -137,6 +151,8 @@ export const MANUAL_ALUNO = [
     "O rascunho fica só no computador onde você digitou e vale por 14 dias. O que conta é o que você salvou: salve sempre antes de sair, principalmente em computador da escola.",
   ] },
   { id: "suporte", titulo: "Suporte", passos: [
-    "Teve um problema no CTC? Abra um chamado em \"Suporte\" e acompanhe a resposta.",
+    "Abra um chamado em \"Suporte\". Escolha o tipo e para quem: o professor da turma (dúvida de conteúdo, exercício, escrituração, questionário, notas) ou o administrador (acesso, erro no sistema, sugestão).",
+    "Em \"Relacionado a\", diga onde é a dúvida (ex.: Módulo 05, aba DRE). Cada chamado recebe um número (Nº 0001): use-o para falar com o professor.",
+    "Quando o professor devolver uma tarefa para você refazer, chega um chamado \"Tarefa devolvida para refazer\" com a orientação, e a lista aparece reaberta até a data indicada. Ao terminar, responda o chamado.",
   ] },
 ];

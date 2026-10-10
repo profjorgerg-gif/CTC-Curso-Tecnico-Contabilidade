@@ -7,6 +7,7 @@
 import { addDoc, collection, deleteDoc, doc, getDocs, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
 import { db } from "../firebase";
 import { auditar } from "./auditoria";
+import { guardarNaLixeiraDaTurma } from "./lixeira";
 import { arred, CONTAS_ESTOQUE, dinheiro, dataBR, partidasDe } from "./contabil";
 import { custoDaSaida } from "./estoque";
 import { liberarGabarito, salvarGabarito, semGabarito } from "./questoes";
@@ -268,6 +269,8 @@ export async function marcarListaFechada(turma, lista) {
 }
 
 export async function excluirLista(turma, lista) {
+  // lixeira de segurança: a lista fica guardada (o gabarito e as respostas continuam no lugar)
+  await guardarNaLixeiraDaTurma(turma.id, { tipo: "lista", dados: lista, resumo: lista.titulo, motivo: "exclusão" });
   await deleteDoc(doc(db, "turmas", turma.id, "listas", lista.id));
   auditar("Excluiu lista de exercícios", `${lista.titulo} — ${turma.nome}`);
 }

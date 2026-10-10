@@ -32,7 +32,7 @@ function CelulaRoteiro({ r }) {
   return <Celula tom={tom} titulo={`${r.lancados} de ${r.total} lançados; ${r.acertos} conferem`}>{r.lancados}/{r.total} · {r.acertos} ✓</Celula>;
 }
 
-export function AcompanhamentoDaTurma({ turma, alunos, ir }) {
+export function AcompanhamentoDaTurma({ turma, alunos, ir, sessao }) {
   const { plano } = usePlano();
   const [listas, setListas] = useState([]);
   const [linhas, setLinhas] = useState(null);
@@ -43,9 +43,9 @@ export function AcompanhamentoDaTurma({ turma, alunos, ir }) {
   const [modo, setModo] = useState("quadro"); // quadro | relatorio
   const [aberto, setAberto] = useState(null); // matrícula com o relatório aberto
 
-  const carregar = async () => {
+  const carregar = async (silencioso = false) => {
     if (!plano) return;
-    setErro(""); setLinhas(null); setProgresso(0);
+    setErro(""); if (!silencioso) setLinhas(null); setProgresso(0);
     try {
       const ls = (await listasDaTurma(turma.id, false)).filter((l) => l.enviada);
       setListas(ls);
@@ -99,7 +99,7 @@ export function AcompanhamentoDaTurma({ turma, alunos, ir }) {
           <span className="pequeno suave">O que cada aluno já fez. Verde: feito/confere · ocre: em andamento ou com diferença · cinza: não começou. Clique no nome para abrir a escrituração.</span>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="botao secundario pequeno" onClick={carregar} disabled={!linhas}>Atualizar</button>
+          <button className="botao secundario pequeno" onClick={() => carregar()} disabled={!linhas}>Atualizar</button>
           <button className="botao secundario pequeno" onClick={csv} disabled={!linhas?.length}>Exportar .csv</button>
         </div>
       </div>
@@ -122,7 +122,7 @@ export function AcompanhamentoDaTurma({ turma, alunos, ir }) {
       )}
       {linhas && linhas.length > 0 && modo === "relatorio" && (
         relAberto
-          ? <RelatorioDoAluno rel={relAberto} turma={turma} aoVoltar={() => setAberto(null)} />
+          ? <RelatorioDoAluno rel={relAberto} turma={turma} sessao={sessao} aoVoltar={() => setAberto(null)} aoDevolver={() => carregar(true)} />
           : (
             <>
               <p className="pequeno suave" style={{ margin: 0 }}>Por aluno: o que está pendente, quem precisa agir e o que fazer. "Com o professor" é a sua fila de trabalho. Só leitura: nada é alterado.</p>

@@ -4,6 +4,7 @@
 import { doc, getDoc, runTransaction, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { auditar } from "./auditoria";
+import { guardarNaLixeiraDaEmpresa } from "./lixeira";
 
 const refSaldos = (empresaId) => doc(db, "empresas", empresaId, "livros", "saldos");
 const refDiario = (empresaId) => doc(db, "empresas", empresaId, "livros", "diario");
@@ -30,6 +31,11 @@ export async function lerEscrituracao(empresaId) {
 }
 
 export async function salvarSaldos(sessao, empresaId, contas) {
+  // lixeira de segurança: os saldos que estavam gravados ficam guardados antes de serem substituídos
+  const antes = await getDoc(refSaldos(empresaId));
+  if (antes.exists() && Object.keys(antes.data().contas || {}).length) {
+    await guardarNaLixeiraDaEmpresa(empresaId, { tipo: "saldos", dados: antes.data().contas, resumo: "Saldos iniciais anteriores", motivo: "saldos regravados", papel: sessao.papel });
+  }
   const limpo = {};
   for (const [codigo, v] of Object.entries(contas)) {
     const devedor = Math.round((Number(v?.devedor) || 0) * 100) / 100;
@@ -81,6 +87,10 @@ function semCamposAntigos(l) {
 }
 
 export async function alterarLancamento(sessao, empresaId, id, f) {
+  // lixeira de segurança: a versão anterior do lançamento fica guardada
+  const d = await getDoc(refDiario(empresaId));
+  const anterior = (d.exists() ? d.data().lancamentos || [] : []).find((l) => l.id === id);
+  if (anterior) await guardarNaLixeiraDaEmpresa(empresaId, { tipo: "lancamento-alterado", dados: anterior, resumo: `${anterior.data} — ${anterior.historico}`, motivo: "correção", papel: sessao.papel });
   // a correção nunca muda a qual fato orientado o lançamento pertence
   await alterarDiario(empresaId, (lista) => lista.map((l) => (l.id === id
     ? { ...semCamposAntigos(l), ...dadosDoForm(f), alteradoEm: new Date().toISOString(), alteradoPor: autor(sessao) }
@@ -89,6 +99,7 @@ export async function alterarLancamento(sessao, empresaId, id, f) {
 }
 
 export async function excluirLancamento(sessao, empresaId, l) {
+  await guardarNaLixeiraDaEmpresa(empresaId, { tipo: "lancamento", dados: l, resumo: `${l.data} — ${l.historico}`, motivo: "exclusão", papel: sessao.papel });
   await alterarDiario(empresaId, (lista) => lista.filter((x) => x.id !== l.id));
   auditarSeProfessor(sessao, "Excluiu lançamento", `${empresaId}: ${l.historico}`);
 }
@@ -103,11 +114,17 @@ export async function gravarEncerramento(sessao, empresaId, propostos, data) {
     valor: r2(p.valor),
     encerramento: true, criadoEm: `${agora}#${String(i).padStart(3, "0")}`, criadoPor: quem,
   }));
+  const d = await getDoc(refDiario(empresaId));
+  const antigos = (d.exists() ? d.data().lancamentos || [] : []).filter((l) => l.encerramento);
+  if (antigos.length) await guardarNaLixeiraDaEmpresa(empresaId, { tipo: "encerramento", dados: antigos, resumo: `${antigos.length} lançamento(s) de encerramento`, motivo: "novo encerramento", papel: sessao.papel });
   await alterarDiario(empresaId, (lista) => [...lista.filter((l) => !l.encerramento), ...novos]);
   auditar("Encerrou o exercício", `${empresaId}: ${novos.length} lançamento(s)`);
 }
 
-export async function desfazerEncerramento(sessao, empresaId) {
+export async function desfazerEncerramento(sessao, empresaId, motivo = "encerramento desfeito") {
+  const d = await getDoc(refDiario(empresaId));
+  const antigos = (d.exists() ? d.data().lancamentos || [] : []).filter((l) => l.encerramento);
+  if (antigos.length) await guardarNaLixeiraDaEmpresa(empresaId, { tipo: "encerramento", dados: antigos, resumo: `${antigos.length} lançamento(s) de encerramento`, motivo, papel: sessao.papel });
   await alterarDiario(empresaId, (lista) => lista.filter((l) => !l.encerramento));
   auditar("Desfez o encerramento do exercício", empresaId);
 }

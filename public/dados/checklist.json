@@ -1,5 +1,5 @@
 {
-  "atualizadoEm": "2026-10-06",
+  "atualizadoEm": "2026-10-10",
   "itens": [
     {
       "id": "f2-empresa",
@@ -371,6 +371,83 @@
       "item": "Confirmação a cada entrada: senha do professor, matrícula do aluno e saída por inatividade",
       "quem": "Claude",
       "feito": true
+    },
+    {
+      "id": "m-rascunho",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Proteção contra digitação perdida (rascunho local, ● não salvo, Restaurar/Descartar, aviso ao sair)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "m-fluxo",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "\"Como funciona esta etapa\" nas telas do aluno",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "m-guia",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Guia do professor (roteiro do dia, fases, Preciso resolver…, cuidados)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "m-relatorio",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Relatório de orientação por aluno e Resumo da turma",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "m-lixeira",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Lixeira de segurança (copiar antes de apagar, restaurar)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "m-suporte",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Suporte numerado (professor da turma ou administrador; exportar/imprimir)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "m-devolucao",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Devolução de tarefa ao aluno com orientação",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "m-painel",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Painel por etapa no Início do professor",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "m-menu",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Menu do professor por tarefa",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "m-entrada",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Tela de entrada com seletor Aluno/Professor",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "m-registro",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Registro do processo (linha do tempo do aluno)",
+      "quem": "Claude",
+      "feito": false
     }
   ]
 }
