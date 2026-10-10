@@ -122,7 +122,7 @@ export function AcompanhamentoDaTurma({ turma, alunos, ir, sessao }) {
       )}
       {linhas && linhas.length > 0 && modo === "relatorio" && (
         relAberto
-          ? <RelatorioDoAluno rel={relAberto} turma={turma} sessao={sessao} aoVoltar={() => setAberto(null)} aoDevolver={() => carregar(true)} />
+          ? <RelatorioDoAluno rel={relAberto} turma={turma} sessao={sessao} listas={listas} bruto={(linhas || []).find((x) => x.aluno.matricula === aberto)?.bruto} aoVoltar={() => setAberto(null)} aoDevolver={() => carregar(true)} />
           : (
             <>
               <p className="pequeno suave" style={{ margin: 0 }}>Por aluno: o que está pendente, quem precisa agir e o que fazer. "Com o professor" é a sua fila de trabalho. Só leitura: nada é alterado.</p>

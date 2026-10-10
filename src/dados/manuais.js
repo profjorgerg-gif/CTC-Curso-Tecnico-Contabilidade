@@ -50,12 +50,18 @@ export const MANUAL_PROFESSOR = [
     "Nas listas, \"3/5 · 2 ✓\" quer dizer 3 de 5 fatos lançados e 2 conferem. Nas avaliativas ainda ocultas, só você vê o acerto.",
     "Use os filtros \"Só quem está atrasado\" e \"Só quem tem diferenças\" e clique no nome do aluno para abrir a escrituração dele. \"Atualizar\" relê os livros; \"Exportar .csv\" guarda o retrato da turma.",
   ] },
+  { id: "painel", titulo: "Início e painel da turma", passos: [
+    "No Início, o Painel da turma mostra os números do dia (alunos, o que aguarda você, parados há mais de 7 dias, quem encerrou o exercício) e o andamento de cada aluno por etapa: ① abertura, ② módulos estudados, ③ fatos orientados, ④ listas, ⑤ questionários, ⑥ encerramento, ⑦ DRE, DLPA e Balanço montados.",
+    "O painel lê os livros uma vez por visita; use \"Atualizar\" para ler de novo. Clique no aluno ou em \"Abrir a turma\" para ir ao Acompanhamento e ao Relatório de orientação.",
+    "O menu fica agrupado por tarefa: Hoje (Turmas, Suporte com o número de chamados que aguardam você), Preparar e consultar, Ferramentas e (administrador) Administração. Os grupos de ferramentas e de administração podem ser recolhidos.",
+  ] },
   { id: "relatorio", titulo: "Relatório de orientação", passos: [
     "No Acompanhamento da turma, aba \"Relatório de orientação\": o Resumo da turma mostra, por aluno, os itens em dia e quantas pendências estão com o aluno e com você (a sua fila de trabalho).",
     "\"Ver relatório\" (ou \"relatório\" embaixo do nome, no quadro) abre o relatório do aluno: situação por item (abertura, fatos orientados, cada lista e questionário, lançamentos, fechamento), quem age agora e o que precisa de ajuste, com o que fazer e onde.",
     "Cor = etapa; ● corrigir (pílula cheia) = erro; ○ conferir (pílula vazada) = atenção. Os filtros por etapa mostram a contagem.",
     "\"Imprimir / salvar PDF\" sai em A4 paisagem, com o nome do aluno e a data no nome do arquivo. \"Copiar texto para o aluno\" gera a orientação para colar no Classroom ou no WhatsApp — sem revelar o acerto das listas avaliativas ainda ocultas.",
     "É só leitura: nada é alterado nos dados do aluno. No Modo de teste, o botão \"Relatório\" mostra o da conta de teste (com a etiqueta CONTA DE TESTE).",
+    "🕒 Registro do processo (no relatório do aluno): a linha do tempo de tudo o que foi gravado — lançamentos e correções, respostas, parametrização, módulos estudados, demonstrações montadas, chamados, tarefas devolvidas e lixeira. Filtre por aluno ou professor e imprima para a nota de processo.",
   ] },
   { id: "empresas", titulo: "Empresas e escrituração dos alunos", passos: [
     "No quadro \"Empresas dos alunos\" você vê o cadastro e a parametrização de cada um e abre a escrituração dele (\"Escrituração\").",

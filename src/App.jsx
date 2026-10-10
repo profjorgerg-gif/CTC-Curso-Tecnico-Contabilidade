@@ -24,6 +24,7 @@ import { definirSessaoAuditoria, registrarAcesso } from "./lib/auditoria";
 import { confirmadoNesteNavegador, useSaidaPorInatividade } from "./lib/seguranca";
 import { ConfirmarAluno, ConfirmarProfessor } from "./telas/Confirmacao";
 import Rodape from "./componentes/Rodape";
+import MenuLateral from "./componentes/MenuLateral";
 import { limparRascunhosVencidos } from "./lib/rascunho";
 
 limparRascunhosVencidos(); // rascunhos locais com mais de 14 dias
@@ -31,8 +32,8 @@ limparRascunhosVencidos(); // rascunhos locais com mais de 14 dias
 // Itens do menu por perfil
 const MENUS = {
   aluno: [["inicio", "Início"], ["disciplinas", "Minhas disciplinas"], ["empresa", "Minha empresa"], ["parametrizacao", "Parametrização"], ["escrituracao", "Escrituração"], ["questionarios", "Questionários"], ["notas", "Minhas notas"], ["turmas", "Minhas turmas"], ["banco", "Consultas"], ["ajuda", "Ajuda"], ["suporte", "Suporte"]],
-  professor: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["guia", "Guia Pedagógico"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["teste", "Modo de teste"], ["suporte", "Suporte"]],
-  admin: [["inicio", "Início"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["guia", "Guia Pedagógico"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["teste", "Modo de teste"], ["suporte", "Suporte"], ["auditoria", "Auditoria"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
+  professor: [["inicio", "Início e painel"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["guia", "Guia Pedagógico"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["teste", "Modo de teste"], ["suporte", "Suporte"]],
+  admin: [["inicio", "Início e painel"], ["disciplinas", "Disciplinas"], ["turmas", "Turmas e matrículas"], ["guia", "Guia Pedagógico"], ["banco", "Banco de Dados"], ["backup", "Backup"], ["teste", "Modo de teste"], ["suporte", "Suporte"], ["auditoria", "Auditoria"], ["autorizados", "Professores e administradores"], ["checklist", "Checklist de pendências"]],
 };
 
 // A página atual fica no endereço (#turmas, #banco...) para sobreviver ao F5
@@ -125,11 +126,7 @@ export default function App() {
         </div>
       )}
       <div className="corpo">
-        <nav className="menu" aria-label="Menu principal">
-          {menu.map(([id, rotulo]) => (
-            <button key={id} className={pagina === id ? "ativo" : ""} onClick={() => ir(id)}>{rotulo}</button>
-          ))}
-        </nav>
+        <MenuLateral menu={menu} pagina={pagina} ir={ir} sessao={sess} papel={papel} />
         <main className="conteudo">
           {pagina === "inicio" && <Inicio {...props} />}
           {pagina === "disciplinas" && <Disciplinas {...props} />}

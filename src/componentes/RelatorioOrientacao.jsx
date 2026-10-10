@@ -4,6 +4,7 @@
 import { useMemo, useState } from "react";
 import { ETAPAS, relatorioEmTexto, SITUACOES } from "../lib/relatorioOrientacao";
 import DevolverTarefa from "./DevolverTarefa";
+import RegistroProcesso from "./RegistroProcesso";
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const carimbo = () => { const d = new Date(); const z = (x) => String(x).padStart(2, "0"); return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}_${z(d.getHours())}h${z(d.getMinutes())}`; };
@@ -62,9 +63,10 @@ function imprimir(rel, turma) {
   setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch { limpar(); } }, 250);
 }
 
-export function RelatorioDoAluno({ rel, turma, aoVoltar, sessao, aoDevolver }) {
+export function RelatorioDoAluno({ rel, turma, aoVoltar, sessao, aoDevolver, bruto, listas }) {
   const [filtro, setFiltro] = useState("todos");
   const [devolvendo, setDevolvendo] = useState(false);
+  const [registro, setRegistro] = useState(false);
   const [msg, setMsg] = useState("");
   const contagem = useMemo(() => {
     const c = {};
@@ -82,10 +84,12 @@ export function RelatorioDoAluno({ rel, turma, aoVoltar, sessao, aoDevolver }) {
           {rel.contaTeste && <span className="selo ocre" style={{ marginLeft: 8, border: "1px dashed var(--ocre)" }}>CONTA DE TESTE</span>}
         </h3>
         {sessao && rel.total > 0 && <button type="button" className="botao secundario pequeno" onClick={() => setDevolvendo(!devolvendo)}>↩ Devolver tarefa</button>}
+        {sessao && <button type="button" className="botao secundario pequeno" onClick={() => setRegistro(!registro)}>🕒 Registro do processo</button>}
         <button type="button" className="botao secundario pequeno" onClick={() => imprimir(rel, turma)}>🖨 Imprimir / salvar PDF</button>
         <button type="button" className="botao pequeno" onClick={async () => setMsg((await copiar(relatorioEmTexto(rel, turma))) ? "Texto copiado: cole no Classroom ou no WhatsApp do aluno." : "Não foi possível copiar.")}>📋 Copiar texto para o aluno</button>
       </div>
       {msg && <div className="aviso pequeno" role="status">{msg}</div>}
+      {registro && <RegistroProcesso sessao={sessao} turma={turma} aluno={rel.aluno} bruto={bruto} listas={listas || []} />}
       {devolvendo && <DevolverTarefa sessao={sessao} turmaId={turma.id} aluno={rel.aluno} aoCancelar={() => setDevolvendo(false)} aoConcluir={aoDevolver} />}
       <p style={{ margin: 0 }}>Em dia: <strong>{rel.emDia}</strong> de <strong>{rel.total}</strong> · com o aluno: <strong>{rel.comAluno}</strong> · com o professor: <strong>{rel.comProfessor}</strong></p>
 

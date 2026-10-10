@@ -14,6 +14,9 @@ export default function Login() {
   const [erro, setErro] = useState("");
   const [inativo] = useState(saiuPorInatividade);
   const [aguarde, setAguarde] = useState(false);
+  // perfil de acesso: só muda a orientação (quem é professor é reconhecido pelo e-mail, não por esta escolha)
+  const [perfil, setPerfil] = useState(() => { try { return localStorage.getItem("ctc-perfil-entrada") || "aluno"; } catch { return "aluno"; } });
+  const escolher = (p) => { setPerfil(p); try { localStorage.setItem("ctc-perfil-entrada", p); } catch { /* sem armazenamento */ } };
 
   const entrar = async () => {
     setErro(""); setAguarde(true);
@@ -56,6 +59,12 @@ export default function Login() {
             <h2>Entrar no CTC</h2>
           </div>
           <p className="login-texto">Entre com sua conta Google para acessar a plataforma.</p>
+          <div className="login-perfil" role="radiogroup" aria-label="Perfil de acesso">
+            <span className="login-perfil-rotulo">Perfil de acesso</span>
+            {[["aluno", "Aluno(a)"], ["professor", "Professor(a)"]].map(([id, r]) => (
+              <button key={id} type="button" role="radio" aria-checked={perfil === id} className={`login-perfil-opcao${perfil === id ? " ativo" : ""}`} onClick={() => escolher(id)}>{r}</button>
+            ))}
+          </div>
           {inativo && <div className="aviso atencao" role="status">Você saiu automaticamente depois de {INATIVIDADE_MIN} minutos sem usar o CTC. Se havia algo digitado e não salvo, ele ficou guardado neste computador: ao entrar de novo, use "Restaurar".</div>}
           <button className="botao login-botao" onClick={entrar} disabled={aguarde}>
             <span className="login-g" aria-hidden="true">G</span>
@@ -64,8 +73,9 @@ export default function Login() {
           {erro && <div className="aviso erro" role="alert">{erro}</div>}
           <div className="login-divisor" />
           <div className="login-avisos">
-            <p><strong>Alunos:</strong> depois do Google, confirme a sua matrícula (a que está na lista do seu professor).</p>
-            <p><strong>Professores:</strong> depois do Google, digite a sua senha do CTC. O acesso é liberado pelo administrador a partir do seu e-mail Google.</p>
+            {perfil === "aluno"
+              ? <p>Depois do Google, confirme a sua <strong>matrícula</strong> (a que está na lista do seu professor). Use sempre a mesma conta Google.</p>
+              : <p>Depois do Google, digite a sua <strong>senha do CTC</strong>. O acesso de professor é liberado pelo administrador a partir do seu e-mail Google.</p>}
           </div>
         </div>
       </main>

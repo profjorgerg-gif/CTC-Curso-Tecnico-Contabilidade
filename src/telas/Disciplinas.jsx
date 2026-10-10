@@ -13,6 +13,8 @@ import MontarLinhasExercicio from "../componentes/MontarLinhasExercicio";
 import { useEffect, useState } from "react";
 import { usePlano } from "../lib/contabil";
 import { estudado, marcarEstudado, passoDo, situacaoDoAluno } from "../lib/trilha";
+import { registrarProgresso } from "../lib/progresso";
+import { idEmpresa } from "../lib/empresas";
 
 // Ementa oficial do componente curricular (texto literal do documento da SED/SC)
 function Ementa({ e }) {
@@ -76,7 +78,7 @@ export default function Disciplinas({ sessao, papel, ir, rota }) {
         </div>
         <Teoria teoria={teoria} />
         {praticasDo(atual.id, nModulo).map((ex) => (ex.tipo === "balanco-sucessivo" ? <BalancoSucessivo key={ex.id} ex={ex} /> : ex.tipo === "razonetes" ? <Razonetes key={ex.id} ex={ex} /> : ex.tipo === "ficha-estoque" ? <FichaEstoque key={ex.id} ex={ex} /> : ex.tipo === "balancete" ? <BalanceteExercicio key={ex.id} ex={ex} /> : ex.tipo === "montar-dre" ? <MontarDreExercicio key={ex.id} ex={ex} /> : ex.tipo === "montar-linhas" ? <MontarLinhasExercicio key={ex.id} ex={ex} /> : null))}
-        <ProximoPasso disciplina={atual} n={nModulo} papel={papel} ir={ir} />
+        <ProximoPasso disciplina={atual} n={nModulo} papel={papel} ir={ir} empresaId={turmaDaDisc && sessao.perfil?.matricula ? idEmpresa(turmaDaDisc.id, sessao.perfil.matricula) : null} />
       </>
     );
   }
@@ -162,7 +164,7 @@ function SeloTrilha({ s }) {
 }
 
 // fim da página do módulo: o que fazer agora (aluno) ou como usar com a turma (professor)
-function ProximoPasso({ disciplina, n, papel, ir }) {
+function ProximoPasso({ disciplina, n, papel, ir, empresaId }) {
   const passo = passoDo(disciplina.id, n);
   const [feito, setFeito] = useState(() => estudado(disciplina.id, n));
   const proximo = n < disciplina.modulos.length && teoriaDo(disciplina.id, n + 1) ? n + 1 : null;
@@ -179,7 +181,10 @@ function ProximoPasso({ disciplina, n, papel, ir }) {
       </section>
     );
   }
-  const alternar = () => { marcarEstudado(disciplina.id, n, !feito); setFeito(!feito); };
+  const alternar = () => {
+    marcarEstudado(disciplina.id, n, !feito); setFeito(!feito);
+    registrarProgresso(empresaId, `estudado-${disciplina.id}-${String(n).padStart(2, "0")}`, !feito); // o professor vê no Painel
+  };
   return (
     <section className="cartao" style={{ gap: 12 }}>
       <h2>Próximo passo</h2>

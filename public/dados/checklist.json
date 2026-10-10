@@ -426,28 +426,28 @@
       "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
       "item": "Painel por etapa no Início do professor",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "m-menu",
       "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
       "item": "Menu do professor por tarefa",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "m-entrada",
       "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
       "item": "Tela de entrada com seletor Aluno/Professor",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     },
     {
       "id": "m-registro",
       "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
       "item": "Registro do processo (linha do tempo do aluno)",
       "quem": "Claude",
-      "feito": false
+      "feito": true
     }
   ]
 }

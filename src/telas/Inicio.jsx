@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTurmas } from "../lib/useTurmas";
 import { lerUltimoBackup } from "../lib/backup";
 import { UltimoBackup } from "./Backup";
+import PainelProfessor from "./PainelProfessor";
 
 const INTRO = {
   aluno: "Aqui ficam as suas disciplinas, as turmas em que você está matriculado e as consultas ao Banco de Dados do curso.",
@@ -23,6 +24,7 @@ export default function Inicio({ sessao, papel, ir }) {
       </div>
 
       {papel === "admin" && <AvisoBackup ir={ir} />}
+      {papel !== "aluno" && <PainelProfessor sessao={sessao} ir={ir} />}
 
       <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <h2>Trilha do curso</h2>

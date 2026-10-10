@@ -29,7 +29,7 @@ export default function ModoTeste({ sessao, papel, ir }) {
       for (const l of listas.filter(ehQuestoes)) gabaritos[l.id] = await lerGabarito(t.id, l.id).catch(() => ({}));
       const aluno = { matricula, nome: NOME_ALUNO_TESTE };
       const x = await acompanharAluno(t, aluno, listas, plano, gabaritos);
-      setRel({ turma: t, rel: gerarRelatorio({ aluno, turma: t, empresa: x.bruto?.empresa || null, esc: x.bruto?.esc, listas, respostas: x.bruto?.respostas, gabaritos, boletim: x.bruto?.boletim, plano, contaTeste: true }) });
+      setRel({ turma: t, bruto: x.bruto, listas, rel: gerarRelatorio({ aluno, turma: t, empresa: x.bruto?.empresa || null, esc: x.bruto?.esc, listas, respostas: x.bruto?.respostas, gabaritos, boletim: x.bruto?.boletim, plano, contaTeste: true }) });
     } catch (e) { setMsg({ texto: traduzirErro(e), tipo: "erro" }); }
     setOcupado("");
   };
@@ -87,7 +87,7 @@ export default function ModoTeste({ sessao, papel, ir }) {
       )}
       {rel && (
         <section className="cartao">
-          <RelatorioDoAluno rel={rel.rel} turma={rel.turma} sessao={sessao} aoDevolver={() => relatorio(rel.turma, true)} />
+          <RelatorioDoAluno rel={rel.rel} turma={rel.turma} sessao={sessao} bruto={rel.bruto} listas={rel.listas} aoDevolver={() => relatorio(rel.turma, true)} />
           <div><button type="button" className="botao secundario pequeno" onClick={() => setRel(null)}>Fechar relatório</button></div>
         </section>
       )}

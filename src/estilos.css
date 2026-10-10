@@ -265,3 +265,20 @@ tbody tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
 /* número do chamado do Suporte */
 .selo-numero { display: inline-block; background: var(--verde-claro); color: var(--verde-texto); border: 1px solid var(--verde); border-radius: 6px; padding: 1px 8px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+
+/* menu por tarefa (professor e administrador) */
+.menu-grupo { display: flex; flex-direction: column; gap: 2px; }
+.menu-grupo + .menu-grupo { margin-top: 8px; }
+.menu .menu-rotulo { font: inherit; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-suave); padding: 4px 14px 2px; background: none; border: 0; text-align: left; min-height: 0; }
+.menu button.menu-rotulo { cursor: pointer; min-height: 0; padding: 4px 14px 2px; border-radius: 0; }
+.menu button.menu-rotulo:hover { background: none; color: var(--tinta); }
+.menu button { display: flex; align-items: center; gap: 8px; }
+.menu-badge { background: var(--vermelho); color: #2a1212; border-radius: 999px; font-size: 11.5px; font-weight: 700; padding: 0 7px; line-height: 18px; }
+.menu-aviso { font-size: 11px; color: var(--tinta-suave); }
+@media (max-width: 640px) { .menu-grupo { flex-direction: row; flex-wrap: wrap; gap: 4px; flex: 1 1 100%; } .menu-grupo + .menu-grupo { margin-top: 0; } .menu span.menu-rotulo { display: none; } .menu-grupo > button { flex: 1 1 auto; } .menu button.menu-rotulo { flex: 1 1 100%; } }
+
+/* tela de entrada: perfil de acesso (só muda a orientação) */
+.login-perfil { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.login-perfil-rotulo { grid-column: 1 / -1; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-suave); }
+.login-perfil-opcao { font: inherit; font-weight: 600; min-height: 44px; border-radius: 8px; border: 1px solid var(--linha); background: transparent; color: var(--tinta-media); cursor: pointer; }
+.login-perfil-opcao.ativo { background: var(--ocre-claro); color: var(--destaque-forte); border-color: var(--destaque); }

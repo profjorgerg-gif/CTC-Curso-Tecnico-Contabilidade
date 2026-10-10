@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import FluxoEtapa from "../componentes/FluxoEtapa";
 import { LixeiraDaEmpresa } from "../componentes/Lixeira";
 import { devolucoesDoAluno } from "../lib/devolucao";
+import { registrarProgresso } from "../lib/progresso";
 import { useRascunho } from "../lib/rascunho";
 import { AvisoRascunho, SeloNaoSalvo } from "../componentes/Rascunho";
 import { useTurmas } from "../lib/useTurmas";
@@ -1099,7 +1100,7 @@ function Dre({ empresa, plano, dados, params, donoAluno }) {
         chave={chave}
         assinatura={assinatura}
         dica="Antes de ver a DRE pronta, monte-a você: preencha cada linha e os subtotais, na ordem. Linhas sem valor não aparecem. Se você lançar algo novo, a montagem recomeça."
-        aoConcluir={() => setMontada(true)}
+        aoConcluir={() => { setMontada(true); registrarProgresso(empresa.id, "montou-dre"); }}
       />
     );
   }
@@ -1292,7 +1293,7 @@ function Dlpa({ empresa, plano, dados, params, donoAluno }) {
           chave={chaveDlpa}
           assinatura={assinaturaDlpa}
           dica="Preencha cada linha, na ordem. Linhas sem valor não aparecem. Se você lançar uma nova destinação, a montagem recomeça."
-          aoConcluir={() => setMontada(true)}
+          aoConcluir={() => { setMontada(true); registrarProgresso(empresa.id, "montou-dlpa"); }}
         />
       )}
       {!alunoMonta && <section className="cartao">
@@ -1367,7 +1368,7 @@ function Balanco({ empresa, plano, dados, params, donoAluno }) {
         chave={chaveBp}
         assinatura={assinaturaBp}
         dica="Preencha cada grupo (soma das contas do grupo) e os totais. Redutoras, como (-) Prejuízos Acumulados, entram deduzindo. Grupos sem valor não aparecem. Se você lançar algo novo, a montagem recomeça."
-        aoConcluir={() => setMontado(true)}
+        aoConcluir={() => { setMontado(true); registrarProgresso(empresa.id, "montou-bp"); }}
       />
     );
   }
