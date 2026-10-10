@@ -1,0 +1,453 @@
+{
+  "atualizadoEm": "2026-10-10",
+  "itens": [
+    {
+      "id": "f2-empresa",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Empresa individual do aluno criada por turma",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-parametrizacao",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Parametrização da empresa (Contábil, Fiscal/Tributário e Folha) antes da escrituração",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-ciclo",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Saldos iniciais, 10 lançamentos orientados, razão, balancete",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-estoque",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Controle de estoque (PEPS, UEPS, média ponderada)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-demonstracoes",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "DRE, DLPA, encerramento (ARE) e balanço patrimonial",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-listas",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Listas de exercícios geradas pelo professor, com gabarito e correção automática (Confere/Diferente)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-lancamento-composto",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Lançamento composto (+ Débito / + Crédito), modelos por tipo de operação, nível de ajuda e tributos definidos pelo professor na turma; venda com CMV no mesmo lançamento (8 fatos orientados)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-avaliacao",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Motor de avaliação: exercício de sala × avaliativo, prazos, recuperação paralela, quadro de notas do professor e Minhas notas do aluno",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-acompanhamento",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Acompanhamento da turma: quadro visual do progresso de cada aluno (etapas, fatos, listas, balancete, última atividade), com filtros e .csv",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-teoria-questoes",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Teoria por módulo e questões teóricas (múltipla escolha, V/F, afirmações) com banco protegido, listas de sala/avaliativas, correção e notas — CB Módulo 01 pronto",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-teoria-cb",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Teoria, slides, exercícios interativos e banco de questões dos 12 módulos da CB (concluído em 06/10)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-balanco-sucessivo",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Exercício interativo de balanços sucessivos (exemplo da Cia. Vamos Ltda., corrigido)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-sequencia",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Sequência pedagógica da CB revisada: 12 módulos (Débito e Crédito e Livros Diário e Razão incluídos; Estoque antes dos fatos; ARE antes da DLPA)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-trilha",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Trilha do aluno: \"Próximo passo\" no fim de cada módulo e selos de andamento (estudado, questionário, prática)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-ajuda-lista",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Nível de ajuda por lista de escrituração (avaliativa usa \"Livre\" por padrão)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-razonetes",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Razonetes interativos do Módulo 03 (Débito e Crédito)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-montar-demonstracoes",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "\"Montar e conferir\" a DRE, a DLPA e o Balanço; o aluno faz os lançamentos de encerramento (ARE)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-lista-competencia",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Lista-modelo de regime de competência (aluguel e salários a pagar, receita de serviço a receber) para o Módulo 07",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-modo-teste",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Menu \"Modo de teste\": professor e administrador veem o CTC como aluno, sem turma nem aluno de mentira",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-checkup",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Checkup geral da CB e revisão dos 12 bancos de questões (alternativas equilibradas)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f2-teste",
+      "fase": "Fase 2 — Contabilidade Básica",
+      "item": "Teste do CB pelo Modo de teste (como aluno) e aprovação do professor",
+      "quem": "Professor",
+      "feito": false
+    },
+    {
+      "id": "f3-modulos",
+      "fase": "Fase 3 — Contabilidade Intermediária",
+      "item": "11 módulos com teoria, questões e recuperação",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f3-ferramentas",
+      "fase": "Fase 3 — Contabilidade Intermediária",
+      "item": "Simulador de lançamentos, depreciação, PECLD e DLPA",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f3-relatorios",
+      "fase": "Fase 3 — Contabilidade Intermediária",
+      "item": "7 relatórios finais calculados dos lançamentos do aluno",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f3-teste",
+      "fase": "Fase 3 — Contabilidade Intermediária",
+      "item": "Teste e aprovação do professor",
+      "quem": "Professor",
+      "feito": false
+    },
+    {
+      "id": "f4-simulador",
+      "fase": "Fase 4 — Unidade II + Simulador de NF-e",
+      "item": "Simulador de NF-e na área do professor, lendo IBS/CBS do Banco de Dados",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f4-fluxo",
+      "fase": "Fase 4 — Unidade II + Simulador de NF-e",
+      "item": "Nota emitida vira gabarito; aluno digita, analisa, classifica e escritura",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f4-correcao",
+      "fase": "Fase 4 — Unidade II + Simulador de NF-e",
+      "item": "Fila de correção e rubrica de avaliação",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f4-teste",
+      "fase": "Fase 4 — Unidade II + Simulador de NF-e",
+      "item": "Teste e aprovação do professor",
+      "quem": "Professor",
+      "feito": false
+    },
+    {
+      "id": "f5-modulos",
+      "fase": "Fase 5 — Contabilidade Avançada",
+      "item": "Provisão da folha, LALUR, destinação do resultado, IRPF e ganho de capital",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f5-teste",
+      "fase": "Fase 5 — Contabilidade Avançada",
+      "item": "Teste e aprovação do professor",
+      "quem": "Professor",
+      "feito": false
+    },
+    {
+      "id": "f6-ementa",
+      "fase": "Fase 6 — Contabilidade Tributária",
+      "item": "Enviar ementa e temas da CT",
+      "quem": "Professor",
+      "feito": true
+    },
+    {
+      "id": "f6-modulos",
+      "fase": "Fase 6 — Contabilidade Tributária",
+      "item": "Módulos de CT (Simples, Presumido, Real, ICMS e DIFAL, IPI, ISS, transição CBS/IBS)",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f6-teste",
+      "fase": "Fase 6 — Contabilidade Tributária",
+      "item": "Teste e aprovação do professor",
+      "quem": "Professor",
+      "feito": false
+    },
+    {
+      "id": "f7-ementa",
+      "fase": "Fase 7 — Recursos Humanos",
+      "item": "Enviar ementa e temas de RH",
+      "quem": "Professor",
+      "feito": true
+    },
+    {
+      "id": "f7-modulos",
+      "fase": "Fase 7 — Recursos Humanos",
+      "item": "Módulos de RH (recrutamento, folha completa, férias, 13º, rescisão, provisões, sistema de RH)",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f7-teste",
+      "fase": "Fase 7 — Recursos Humanos",
+      "item": "Teste e aprovação do professor",
+      "quem": "Professor",
+      "feito": false
+    },
+    {
+      "id": "f8-ementa-agb",
+      "fase": "Fase 8 — AGB e ADMF",
+      "item": "Enviar ementa e temas da AGB",
+      "quem": "Professor",
+      "feito": true
+    },
+    {
+      "id": "f8-arquivos-admf",
+      "fase": "Fase 8 — AGB e ADMF",
+      "item": "Enviar os arquivos da plataforma de Administração Financeira",
+      "quem": "Professor",
+      "feito": false
+    },
+    {
+      "id": "f8-agb",
+      "fase": "Fase 8 — AGB e ADMF",
+      "item": "Módulos de AGB (análises, indicadores, margem e ponto de equilíbrio, fluxo de caixa, relatório)",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f8-admf",
+      "fase": "Fase 8 — AGB e ADMF",
+      "item": "Módulos de ADMF",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f8-teste",
+      "fase": "Fase 8 — AGB e ADMF",
+      "item": "Teste e aprovação do professor",
+      "quem": "Professor",
+      "feito": false
+    },
+    {
+      "id": "f9-sipp",
+      "fase": "Fase 9 — Área do professor e fechamento",
+      "item": "Analisar o SIPP: formulários oficiais (Plano Semestral e Sequência Didática) incorporados ao Guia Pedagógico",
+      "quem": "Professor e Claude",
+      "feito": true
+    },
+    {
+      "id": "f9-planejamento",
+      "fase": "Fase 9 — Área do professor e fechamento",
+      "item": "Guia Pedagógico: Plano Semestral e Plano de Aula Mensal (modelo SED/SC), com impressão em PDF",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f9-suporte",
+      "fase": "Fase 9 — Área do professor e fechamento",
+      "item": "Suporte por chamados",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f9-backup",
+      "fase": "Fase 9 — Área do professor e fechamento",
+      "item": "Backup completo, backup da turma e restauração",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f9-auditoria",
+      "fase": "Fase 9 — Área do professor e fechamento",
+      "item": "Auditoria completa (quem acessou e o que fez)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "f9-slides",
+      "fase": "Fase 9 — Área do professor e fechamento",
+      "item": "Slides por módulo no Guia Pedagógico (modelo aprovado; CB completa — 12 módulos; faltam as demais disciplinas)",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "f9-manuais",
+      "fase": "Fase 9 — Área do professor e fechamento",
+      "item": "Manuais do aluno, do professor e de operacionalização",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "g-natureza",
+      "fase": "Ajustes gerais",
+      "item": "Natureza das contas 4.2.01 a 4.2.06 (deduções da receita) corrigida para Devedora",
+      "quem": "Professor",
+      "feito": true
+    },
+    {
+      "id": "g-turma-teste",
+      "fase": "Ajustes gerais",
+      "item": "Excluir a turma \"Teste CB\" e o aluno de teste (substituídos pelo Modo de teste)",
+      "quem": "Professor",
+      "feito": false
+    },
+    {
+      "id": "g-login-rodape",
+      "fase": "Ajustes gerais",
+      "item": "Nova tela de entrada (opção 7) e rodapé de direitos autorais em todas as telas",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "g-confirmacao",
+      "fase": "Ajustes gerais",
+      "item": "Confirmação a cada entrada: senha do professor, matrícula do aluno e saída por inatividade",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "m-rascunho",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Proteção contra digitação perdida (rascunho local, ● não salvo, Restaurar/Descartar, aviso ao sair)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "m-fluxo",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "\"Como funciona esta etapa\" nas telas do aluno",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "m-guia",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Guia do professor (roteiro do dia, fases, Preciso resolver…, cuidados)",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "m-relatorio",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Relatório de orientação por aluno e Resumo da turma",
+      "quem": "Claude",
+      "feito": true
+    },
+    {
+      "id": "m-lixeira",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Lixeira de segurança (copiar antes de apagar, restaurar)",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "m-suporte",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Suporte numerado (professor da turma ou administrador; exportar/imprimir)",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "m-devolucao",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Devolução de tarefa ao aluno com orientação",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "m-painel",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Painel por etapa no Início do professor",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "m-menu",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Menu do professor por tarefa",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "m-entrada",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Tela de entrada com seletor Aluno/Professor",
+      "quem": "Claude",
+      "feito": false
+    },
+    {
+      "id": "m-registro",
+      "fase": "Melhorias do kit CI Unidade II (aprovadas em 10/10/2026)",
+      "item": "Registro do processo (linha do tempo do aluno)",
+      "quem": "Claude",
+      "feito": false
+    }
+  ]
+}
