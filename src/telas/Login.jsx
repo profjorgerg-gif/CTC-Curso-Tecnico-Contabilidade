@@ -56,7 +56,7 @@ export default function Login() {
             <h2>Entrar no CTC</h2>
           </div>
           <p className="login-texto">Entre com sua conta Google para acessar a plataforma.</p>
-          {inativo && <div className="aviso atencao" role="status">Você saiu automaticamente depois de {INATIVIDADE_MIN} minutos sem usar o CTC.</div>}
+          {inativo && <div className="aviso atencao" role="status">Você saiu automaticamente depois de {INATIVIDADE_MIN} minutos sem usar o CTC. Se havia algo digitado e não salvo, ele ficou guardado neste computador: ao entrar de novo, use "Restaurar".</div>}
           <button className="botao login-botao" onClick={entrar} disabled={aguarde}>
             <span className="login-g" aria-hidden="true">G</span>
             {aguarde ? "Abrindo o Google…" : "Continuar com o Google"}

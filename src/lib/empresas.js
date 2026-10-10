@@ -83,6 +83,7 @@ export async function empresasDaTurma(turmaId, alunos) {
 }
 
 const CAMPOS = ["razaoSocial", "nomeFantasia", "cnpj", "ramo", "municipio", "uf", "capitalSocial"];
+export const CAMPOS_CADASTRO = CAMPOS;
 
 export function conferirCadastro(e) {
   const erros = [];

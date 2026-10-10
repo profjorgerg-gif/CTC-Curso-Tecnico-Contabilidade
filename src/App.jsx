@@ -24,6 +24,9 @@ import { definirSessaoAuditoria, registrarAcesso } from "./lib/auditoria";
 import { confirmadoNesteNavegador, useSaidaPorInatividade } from "./lib/seguranca";
 import { ConfirmarAluno, ConfirmarProfessor } from "./telas/Confirmacao";
 import Rodape from "./componentes/Rodape";
+import { limparRascunhosVencidos } from "./lib/rascunho";
+
+limparRascunhosVencidos(); // rascunhos locais com mais de 14 dias
 
 // Itens do menu por perfil
 const MENUS = {

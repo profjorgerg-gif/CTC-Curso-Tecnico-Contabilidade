@@ -20,7 +20,7 @@ const semestrePadrao = () => {
 export default function Turmas(props) {
   const { papel, rota } = props;
   if (papel === "aluno") return <TurmasDoAluno {...props} />;
-  if (rota[0]) return <DetalheTurma {...props} turmaId={rota[0]} />;
+  if (rota[0]) return <DetalheTurma {...props} turmaId={rota[0]} secao={rota[1]} />;
   return <TurmasDoProfessor {...props} />;
 }
 
@@ -148,7 +148,7 @@ function TurmasDoProfessor({ sessao, papel, ir }) {
 }
 
 // ---------------- detalhe da turma ----------------
-function DetalheTurma({ sessao, turmaId, ir }) {
+function DetalheTurma({ sessao, turmaId, ir, secao }) {
   const { turmas, recarregar: recarregarTurmas } = useTurmas(sessao);
   const turma = turmas.find((t) => t.id === turmaId);
   const [alunos, setAlunos] = useState(null);
@@ -162,6 +162,12 @@ function DetalheTurma({ sessao, turmaId, ir }) {
     try { setAlunos(await alunosDaTurma(turmaId)); } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
   };
   useEffect(() => { carregar(); }, [turmaId]);
+  // atalhos do Guia do professor: #turmas/{id}/{seção} rola até a seção
+  useEffect(() => {
+    if (!secao || !alunos || !turma) return undefined;
+    const t = setTimeout(() => document.getElementById(`sec-${secao}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 400);
+    return () => clearTimeout(t);
+  }, [secao, !!alunos, !!turma]);
 
   const acao = async (fn, ok) => {
     setMsg({});
@@ -177,7 +183,7 @@ function DetalheTurma({ sessao, turmaId, ir }) {
       </div>
       {msg.texto && <div className={`aviso ${msg.tipo || ""}`} role="status">{msg.texto}</div>}
 
-      <section className="cartao sem-padding">
+      <section id="sec-alunos" className="cartao sem-padding">
         <div className="cartao-topo">
           <h2>Alunos ({alunos?.length ?? "…"})</h2>
           <span className="pequeno suave">{alunos ? alunos.filter((a) => a.vinculado).length : "…"} já entraram</span>
@@ -211,12 +217,14 @@ function DetalheTurma({ sessao, turmaId, ir }) {
         </div>
       </section>
 
-      {turma && alunos && <AcompanhamentoDaTurma key={`ac-${turma.id}-${versaoNotas}`} turma={turma} alunos={alunos} ir={ir} />}
-      {turma && <ParametrosDaTurma key={turma.id} turma={turma} aoSalvar={recarregarTurmas} />}
-      {turma && <ConfigLancamentosDaTurma key={`cfg-${turma.id}`} turma={turma} aoSalvar={recarregarTurmas} />}
-      {turma && <ExerciciosDaTurma key={`ex-${turma.id}`} turma={turma} alunos={alunos || []} aoMudarNotas={() => setVersaoNotas((v) => v + 1)} />}
-      {turma && alunos && <NotasDaTurma key={`nt-${turma.id}-${versaoNotas}`} turma={turma} alunos={alunos} aoSalvarTurma={recarregarTurmas} />}
-      {turma && alunos && <EmpresasDaTurma turma={turma} alunos={alunos} ir={ir} />}
+      <div id="sec-acompanhamento" className="ancora">{turma && alunos && <AcompanhamentoDaTurma key={`ac-${turma.id}-${versaoNotas}`} turma={turma} alunos={alunos} ir={ir} />}</div>
+      <div id="sec-parametros" className="ancora">
+        {turma && <ParametrosDaTurma key={turma.id} turma={turma} aoSalvar={recarregarTurmas} />}
+        {turma && <ConfigLancamentosDaTurma key={`cfg-${turma.id}`} turma={turma} aoSalvar={recarregarTurmas} />}
+      </div>
+      <div id="sec-exercicios" className="ancora">{turma && <ExerciciosDaTurma key={`ex-${turma.id}`} turma={turma} alunos={alunos || []} aoMudarNotas={() => setVersaoNotas((v) => v + 1)} />}</div>
+      <div id="sec-notas" className="ancora">{turma && alunos && <NotasDaTurma key={`nt-${turma.id}-${versaoNotas}`} turma={turma} alunos={alunos} aoSalvarTurma={recarregarTurmas} />}</div>
+      <div id="sec-empresas" className="ancora">{turma && alunos && <EmpresasDaTurma turma={turma} alunos={alunos} ir={ir} />}</div>
 
       <section className="cartao">
         <h2>Incluir mais alunos</h2>

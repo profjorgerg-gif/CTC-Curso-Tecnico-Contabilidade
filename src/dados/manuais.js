@@ -1,7 +1,7 @@
 // Manuais do CTC (estrutura aprovada em 04/10/2026; o texto é revisado a cada entrega
 // e finalizado quando as telas estiverem estáveis). Cada seção: { id, titulo, passos: [], dica? }.
 
-export const ATUALIZADO_EM = "06/10/2026";
+export const ATUALIZADO_EM = "10/10/2026";
 
 export const MANUAL_PROFESSOR = [
   { id: "entrada", titulo: "Entrar no CTC", passos: [
@@ -50,11 +50,19 @@ export const MANUAL_PROFESSOR = [
     "Nas listas, \"3/5 · 2 ✓\" quer dizer 3 de 5 fatos lançados e 2 conferem. Nas avaliativas ainda ocultas, só você vê o acerto.",
     "Use os filtros \"Só quem está atrasado\" e \"Só quem tem diferenças\" e clique no nome do aluno para abrir a escrituração dele. \"Atualizar\" relê os livros; \"Exportar .csv\" guarda o retrato da turma.",
   ] },
+  { id: "relatorio", titulo: "Relatório de orientação", passos: [
+    "No Acompanhamento da turma, aba \"Relatório de orientação\": o Resumo da turma mostra, por aluno, os itens em dia e quantas pendências estão com o aluno e com você (a sua fila de trabalho).",
+    "\"Ver relatório\" (ou \"relatório\" embaixo do nome, no quadro) abre o relatório do aluno: situação por item (abertura, fatos orientados, cada lista e questionário, lançamentos, fechamento), quem age agora e o que precisa de ajuste, com o que fazer e onde.",
+    "Cor = etapa; ● corrigir (pílula cheia) = erro; ○ conferir (pílula vazada) = atenção. Os filtros por etapa mostram a contagem.",
+    "\"Imprimir / salvar PDF\" sai em A4 paisagem, com o nome do aluno e a data no nome do arquivo. \"Copiar texto para o aluno\" gera a orientação para colar no Classroom ou no WhatsApp — sem revelar o acerto das listas avaliativas ainda ocultas.",
+    "É só leitura: nada é alterado nos dados do aluno. No Modo de teste, o botão \"Relatório\" mostra o da conta de teste (com a etiqueta CONTA DE TESTE).",
+  ] },
   { id: "empresas", titulo: "Empresas e escrituração dos alunos", passos: [
     "No quadro \"Empresas dos alunos\" você vê o cadastro e a parametrização de cada um e abre a escrituração dele (\"Escrituração\").",
     "Você pode corrigir lançamentos do aluno; toda correção sua fica registrada na Auditoria.",
   ] },
   { id: "guia", titulo: "Guia Pedagógico", passos: [
+    "Guia do professor (1ª aba): o mapa do CTC para o dia a dia — roteiro do dia de aula, as 4 fases (preparar, acompanhar, corrigir e orientar, fechar a nota) com o botão \"Abrir\" que leva direto à tela, \"Preciso resolver…\" e \"Boas práticas e cuidados\". As fases de preparar e fechar podem ser marcadas como feitas, por turma.",
     "Slides: escolha a disciplina e o módulo. Use as setas do teclado ou clique para avançar, \"Tela cheia\" para projetar e \"Notas do professor\" para ver as suas anotações.",
     "Plano Semestral: no mesmo formato do modelo do CEDUP Hermann Hering (A4 paisagem, com o cabeçalho da escola). Vem preenchido com a ementa oficial, os módulos, os textos-padrão da Portaria nº 874/2025 e as datas das listas avaliativas. Revise, salve e use \"Imprimir / PDF\". Nos textos, **trecho** sai em negrito.",
     "Sequência Didática (plano de aula): escolha o mês e clique em \"Nova sequência didática\". Ela herda os campos do Plano Semestral e já traz as avaliações do período.",
@@ -122,6 +130,11 @@ export const MANUAL_ALUNO = [
   { id: "notas", titulo: "Minhas notas", passos: [
     "Mostra as notas que o professor publicou em cada turma, a média e a frequência.",
     "Para aprovação: média igual ou superior a 6,0 e frequência igual ou superior a 75%.",
+  ] },
+  { id: "ajuda-tela", titulo: "Como funciona esta etapa e rascunhos", passos: [
+    "No topo de Minha empresa, Parametrização, Questionários e de cada aba da Escrituração há o quadro \"Como funciona esta etapa\": o caminho em caixas (você faz, o CTC faz, o professor faz, atenção). Ele abre sozinho na primeira visita; depois, use \"Abrir\".",
+    "Enquanto você digita e ainda não salvou, aparece \"● alterações não salvas\". O CTC guarda o que você digitou neste computador: se trocar de aba, recarregar a página ou sair, ao voltar aparece \"Há um rascunho não salvo\" com \"Restaurar\" e \"Descartar\".",
+    "O rascunho fica só no computador onde você digitou e vale por 14 dias. O que conta é o que você salvou: salve sempre antes de sair, principalmente em computador da escola.",
   ] },
   { id: "suporte", titulo: "Suporte", passos: [
     "Teve um problema no CTC? Abra um chamado em \"Suporte\" e acompanhe a resposta.",

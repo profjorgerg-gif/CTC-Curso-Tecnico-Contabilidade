@@ -2,6 +2,9 @@
 // listas do professor e lançamento livre — compostos, com modelo por operação),
 // Razão, Controle de estoque, Balancete e Demonstrações.
 import { useEffect, useMemo, useState } from "react";
+import FluxoEtapa from "../componentes/FluxoEtapa";
+import { useRascunho } from "../lib/rascunho";
+import { AvisoRascunho, SeloNaoSalvo } from "../componentes/Rascunho";
 import { useTurmas } from "../lib/useTurmas";
 import { traduzirErro } from "../lib/sessao";
 import { disciplinaPorId } from "../dados/disciplinas";
@@ -159,6 +162,7 @@ function Livros({ sessao, empresa, turma, donoAluno, abaInicial }) {
           <button key={id} role="tab" aria-selected={aba === id} className={aba === id ? "ativo" : ""} onClick={() => setAba(id)}>{rotulo}</button>
         ))}
       </div>
+      {donoAluno && <FluxoEtapa key={aba} etapa={aba} />}
       {aba === "saldos" && <SaldosIniciais {...props} />}
       {aba === "lancamentos" && <Lancamentos {...props} />}
       {aba === "razao" && <Razao {...props} />}
@@ -216,6 +220,9 @@ function CampoConta({ id, rotulo, valor, aoMudar, plano }) {
 function SaldosIniciais({ sessao, empresa, plano, dados, recarregar }) {
   const inicial = () => (dados.saldosGravados ? dados.saldos : { "3.1.01": { devedor: 0, credor: Number(empresa.capitalSocial) || 0 } });
   const [rascunho, setRascunho] = useState(inicial);
+  const base = useMemo(inicial, [dados]);
+  const naoSalvo = JSON.stringify(rascunho) !== JSON.stringify(base);
+  const rasc = useRascunho({ chave: `saldos-${empresa.id}`, valor: rascunho, sujo: naoSalvo, aoRestaurar: setRascunho });
   const [todas, setTodas] = useState(false);
   const [busca, setBusca] = useState("");
   const [msg, setMsg] = useState({});
@@ -240,6 +247,7 @@ function SaldosIniciais({ sessao, empresa, plano, dados, recarregar }) {
     setSalvando(true); setMsg({});
     try {
       await salvarSaldos(sessao, empresa.id, rascunho);
+      rasc.limpar();
       setMsg({ texto: "Saldos iniciais salvos." });
       await recarregar();
     } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
@@ -250,9 +258,11 @@ function SaldosIniciais({ sessao, empresa, plano, dados, recarregar }) {
     <section className="cartao sem-padding">
       <div className="cartao-topo">
         <h2>Saldos iniciais — lançamento de abertura</h2>
+        <SeloNaoSalvo sujo={naoSalvo} />
         <input aria-label="Buscar conta" placeholder="Buscar conta" value={busca} onChange={(e) => setBusca(e.target.value)} style={{ flex: "0 1 240px" }} />
       </div>
       <div style={{ padding: "12px 18px 0", display: "flex", flexDirection: "column", gap: 8 }}>
+        <AvisoRascunho r={rasc} oque="os saldos iniciais" />
         <p className="pequeno suave">
           Credite o <strong>Capital Subscrito</strong> pelo capital social da empresa ({dinheiro(empresa.capitalSocial)}) e distribua o mesmo
           valor a débito em contas do Ativo (Caixa, Bancos, Imobilizado). O total devedor precisa ser igual ao total credor.
@@ -328,6 +338,13 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
   const [salvando, setSalvando] = useState(false);
   const [busca, setBusca] = useState("");
   const [vendoFato, setVendoFato] = useState(null);
+  // proteção contra digitação perdida: o lançamento em andamento fica guardado neste navegador
+  const [original, setOriginal] = useState(null); // como estava o lançamento aberto para correção
+  const naoSalvo = editando ? JSON.stringify(form) !== JSON.stringify(original) : !formEmBranco(form);
+  const rasc = useRascunho({
+    chave: `lanc-${empresa.id}`, valor: { form, editando }, sujo: naoSalvo,
+    aoRestaurar: (d) => { const existe = d.editando && lista.some((l) => l.id === d.editando); setEditando(existe ? d.editando : null); setOriginal(null); setForm(d.form); },
+  });
 
   // resultado da correção (para a baixa do CMV, o custo vem do estoque e do método do próprio aluno)
   const resultado = (l, fato) => corrigirLancamento(l, fato, lista, { metodo, periodico, tributos: cfg.tributos });
@@ -399,7 +416,7 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
     return { ...f, partidas };
   });
   const tirarLinha = (i) => setForm((f) => ({ ...f, partidas: f.partidas.filter((_, k) => k !== i) }));
-  const cancelar = () => { setEditando(null); setForm(formVazio(empresa)); setErros([]); };
+  const cancelar = () => { setEditando(null); setOriginal(null); setForm(formVazio(empresa)); setErros([]); rasc.limpar(); };
 
   const totD = somaLado(form.partidas, "D");
   const totC = somaLado(form.partidas, "C");
@@ -424,7 +441,8 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
       else await incluirLancamento(sessao, empresa.id, form, null);
       setMsg({ texto: editando ? "Lançamento corrigido." : etapaGuiada ? `Fato ${proximoFato} lançado.` : "Lançamento incluído." });
       setVendoFato(null);
-      setEditando(null); setErros([]);
+      setEditando(null); setOriginal(null); setErros([]);
+      rasc.limpar();
       setForm({ ...formVazio(empresa), data: form.data }); // mantém a data para o próximo
       await recarregar();
     } catch (err) { setMsg({ tipo: "erro", texto: traduzirErro(err) }); }
@@ -433,13 +451,14 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
 
   const editar = (l) => {
     setEditando(l.id); setErros([]); setMsg({});
-    setForm({
+    const f = {
       data: l.data, historico: l.historico, documento: l.documento || "", tipo: l.tipoOperacao || "livre",
       partidas: partidasDe(l).map((p) => ({
         d: p.d, efeito: p.efeito || "", conta: p.conta, valor: String(p.valor),
         quantidade: p.quantidade ? String(p.quantidade) : "", valorUnitario: p.valorUnitario ? String(p.valorUnitario) : "",
       })),
-    });
+    };
+    setForm(f); setOriginal(f);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const excluir = async (l) => {
@@ -513,6 +532,7 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
         </div>
       )}
 
+      <AvisoRascunho r={rasc} oque="o lançamento que você estava fazendo" />
       <form className="cartao" onSubmit={salvar}>
         <h2>{editando ? "Corrigir lançamento" : etapaGuiada ? `Lançar o fato ${proximoFato}` : "Novo lançamento"}</h2>
         <p className="pequeno suave">
@@ -587,7 +607,8 @@ function Lancamentos({ sessao, empresa, turma, plano, dados, recarregar, donoAlu
           <span className={`selo ${totD > 0 && Math.abs(totD - totC) < 0.005 ? "verde" : "ocre"}`}>
             {totD === 0 && totC === 0 ? "Preencha os valores" : Math.abs(totD - totC) < 0.005 ? "Débito = Crédito" : `Diferença de ${dinheiro(Math.abs(totD - totC))}`}
           </span>
-          <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
+          <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center", flexWrap: "wrap" }}>
+            <SeloNaoSalvo sujo={naoSalvo} />
             {editando && <button type="button" className="botao secundario" onClick={cancelar}>Cancelar</button>}
             <button className="botao" disabled={salvando}>{salvando ? "Salvando…" : editando ? "Salvar correção" : "Lançar"}</button>
           </div>

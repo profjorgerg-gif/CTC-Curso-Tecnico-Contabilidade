@@ -1,5 +1,8 @@
 // Parametrização da empresa (aluno) e parâmetros fixados pelo professor (turma)
 import { useEffect, useState } from "react";
+import FluxoEtapa from "../componentes/FluxoEtapa";
+import { useRascunho } from "../lib/rascunho";
+import { AvisoRascunho, SeloNaoSalvo } from "../componentes/Rascunho";
 import { useTurmas } from "../lib/useTurmas";
 import { traduzirErro } from "../lib/sessao";
 import { disciplinaPorId } from "../dados/disciplinas";
@@ -38,6 +41,7 @@ export default function Parametrizacao({ sessao, ir }) {
           Contábil, Fiscal/Tributário e Folha. As escolhas mudam o funcionamento da escrituração — leia a explicação de cada uma.
         </p>
       </div>
+      <FluxoEtapa etapa="parametrizacao" />
       {erro && <div className="aviso erro">{erro}</div>}
       {!carregando && turmas.length === 0 && <div className="aviso atencao">Você ainda não está em nenhuma turma.</div>}
       {turmas.length > 1 && (
@@ -121,10 +125,13 @@ function FormArea({ areaId, empresa, turma, valores, travado, aoSalvar }) {
   const indisponivel = area.somenteDisciplina && turma?.disciplina !== area.somenteDisciplina;
   const confirmada = areaConfirmada(empresa, areaId);
   const erros = conferirArea(areaId, v);
+  // proteção contra digitação perdida
+  const naoSalvo = !travado && JSON.stringify(v) !== JSON.stringify(valores);
+  const rasc = useRascunho({ chave: travado || indisponivel ? null : `param-${empresa.id}-${areaId}`, valor: v, sujo: naoSalvo, aoRestaurar: (d) => setV({ ...valores, ...d }) });
 
   const salvar = async () => {
     setSalvando(true); setMsg({});
-    try { await confirmarArea(empresa, areaId, v); await aoSalvar(); setMsg({ texto: `Parametrização ${area.nome} confirmada.` }); }
+    try { await confirmarArea(empresa, areaId, v); rasc.limpar(); await aoSalvar(); setMsg({ texto: `Parametrização ${area.nome} confirmada.` }); }
     catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
     setSalvando(false);
   };
@@ -140,6 +147,7 @@ function FormArea({ areaId, empresa, turma, valores, travado, aoSalvar }) {
         <span className={`selo ${confirmada ? "verde" : "ocre"}`}>{confirmada ? "Confirmada" : "Ainda não confirmada"}</span>
       </div>
       <p className="pequeno suave" style={{ maxWidth: 820 }}>{area.intro}</p>
+      <AvisoRascunho r={rasc} oque={`a parametrização ${area.nome}`} />
       {area.campos.map((c) => {
         const fixo = fixadoNaTurma(turma, areaId, c.id);
         const id = `p-${areaId}-${c.id}`;
@@ -157,7 +165,7 @@ function FormArea({ areaId, empresa, turma, valores, travado, aoSalvar }) {
       })}
       {erros.length > 0 && !travado && <div className="aviso atencao pequeno">{erros.map((e) => <div key={e}>{e}</div>)}</div>}
       {!travado && (
-        <div><button className="botao" disabled={salvando || erros.length > 0} onClick={salvar}>{salvando ? "Salvando…" : confirmada ? "Salvar alterações" : `Confirmar parametrização ${area.nome}`}</button></div>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}><button className="botao" disabled={salvando || erros.length > 0} onClick={salvar}>{salvando ? "Salvando…" : confirmada ? "Salvar alterações" : `Confirmar parametrização ${area.nome}`}</button><SeloNaoSalvo sujo={naoSalvo} /></div>
       )}
       {msg.texto && <div className={`aviso ${msg.tipo || ""}`} role="status">{msg.texto}</div>}
     </section>

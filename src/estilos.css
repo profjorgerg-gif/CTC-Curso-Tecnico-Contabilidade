@@ -238,3 +238,27 @@ tbody tr:hover td { background: rgba(255, 255, 255, 0.02); }
   padding: 8px 20px; background: var(--ocre-claro); color: var(--ocre); border-bottom: 1px solid var(--ocre);
   position: sticky; top: 0; z-index: 5; font-size: 0.92rem;
 }
+
+/* seções da turma que recebem atalho (#turmas/{id}/{seção}): mantêm o espaçamento da página */
+.ancora { display: flex; flex-direction: column; gap: 20px; scroll-margin-top: 12px; }
+.ancora:empty { display: none; }
+
+/* Guia do professor: fluxo em caixas com setas */
+.guia-linha { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; }
+.guia-passo { display: flex; align-items: center; gap: 8px; }
+.guia-caixa { background: var(--superficie-2); border: 1px solid var(--linha); border-radius: 10px; padding: 10px 12px; width: 196px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; height: 100%; }
+.guia-caixa .botao { margin-top: auto; }
+.guia-seta { color: var(--destaque); font-size: 18px; }
+.guia-numero { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: var(--destaque); color: var(--destaque-texto); font-weight: 700; }
+@media (max-width: 640px) { .guia-caixa { width: 100%; } .guia-passo { width: 100%; } .guia-seta { display: none; } }
+
+/* Relatório de orientação: cor = etapa; formato = gravidade (cheia = corrigir, vazada = conferir) */
+.pilula-etapa { display: inline-block; border: 1px solid; border-radius: 999px; padding: 1px 9px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pilula-grav, .pilula-quem { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pilula-grav.cheia { background: var(--vermelho); color: #2a1212; border: 1px solid var(--vermelho); }
+.pilula-grav.vazada { color: var(--ocre); border: 1px solid var(--ocre); }
+.pilula-quem.cheia { background: var(--verde); color: #0f1f19; border: 1px solid var(--verde); }
+.pilula-quem.vazada { color: var(--verde-texto); border: 1px solid var(--verde); }
+.chip { font: inherit; font-size: 13px; background: transparent; color: var(--tinta-media); border: 1px solid var(--linha); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.chip.ativo { background: var(--destaque); color: var(--destaque-texto); border-color: var(--destaque); }
+.link-botao { font: inherit; background: none; border: 0; padding: 0; color: var(--destaque); text-decoration: underline; cursor: pointer; min-height: 0; }

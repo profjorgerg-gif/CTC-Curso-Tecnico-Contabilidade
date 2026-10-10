@@ -1,10 +1,12 @@
 // Acompanhamento da turma (página da turma, professor): o que cada aluno já fez, em cores.
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { traduzirErro } from "../lib/sessao";
 import { usePlano } from "../lib/contabil";
 import { ehQuestoes, finalidadeDe, FINALIDADES, listasDaTurma, valeNota } from "../lib/exercicios";
 import { lerGabarito } from "../lib/questoes";
 import { acompanharAluno, atrasado, comDiferencas, DIAS_SEM_ATIVIDADE } from "../lib/acompanhamento";
+import { gerarRelatorio } from "../lib/relatorioOrientacao";
+import { RelatorioDoAluno, ResumoDaTurma } from "../componentes/RelatorioOrientacao";
 
 const COR = { ok: "verde", meio: "ocre", nada: "cinza", ruim: "vermelho" };
 
@@ -37,6 +39,9 @@ export function AcompanhamentoDaTurma({ turma, alunos, ir }) {
   const [progresso, setProgresso] = useState(0);
   const [filtro, setFiltro] = useState("todos");
   const [erro, setErro] = useState("");
+  const [gabaritos, setGabaritos] = useState({});
+  const [modo, setModo] = useState("quadro"); // quadro | relatorio
+  const [aberto, setAberto] = useState(null); // matrícula com o relatório aberto
 
   const carregar = async () => {
     if (!plano) return;
@@ -46,6 +51,7 @@ export function AcompanhamentoDaTurma({ turma, alunos, ir }) {
       setListas(ls);
       const gabaritos = {};
       for (const l of ls.filter(ehQuestoes)) gabaritos[l.id] = await lerGabarito(turma.id, l.id).catch(() => ({}));
+      setGabaritos(gabaritos);
       const r = [];
       for (const a of alunos) { r.push(await acompanharAluno(turma, a, ls, plano, gabaritos)); setProgresso(r.length); }
       setLinhas(r);
@@ -53,6 +59,11 @@ export function AcompanhamentoDaTurma({ turma, alunos, ir }) {
   };
   useEffect(() => { carregar(); }, [turma.id, alunos.length, !!plano]);
 
+  // Relatório de orientação: calculado com o que já foi lido (nenhuma leitura a mais)
+  const relatorios = useMemo(() => (linhas || []).map((x) => gerarRelatorio({
+    aluno: x.aluno, turma, empresa: x.bruto?.empresa || null, esc: x.bruto?.esc, listas, respostas: x.bruto?.respostas, gabaritos, boletim: x.bruto?.boletim, plano,
+  })), [linhas, listas, gabaritos, plano]);
+  const relAberto = relatorios.find((r) => r.aluno.matricula === aberto);
   const ativos = (linhas || []).filter((x) => !x.semEmpresa);
   const resumo = linhas && {
     fatos: ativos.filter((x) => x.orientados.lancados === x.orientados.total).length,
@@ -103,6 +114,23 @@ export function AcompanhamentoDaTurma({ turma, alunos, ir }) {
         </div>
       )}
       {linhas && linhas.length > 0 && (
+        <div className="abas" role="tablist" aria-label="Visão" style={{ margin: 0 }}>
+          {[["quadro", "Quadro da turma"], ["relatorio", "Relatório de orientação"]].map(([id, r]) => (
+            <button key={id} role="tab" aria-selected={modo === id} className={modo === id ? "ativo" : ""} onClick={() => { setModo(id); setAberto(null); }}>{r}</button>
+          ))}
+        </div>
+      )}
+      {linhas && linhas.length > 0 && modo === "relatorio" && (
+        relAberto
+          ? <RelatorioDoAluno rel={relAberto} turma={turma} aoVoltar={() => setAberto(null)} />
+          : (
+            <>
+              <p className="pequeno suave" style={{ margin: 0 }}>Por aluno: o que está pendente, quem precisa agir e o que fazer. "Com o professor" é a sua fila de trabalho. Só leitura: nada é alterado.</p>
+              <ResumoDaTurma relatorios={relatorios} turma={turma} abrir={(r) => setAberto(r.aluno.matricula)} />
+            </>
+          )
+      )}
+      {linhas && linhas.length > 0 && modo === "quadro" && (
         <>
           <div className="abas" role="tablist" aria-label="Filtro" style={{ margin: 0 }}>
             {[["todos", "Todos"], ["atrasados", "Só quem está atrasado"], ["diferencas", "Só quem tem diferenças"]].map(([id, r]) => (
@@ -124,7 +152,7 @@ export function AcompanhamentoDaTurma({ turma, alunos, ir }) {
                   const nome = (
                     <td>
                       {x.semEmpresa ? x.aluno.nome : <button className="botao secundario pequeno" style={{ textAlign: "left" }} onClick={() => ir?.("escrituracao", turma.id, x.aluno.matricula)}>{x.aluno.nome}</button>}
-                      <span className="pequeno suave mono" style={{ display: "block" }}>{x.aluno.matricula}</span>
+                      <span className="pequeno suave mono" style={{ display: "block" }}>{x.aluno.matricula} · <button type="button" className="link-botao" onClick={() => { setModo("relatorio"); setAberto(x.aluno.matricula); }}>relatório</button></span>
                     </td>
                   );
                   if (x.semEmpresa) return <tr key={x.aluno.matricula}>{nome}<td colSpan={7 + listas.length}><span className="selo cinza">Ainda não abriu a empresa</span></td></tr>;

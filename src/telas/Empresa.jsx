@@ -1,11 +1,14 @@
 // Empresa individual do aluno (uma por turma)
 import { useEffect, useState } from "react";
+import FluxoEtapa from "../componentes/FluxoEtapa";
+import { useRascunho } from "../lib/rascunho";
+import { AvisoRascunho, SeloNaoSalvo } from "../componentes/Rascunho";
 import { useTurmas } from "../lib/useTurmas";
 import { destravarParametros } from "../lib/parametros";
 import { traduzirErro } from "../lib/sessao";
 import { disciplinaPorId } from "../dados/disciplinas";
 import {
-  conferirCadastro, criarEmpresasQueFaltam, empresasDaTurma,
+  CAMPOS_CADASTRO, conferirCadastro, criarEmpresasQueFaltam, empresasDaTurma,
   garantirEmpresa, gerarCnpjFicticio, lerEmpresa, salvarEmpresa,
 } from "../lib/empresas";
 
@@ -39,6 +42,7 @@ export default function MinhaEmpresa({ sessao }) {
           o estoque e montar as demonstrações. Complete o cadastro e depois faça a Parametrização.
         </p>
       </div>
+      <FluxoEtapa etapa="empresa" />
       {erro && <div className="aviso erro">{erro}</div>}
       {!carregando && turmas.length === 0 && <div className="aviso atencao">Você ainda não está em nenhuma turma.</div>}
       {turmas.length > 1 && (
@@ -66,12 +70,18 @@ export function FormEmpresa({ empresa, outras = [], aoSalvar, compacto }) {
   const [salvando, setSalvando] = useState(false);
   const erros = conferirCadastro(f);
   const muda = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  // proteção contra digitação perdida (só os campos do cadastro)
+  const so = (x) => Object.fromEntries(CAMPOS_CADASTRO.map((k) => [k, String(x?.[k] ?? "")]));
+  const [base, setBase] = useState(() => so(empresa));
+  const naoSalvo = JSON.stringify(so(f)) !== JSON.stringify(base);
+  const rasc = useRascunho({ chave: `empresa-${empresa.id}`, valor: so(f), sujo: naoSalvo, aoRestaurar: (d) => setF((x) => ({ ...x, ...d })) });
 
   const salvar = async (e) => {
     e.preventDefault();
     setSalvando(true); setMsg({});
     try {
       await salvarEmpresa(empresa, f);
+      setBase(so(f)); rasc.limpar();
       setMsg({ texto: erros.length ? "Cadastro salvo. Ainda falta completar alguns dados." : "Cadastro completo e salvo." });
       await aoSalvar?.();
     } catch (err) { setMsg({ tipo: "erro", texto: traduzirErro(err) }); }
@@ -85,6 +95,7 @@ export function FormEmpresa({ empresa, outras = [], aoSalvar, compacto }) {
 
   return (
     <form className="cartao" onSubmit={salvar}>
+      <AvisoRascunho r={rasc} oque="o cadastro da empresa" />
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
         <div>
           <h2>{f.razaoSocial || "Empresa"}</h2>
@@ -143,7 +154,7 @@ export function FormEmpresa({ empresa, outras = [], aoSalvar, compacto }) {
       {Number(f.capitalSocial) > 0 && <p className="pequeno suave">Capital social: {dinheiro(f.capitalSocial)} — ele será a base dos saldos iniciais.</p>}
       <p className="pequeno suave">Atividade, regime tributário, exercício social e os demais parâmetros ficam no menu Parametrização.</p>
       {erros.length > 0 && <div className="aviso atencao pequeno">{erros.map((e) => <div key={e}>{e}</div>)}</div>}
-      <div><button className="botao" disabled={salvando}>{salvando ? "Salvando…" : "Salvar cadastro"}</button></div>
+      <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}><button className="botao" disabled={salvando}>{salvando ? "Salvando…" : "Salvar cadastro"}</button><SeloNaoSalvo sujo={naoSalvo} /></div>
       {msg.texto && <div className={`aviso ${msg.tipo || ""}`} role="status">{msg.texto}</div>}
     </form>
   );

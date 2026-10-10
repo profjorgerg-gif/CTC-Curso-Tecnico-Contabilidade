@@ -3,7 +3,13 @@ import { useState } from "react";
 import { useTurmas } from "../lib/useTurmas";
 import { traduzirErro } from "../lib/sessao";
 import { disciplinaPorId } from "../dados/disciplinas";
-import { entrarModoTeste, matriculaDeTeste, NOME_CONTA_TESTE, zerarDadosTeste } from "../lib/modoTeste";
+import { entrarModoTeste, matriculaDeTeste, NOME_ALUNO_TESTE, NOME_CONTA_TESTE, zerarDadosTeste } from "../lib/modoTeste";
+import { usePlano } from "../lib/contabil";
+import { ehQuestoes, listasDaTurma } from "../lib/exercicios";
+import { lerGabarito } from "../lib/questoes";
+import { acompanharAluno } from "../lib/acompanhamento";
+import { gerarRelatorio } from "../lib/relatorioOrientacao";
+import { RelatorioDoAluno } from "../componentes/RelatorioOrientacao";
 
 export default function ModoTeste({ sessao, papel, ir }) {
   const { turmas, carregando, erro } = useTurmas(sessao);
@@ -11,6 +17,22 @@ export default function ModoTeste({ sessao, papel, ir }) {
   const [ocupado, setOcupado] = useState("");
   const uid = sessao.usuario.uid;
   const matricula = matriculaDeTeste(uid);
+  const { plano } = usePlano();
+  const [rel, setRel] = useState(null); // { turma, rel }
+
+  // Relatório de orientação da conta de teste (só leitura)
+  const relatorio = async (t) => {
+    setOcupado(`rel-${t.id}`); setMsg({ texto: "", tipo: "" }); setRel(null);
+    try {
+      const listas = (await listasDaTurma(t.id, false)).filter((l) => l.enviada);
+      const gabaritos = {};
+      for (const l of listas.filter(ehQuestoes)) gabaritos[l.id] = await lerGabarito(t.id, l.id).catch(() => ({}));
+      const aluno = { matricula, nome: NOME_ALUNO_TESTE };
+      const x = await acompanharAluno(t, aluno, listas, plano, gabaritos);
+      setRel({ turma: t, rel: gerarRelatorio({ aluno, turma: t, empresa: x.bruto?.empresa || null, esc: x.bruto?.esc, listas, respostas: x.bruto?.respostas, gabaritos, boletim: x.bruto?.boletim, plano, contaTeste: true }) });
+    } catch (e) { setMsg({ texto: traduzirErro(e), tipo: "erro" }); }
+    setOcupado("");
+  };
 
   const zerar = async (t) => {
     if (!window.confirm(`Apagar a empresa, a escrituração, as respostas e o progresso de estudo da conta de teste na turma "${t.nome}"?`)) return;
@@ -53,6 +75,7 @@ export default function ModoTeste({ sessao, papel, ir }) {
                     <td className="mono">{matricula}</td>
                     <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
                       <button className="botao pequeno" onClick={() => entrarModoTeste(uid, t)}>Entrar no modo de teste →</button>{" "}
+                      <button className="botao secundario pequeno" disabled={!plano || ocupado === `rel-${t.id}`} onClick={() => relatorio(t)}>{ocupado === `rel-${t.id}` ? "Lendo…" : "Relatório"}</button>{" "}
                       <button className="botao secundario pequeno" disabled={ocupado === t.id} onClick={() => zerar(t)}>{ocupado === t.id ? "Apagando…" : "Zerar dados de teste"}</button>
                     </td>
                   </tr>
@@ -60,6 +83,12 @@ export default function ModoTeste({ sessao, papel, ir }) {
               </tbody>
             </table>
           </div>
+        </section>
+      )}
+      {rel && (
+        <section className="cartao">
+          <RelatorioDoAluno rel={rel.rel} turma={rel.turma} />
+          <div><button type="button" className="botao secundario pequeno" onClick={() => setRel(null)}>Fechar relatório</button></div>
         </section>
       )}
     </>

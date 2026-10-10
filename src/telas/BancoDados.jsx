@@ -23,7 +23,7 @@ const ABAS = [
   ["historico", "Histórico de alterações", null],
 ];
 
-export default function BancoDados({ sessao, papel }) {
+export default function BancoDados({ sessao, papel, rota = [] }) {
   const { turmas } = useTurmas(sessao);
   // o aluno vê só as tabelas usadas pelas disciplinas em que está matriculado
   const permitidas = useMemo(() => {
@@ -31,7 +31,7 @@ export default function BancoDados({ sessao, papel }) {
     const usa = new Set(turmas.flatMap((t) => disciplinaPorId(t.disciplina)?.usa || []));
     return ABAS.filter(([, , chave]) => chave && usa.has(chave));
   }, [papel, turmas]);
-  const [aba, setAba] = useState("plano");
+  const [aba, setAba] = useState(ABAS.some(([id]) => id === rota[0]) ? rota[0] : "plano"); // #banco/{aba}
   const atual = permitidas.some(([id]) => id === aba) ? aba : permitidas[0]?.[0];
   const pode = { editarPlano: papel !== "aluno", editarIbs: papel === "admin" };
 

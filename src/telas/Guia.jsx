@@ -11,17 +11,18 @@ import {
 import { dataBR } from "../lib/contabil";
 import { Slides } from "./Slides";
 import { ManualDoAluno, ManualDoProfessor } from "./Manuais";
+import GuiaProfessor from "./GuiaProfessor";
 
-const ABAS = [["slides", "Slides"], ["semestral", "Plano Semestral"], ["mensal", "Sequência Didática (Plano de Aula)"], ["professor", "Manual do Professor"], ["aluno", "Manual do Aluno"]];
+const ABAS = [["roteiro", "🧭 Guia do professor"], ["slides", "Slides"], ["semestral", "Plano Semestral"], ["mensal", "Sequência Didática (Plano de Aula)"], ["professor", "Manual do Professor"], ["aluno", "Manual do Aluno"]];
 
 export default function Guia({ sessao, rota, ir }) {
-  const aba = ABAS.some(([id]) => id === rota[0]) ? rota[0] : "slides";
+  const aba = ABAS.some(([id]) => id === rota[0]) ? rota[0] : "roteiro";
   return (
     <>
       <div>
         <h1>Guia Pedagógico</h1>
         <p className="suave" style={{ maxWidth: 780 }}>
-          Material de apoio às aulas: slides para projetar, os planos exigidos pela SED/SC (preenchidos a partir da ementa e do que já está no CTC)
+          O mapa do CTC para o dia a dia e o material de apoio às aulas: slides para projetar, os planos exigidos pela SED/SC (preenchidos a partir da ementa e do que já está no CTC)
           e os manuais do professor e do aluno.
         </p>
       </div>
@@ -30,6 +31,7 @@ export default function Guia({ sessao, rota, ir }) {
           <button key={id} role="tab" aria-selected={aba === id} className={aba === id ? "ativo" : ""} onClick={() => ir("guia", id)}>{rotulo}</button>
         ))}
       </div>
+      {aba === "roteiro" && <GuiaProfessor sessao={sessao} ir={ir} />}
       {aba === "slides" && <Slides sessao={sessao} />}
       {(aba === "semestral" || aba === "mensal") && <Planos key={aba} sessao={sessao} tipo={aba} />}
       {aba === "professor" && <ManualDoProfessor />}

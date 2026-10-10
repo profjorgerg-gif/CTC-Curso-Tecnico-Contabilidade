@@ -6,6 +6,26 @@ import { configLancamentos, NIVEIS_AJUDA } from "../lib/modelos";
 import { ehQuestoes, emPartidas, excluirLista, finalidadeDe, FINALIDADES, gerarLista, listaModeloCompetencia, liberarResultado, listasDaTurma, salvarLista, TIPOS, valeNota } from "../lib/exercicios";
 import { lerBanco, lerGabarito, sortearQuestoes, TIPOS_QUESTAO } from "../lib/questoes";
 import Questao from "../componentes/Questao";
+import { useRascunho } from "../lib/rascunho";
+import { AvisoRascunho, SeloNaoSalvo } from "../componentes/Rascunho";
+
+// proteção contra digitação perdida nos editores de lista (só os campos que o professor edita)
+const CAMPOS_LISTA = ["titulo", "finalidade", "peso", "ajuda", "prazo", "fatos", "questoes", "recuperacaoDe"];
+const camposDa = (l) => Object.fromEntries(CAMPOS_LISTA.map((k) => [k, l?.[k] ?? null]));
+function useRascunhoLista({ turma, inicial, lista, setLista, cfg, setCfg, somenteLeitura }) {
+  const [base, setBase] = useState(() => camposDa(inicial));
+  const naoSalvo = !somenteLeitura && JSON.stringify(camposDa(lista)) !== JSON.stringify(base);
+  const rasc = useRascunho({
+    chave: somenteLeitura ? null : `lista-${turma.id}-${inicial.id || (ehQuestoes(inicial) ? "nova-questoes" : "nova-escrituracao")}`,
+    valor: { ...camposDa(lista), cfg }, sujo: naoSalvo,
+    aoRestaurar: ({ cfg: c, ...resto }) => { setLista((l) => ({ ...l, ...resto })); if (c) setCfg(c); },
+  });
+  const fechar = (aoFechar) => () => {
+    if (naoSalvo && !window.confirm("Há alterações não salvas nesta lista. Sair e descartar?")) return;
+    rasc.limpar(); aoFechar();
+  };
+  return { naoSalvo, rasc, setBase, fechar };
+}
 import { alunosParaRecuperacao, fecharLista, fmtNota, marcarRecuperacao, MEDIA_MINIMA } from "../lib/notas";
 
 const QUANTIDADES = [5, 10, 15, 20];
@@ -142,6 +162,7 @@ function EditorLista({ turma, inicial, aoFechar }) {
   const [msg, setMsg] = useState({});
   const [salvando, setSalvando] = useState(false);
   const somenteLeitura = !!inicial.enviada;
+  const prot = useRascunhoLista({ turma, inicial, lista, setLista, cfg, setCfg, somenteLeitura });
   const nome = (c) => (Array.isArray(c) ? c : [c]).map((x) => `${x} ${plano?.porCodigo[x]?.nome || ""}`).join(" ou ");
 
   const gerar = () => {
@@ -167,12 +188,14 @@ function EditorLista({ turma, inicial, aoFechar }) {
     try {
       const id = await salvarLista(turma, lista, enviar);
       if (enviar && fin === "recuperacao" && alvos?.length) await marcarRecuperacao(turma, alvos, id);
+      prot.rasc.limpar();
       aoFechar();
     } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); setSalvando(false); }
   };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12, borderTop: "1px solid var(--linha-suave)", paddingTop: 12 }}>
+      <AvisoRascunho r={prot.rasc} oque="esta lista" />
       <div className="linha-form">
         <div className="campo" style={{ flex: "1 1 240px" }}>
           <label htmlFor="ex-tit">Título da lista</label>
@@ -295,7 +318,8 @@ function EditorLista({ turma, inicial, aoFechar }) {
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         {!somenteLeitura && <button type="button" className="botao" disabled={salvando || !lista.fatos.length} onClick={() => salvar(true)}>Enviar para a turma</button>}
         {!somenteLeitura && <button type="button" className="botao secundario" disabled={salvando || !lista.fatos.length} onClick={() => salvar(false)}>Salvar como rascunho</button>}
-        <button type="button" className="botao secundario" onClick={aoFechar}>{somenteLeitura ? "Fechar" : "Cancelar"}</button>
+        <button type="button" className="botao secundario" onClick={prot.fechar(aoFechar)}>{somenteLeitura ? "Fechar" : "Cancelar"}</button>
+        <SeloNaoSalvo sujo={prot.naoSalvo} />
       </div>
     </div>
   );
@@ -310,6 +334,7 @@ function EditorQuestoes({ turma, inicial, aoFechar }) {
   const [salvando, setSalvando] = useState(false);
   const somenteLeitura = !!inicial.enviada;
   const fin = finalidadeDe(lista);
+  const prot = useRascunhoLista({ turma, inicial, lista, setLista, cfg, setCfg, somenteLeitura });
 
   useEffect(() => {
     lerBanco(turma.disciplina).then((b) => {
@@ -317,7 +342,11 @@ function EditorQuestoes({ turma, inicial, aoFechar }) {
       if (!cfg.modulos?.length && b.length) setCfg((c) => ({ ...c, modulos: [b[0].id] }));
     }).catch((e) => setMsg({ tipo: "erro", texto: traduzirErro(e) }));
     // lista já salva: o gabarito volta do registro do professor
-    if (inicial.id) lerGabarito(turma.id, inicial.id).then((g) => setLista((l) => ({ ...l, questoes: (l.questoes || []).map((q) => ({ ...q, ...(g[q.id] || {}) })) }))).catch(() => {});
+    if (inicial.id) lerGabarito(turma.id, inicial.id).then((g) => {
+      const comGabarito = (l) => ({ ...l, questoes: (l.questoes || []).map((q) => ({ ...q, ...(g[q.id] || {}) })) });
+      prot.setBase(camposDa(comGabarito(inicial)));
+      setLista(comGabarito);
+    }).catch(() => {});
   }, []);
 
   const usadas = () => [...(inicial.excluir || []), ...(lista.questoes || []).map((q) => q.id)];
@@ -349,12 +378,14 @@ function EditorQuestoes({ turma, inicial, aoFechar }) {
     try {
       const id = await salvarLista(turma, { ...lista, configuracao: cfg }, enviar);
       if (enviar && fin === "recuperacao" && alvos?.length) await marcarRecuperacao(turma, alvos, id);
+      prot.rasc.limpar();
       aoFechar();
     } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); setSalvando(false); }
   };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12, borderTop: "1px solid var(--linha-suave)", paddingTop: 12 }}>
+      <AvisoRascunho r={prot.rasc} oque="esta lista" />
       <span className="selo cheio" style={{ alignSelf: "flex-start" }}>Lista de questões teóricas</span>
       <div className="linha-form">
         <div className="campo" style={{ flex: "1 1 240px" }}>
@@ -446,7 +477,8 @@ function EditorQuestoes({ turma, inicial, aoFechar }) {
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         {!somenteLeitura && <button type="button" className="botao" disabled={salvando || !lista.questoes?.length} onClick={() => salvar(true)}>Enviar para a turma</button>}
         {!somenteLeitura && <button type="button" className="botao secundario" disabled={salvando || !lista.questoes?.length} onClick={() => salvar(false)}>Salvar como rascunho</button>}
-        <button type="button" className="botao secundario" onClick={aoFechar}>{somenteLeitura ? "Fechar" : "Cancelar"}</button>
+        <button type="button" className="botao secundario" onClick={prot.fechar(aoFechar)}>{somenteLeitura ? "Fechar" : "Cancelar"}</button>
+        <SeloNaoSalvo sujo={prot.naoSalvo} />
       </div>
     </div>
   );

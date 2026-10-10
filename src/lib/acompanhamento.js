@@ -47,10 +47,12 @@ export async function acompanharAluno(turma, aluno, listas, plano, gabaritos = {
   const temRecuperacao = listas.some((l) => finalidadeDe(l) === "recuperacao");
   const boletim = temRecuperacao ? await lerBoletim(turma.id, aluno.matricula).catch(() => null) : null;
   const porLista = {};
+  const respostas = {}; // guardadas para o Relatório de orientação (sem ler de novo)
   for (const lista of listas) {
     if (finalidadeDe(lista) === "recuperacao" && !boletim?.recuperacoes?.includes(lista.id)) { porLista[lista.id] = { naoSeAplica: true }; continue; }
     if (ehQuestoes(lista)) {
       const r = await lerResposta(turma.id, lista.id, aluno.matricula).catch(() => null);
+      respostas[lista.id] = r;
       porLista[lista.id] = notaDasQuestoes(lista.questoes || [], r?.respostas || {}, gabaritos[lista.id]);
       continue;
     }
@@ -68,6 +70,7 @@ export async function acompanharAluno(turma, aluno, listas, plano, gabaritos = {
     balancete: temMovimento ? balancete(plano, lanc, esc.saldos).fecha : null,
     encerrado: jaEncerrado(lanc),
     ultima: ultimaAtividade(esc),
+    bruto: { empresa, esc, boletim, respostas },
   };
 }
 

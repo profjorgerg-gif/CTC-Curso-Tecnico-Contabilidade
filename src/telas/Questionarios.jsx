@@ -1,5 +1,6 @@
 // Aluno: listas de questões teóricas enviadas pelo professor (de sala, avaliativas e recuperação)
 import { useEffect, useState } from "react";
+import FluxoEtapa from "../componentes/FluxoEtapa";
 import { useTurmas } from "../lib/useTurmas";
 import { traduzirErro } from "../lib/sessao";
 import { disciplinaPorId } from "../dados/disciplinas";
@@ -8,6 +9,8 @@ import { ehQuestoes, finalidadeDe, FINALIDADES, listasDaTurma, valeNota } from "
 import { lerBoletim, fmtNota } from "../lib/notas";
 import { lerResposta, notaDasQuestoes, salvarResposta } from "../lib/questoes";
 import Questao from "../componentes/Questao";
+import { useRascunho } from "../lib/rascunho";
+import { AvisoRascunho, SeloNaoSalvo } from "../componentes/Rascunho";
 
 const hoje = () => new Date().toLocaleDateString("sv-SE");
 
@@ -22,6 +25,7 @@ export default function Questionarios({ sessao }) {
         <h1>Questionários</h1>
         <p className="suave" style={{ maxWidth: 760 }}>Questões teóricas enviadas pelo professor: múltipla escolha, verdadeiro ou falso e afirmações. Nos exercícios de sala você vê a correção na hora; nos avaliativos, quando o professor liberar o resultado.</p>
       </div>
+      <FluxoEtapa etapa="questionarios" />
       {erro && <div className="aviso erro">{erro}</div>}
       {!carregando && turmas.length === 0 && <div className="aviso atencao">Você ainda não está em nenhuma turma.</div>}
       {turmas.map((t) => <ListasDaTurma key={t.id} turma={t} matricula={matricula} abrir={(lista) => setAberta({ turma: t, lista })} />)}
@@ -90,15 +94,20 @@ function Responder({ turma, lista, matricula, aoVoltar }) {
   const encerrada = avaliativa && (lista.fechada || (lista.prazo && hoje() > lista.prazo));
   const liberada = avaliativa && lista.resultadoLiberado && lista.gabarito;
   const [resp, setResp] = useState({});
+  const [salvo, setSalvo] = useState({}); // o que já está gravado no banco
+  const [carregou, setCarregou] = useState(false);
   const [corrigida, setCorrigida] = useState(false);
   const [msg, setMsg] = useState({});
   const [salvando, setSalvando] = useState(false);
   useEffect(() => {
-    lerResposta(turma.id, lista.id, matricula).then((r) => { if (r) { setResp(r.respostas || {}); if (!avaliativa && Object.keys(r.respostas || {}).length === lista.questoes.length) setCorrigida(true); } }).catch(() => {});
+    lerResposta(turma.id, lista.id, matricula).then((r) => { if (r) { setResp(r.respostas || {}); setSalvo(r.respostas || {}); if (!avaliativa && Object.keys(r.respostas || {}).length === lista.questoes.length) setCorrigida(true); } }).catch(() => {}).finally(() => setCarregou(true));
   }, []);
 
   const questoes = lista.questoes || [];
   const travada = encerrada || liberada || (!avaliativa && corrigida);
+  // proteção contra digitação perdida: respostas marcadas e ainda não salvas ficam guardadas neste navegador
+  const naoSalvo = carregou && !travada && JSON.stringify(resp) !== JSON.stringify(salvo);
+  const rasc = useRascunho({ chave: carregou && !travada ? `quest-${turma.id}-${lista.id}-${matricula}` : null, valor: resp, sujo: naoSalvo, aoRestaurar: setResp });
   const modo = liberada || (!avaliativa && corrigida) ? "correcao" : "responder";
   const gab = (q) => (liberada ? lista.gabarito[q.id] : { correta: q.correta, explicacao: q.explicacao });
   const respondidas = questoes.filter((q) => resp[q.id] !== undefined).length;
@@ -109,6 +118,7 @@ function Responder({ turma, lista, matricula, aoVoltar }) {
     setSalvando(true); setMsg({});
     try {
       await salvarResposta(turma.id, lista.id, matricula, resp);
+      setSalvo(resp); rasc.limpar();
       if (!avaliativa && final) setCorrigida(true);
       setMsg({ texto: avaliativa ? "Respostas salvas. Você pode alterá-las até o prazo; a correção aparece quando o professor liberar o resultado." : final ? "Respostas enviadas — veja a correção abaixo." : "Respostas salvas." });
     } catch (e) { setMsg({ tipo: "erro", texto: traduzirErro(e) }); }
@@ -127,6 +137,7 @@ function Responder({ turma, lista, matricula, aoVoltar }) {
       {encerrada && !liberada && <div className="aviso atencao">Este questionário está encerrado. A correção aparece quando o professor liberar o resultado.</div>}
       {avaliativa && !encerrada && !liberada && <div className="aviso pequeno">Questionário avaliativo: as respostas ficam salvas e podem ser alteradas até o prazo. A correção aparece quando o professor liberar o resultado.</div>}
       {nota && <div className="aviso"><strong>Resultado:</strong> {nota.acertos} de {nota.total} certas — nota <strong className="mono">{fmtNota(nota.nota)}</strong>{!avaliativa ? " (exercício de sala, não vale nota)" : ""}.</div>}
+      <AvisoRascunho r={rasc} oque="as respostas deste questionário" />
       <section className="cartao">
         {questoes.map((q, i) => (
           <Questao key={q.id} q={q} n={i + 1} modo={modo} matricula={matricula} resposta={resp[q.id]} desabilitada={travada}
@@ -137,6 +148,7 @@ function Responder({ turma, lista, matricula, aoVoltar }) {
       {msg.texto && <div className={`aviso ${msg.tipo || ""}`} role="status">{msg.texto}</div>}
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
         {!travada && <span className="pequeno suave">{respondidas} de {questoes.length} respondidas</span>}
+        <SeloNaoSalvo sujo={naoSalvo} />
         {!travada && avaliativa && <button className="botao" disabled={salvando} onClick={() => salvar(true)}>{salvando ? "Salvando…" : "Salvar respostas"}</button>}
         {!travada && !avaliativa && <button className="botao secundario" disabled={salvando} onClick={() => salvar(false)}>Salvar e continuar depois</button>}
         {!travada && !avaliativa && <button className="botao" disabled={salvando} onClick={() => salvar(true)}>Enviar e ver a correção</button>}
